@@ -1,11 +1,11 @@
 #include <core.h>
 
-int main(int argc, char *argv[])
+int main()
 {
     Core core;
     //
-    core.setWindow(1280, 720, "Stratwenty beta");
     core.init();
+    core.setWindow(1280, 720, "Stratwenty beta");
     //
     return core.exec();
 }
