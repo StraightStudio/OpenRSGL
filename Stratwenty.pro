@@ -14,4 +14,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    core.cpp \
+    scene2d.cpp \
+    texloader.cpp \
+    actor2d.cpp
+
+HEADERS += \
+    core.h \
+    scene2d.h \
+    texloader.h \
+    actor2d.h \
+    depends.h
