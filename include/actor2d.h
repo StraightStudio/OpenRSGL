@@ -8,7 +8,7 @@ class Actor2d
 public:
     Actor2d();
     SDL_Rect rect;
-    vector <SDL_Texture*> texs;
+    QStringList texs;
 
 
     void setPos(vec2 pos)
@@ -41,12 +41,11 @@ public:
         return vec2(rect.w, rect.h);
     }
 
-    SDL_Texture* getTex(int id)
+    const QString &getTex(int id) const
     {
-        return texs[id];
+        return texs.at(id);
     }
-
-    void addTex(SDL_Texture* tex);
+    void setTexs(QStringList *texlist);
 };
 
 #endif // ACTOR2D_H

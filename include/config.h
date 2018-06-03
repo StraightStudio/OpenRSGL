@@ -7,5 +7,6 @@
 #define RES_ROOT "data/"
 #define IMG_ROOT RES_ROOT"img/"
 #define AUDIO_ROOT RES_ROOT"audio/"
+#define SCENE_ROOT RES_ROOT"scenes/"
 
 #endif // CONFIG_H

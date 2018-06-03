@@ -12,10 +12,17 @@
 
 #include <QString>
 #include <QMap>
+#include <QFile>
+#include <QTextStream>
+#include <QDebug>
+#include <QVariant>
+
+#include <rapidjson/document.h>
 
 #include <include/config.h>
 
 using namespace std;
+using namespace rapidjson;
 
 struct vec2
 {

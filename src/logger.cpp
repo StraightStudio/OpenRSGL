@@ -1,9 +1,5 @@
 #include "../include/logger.h"
 
-Logger::Logger()
-{
-}
-
 void Logger::log(QString module, QString msg)
 {
     fprintf(stdout, "\n[L] [ %s ] %s\n", module.toStdString().c_str(), msg.toStdString().c_str());

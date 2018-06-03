@@ -6,6 +6,8 @@
 #include <include/depends.h>
 #include <include/scene2d.h>
 #include <include/texloader.h>
+#include <include/sceneparser.h>
+#include <include/gameevents.h>
 
 class Core
 {
@@ -15,6 +17,8 @@ public:
     void init();
     void spawn();
     int exec();
+    void loadTextures();
+    void draw_objs();
 
 private:
     QString current_scene;
@@ -24,8 +28,8 @@ private:
     SDL_Event m_event;
     Scene2d m_scene;
     bool m_quit;
-    Logger m_log;
     TexLoader m_texloader;
+    SceneParser m_sceneparser;
 };
 
 #endif // CORE_H

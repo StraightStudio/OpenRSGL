@@ -5,8 +5,8 @@ Actor2d::Actor2d()
 
 }
 
-void Actor2d::addTex(SDL_Texture *tex)
+void Actor2d::setTexs(QStringList* texlist)
 {
-    texs.push_back(tex);
-
+    for(int i=0; i < texlist->count(); i++)
+        texs.append(texlist->at(i));
 }
