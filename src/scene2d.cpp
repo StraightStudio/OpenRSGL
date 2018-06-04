@@ -6,41 +6,27 @@ Scene2d::Scene2d() :
 
 }
 
-void Scene2d::spawn(vec2 pos, vec2 dim, QString textureAlias, TexLoader *tl)
-{
-    Actor2d actor;
-    actor.setPos(pos);
-    actor.setDim(dim);
-
-    m_objs.push_back(actor);
-}
-
-void Scene2d::spawn(vec2 pos, QString textureAlias, TexLoader *tl)
-{
-    Actor2d actor;
-    actor.setPos(pos);
-    actor.setDim(128, 128);
-
-    m_objs.push_back(actor);
-}
-
-void Scene2d::addActor(vec2 pos, vec2 dim, QStringList textures)
+void Scene2d::addActor(vec2 pos, vec2 dim, QStringList textures, QString name, QString type, QMap<QString, QString> trigger)
 {
     Actor2d actor;
 
     actor.setPos(pos);
     actor.setDim(dim);
     actor.setTexs(&textures);
+    actor.setName(name);
+    actor.setType(type);
 
-    m_objs.push_back(actor);
+    actor.trigger = trigger;
+
+    m_objs[name] = actor;
 }
 
-SDL_Rect &Scene2d::getRect(int id)
+SDL_Rect &Scene2d::getRect(QString name)
 {
-    return m_objs.at(id).rect;
+    return m_objs[name].rect;
 }
 
-vector<Actor2d> &Scene2d::objs()
+QMap<QString, Actor2d> &Scene2d::objs()
 {
     return m_objs;
 }

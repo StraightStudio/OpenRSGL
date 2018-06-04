@@ -12,7 +12,7 @@ public:
     SDL_Texture *getTex(QString texAlias);
     void addTex(QString file, QString texAlias, SDL_Renderer *rend);
 
-    void loadTextures(SDL_Renderer *rend);
+    void loadTextures(SDL_Renderer *rend, AppConfig &conf);
 private:
     QMap <QString, SDL_Texture*> texLib;
 };

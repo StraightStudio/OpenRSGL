@@ -23,37 +23,17 @@ SDL_Texture *TexLoader::getTex(QString texAlias)
 void TexLoader::addTex(QString file, QString texAlias, SDL_Renderer* rend)
 {
     if(!IMG_Load( QString(IMG_ROOT+file).toStdString().c_str() ) ){
-        Logger::err("TexLoader", "No such texture: "IMG_ROOT+file);
+        Logger::err("TexLoader", "No such texture: " IMG_ROOT+file);
         return;
     }
     texLib[texAlias] = SDL_CreateTextureFromSurface(rend, IMG_Load( QString(IMG_ROOT+file).toStdString().c_str() ));
-    Logger::log("Core", "'"IMG_ROOT+file+"' texture imported successfully.");
+    Logger::log("Core", "'" IMG_ROOT+file+"' texture imported as '"+texAlias+"'.");
 }
 
-void TexLoader::loadTextures(SDL_Renderer* rend)
+void TexLoader::loadTextures(SDL_Renderer* rend, AppConfig &conf)
 {
-    QFile tlist(RES_ROOT"texture.list");
-    tlist.open(QIODevice::ReadOnly);
-    if(!tlist.isOpen()){
-        Logger::err("Core", "Can't find 'data/texture.list'.");
-        exit(-1);
-    }
-    QTextStream in(&tlist);
-
-    QString line;
-    QStringList parts;
-
-    while(!in.atEnd())
+    for(QString talias : conf.app_textures.keys())
     {
-        line = in.readLine();
-        parts = line.split(":");
-
-        if(parts.count() > 2)
-        {
-            Logger::err("Core", "Incorrect structure format in 'data/texture.list'.");
-            exit(-1);
-        }
-        addTex(parts.at(1).trimmed(), parts.at(0).trimmed(), rend);
+        addTex(conf.app_textures[talias], talias, rend);
     }
-    tlist.close();
 }

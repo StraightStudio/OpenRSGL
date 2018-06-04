@@ -13,11 +13,12 @@ class Core
 {
 public:
     Core();
-    void setWindow(int width, int height, QString title);
+    ~Core();
     void init();
     void spawn();
     int exec();
     void loadTextures();
+    void parse_ui();
     void draw_objs();
 
 private:
@@ -30,6 +31,12 @@ private:
     bool m_quit;
     TexLoader m_texloader;
     SceneParser m_sceneparser;
+
+    AppConfig m_appconf;
+
+    QMap<QString, QString> ui_btns;
+    QList<Mix_Music*> tracks;
+    QMap<QString, Mix_Chunk*> sounds;
 };
 
 #endif // CORE_H

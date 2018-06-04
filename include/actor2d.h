@@ -9,7 +9,9 @@ public:
     Actor2d();
     SDL_Rect rect;
     QStringList texs;
-
+    QString name;
+    QString type;
+    QMap<QString,QString> trigger;
 
     void setPos(vec2 pos)
     {
@@ -45,6 +47,52 @@ public:
     {
         return texs.at(id);
     }
+
+    void setName(QVariant n)
+    {
+        name = n.toString();
+    }
+
+    const QString &getName() const
+    {
+        return name;
+    }
+
+    SDL_Rect &getRect()
+    {
+        return rect;
+    }
+
+    int triggerAction(QString event)
+    {
+        if(trigger.contains(event))
+        {
+            if(trigger[event].split(" ")[0] == "snd")
+                return SOUND_ACTION;
+            else if(trigger[event].split(" ")[0] == "scn")
+                return SCENE_ACTION;
+            else if(trigger[event].split(" ")[0] == "quit")
+                return QUIT_ACTION;
+        }
+        else
+            return 0;
+    }
+    QString triggerArgument(QString event)
+    {
+        if(trigger.contains(event))
+            return trigger[event].split(" ")[1];
+    }
+
+    void setType(QVariant t)
+    {
+        type = t.toString();
+    }
+
+    void addTex(QString tex)
+    {
+        texs.append(tex);
+    }
+
     void setTexs(QStringList *texlist);
 };
 

@@ -15,44 +15,149 @@ void SceneParser::readScene(Scene2d *target, QString file)
 
     Document doc;
 
-    doc.Parse(sdata.constData());
-    assert(doc.IsObject()); // Check for json integrity
+    bool err=false;
+    QString derr;
 
-    assert(doc.HasMember("name")); // Check if "name" exists.
-    assert(doc["name"].IsString()); // Check "name" type
-    target->sinfo.setName( doc["name"].GetString() ); // Get "name"
+    doc.Parse(sdata.constData());   
+    if(!doc.IsObject()) // Check for json integrity
+    {
+        derr = CORRUPT_SCENE;
+        err = true;
+    }
 
-    assert(doc.HasMember("author")); // If "author" exists.
-    assert(doc["author"].IsString()); // Check "author" type
-    target->sinfo.setAuthor( doc["author"].GetString() ); // Get "author"
 
-    assert(doc.HasMember("objects")); // Check if "objects" exists
-    assert(doc["objects"].IsObject()); // Check "objects" type
+
+    if(!doc.HasMember("name")) // Check if "name" exists.
+    {
+        derr = CORRUPT_SCENE_NAME;
+        err = true;
+    }
+    if(!doc["name"].IsString()) // Check "name" type
+    {
+        derr = INVALID_SCENE_NAME;
+        err = true;
+    }
+    else
+        target->sinfo.setName( doc["name"].GetString() ); // Get "name"
+
+
+
+    if(!doc.HasMember("author")) // If "author" exists.
+    {
+        derr = CORRUPT_SCENE_AUTHOR;
+        err = true;
+    }
+    if(!doc["author"].IsString()) // Check "author" type
+    {
+        derr = INVALID_SCENE_AUTHOR;
+        err = true;
+    }
+    else
+        target->sinfo.setAuthor( doc["author"].GetString() ); // Get "author"
+
+
+
+    if(!doc.HasMember("objects")) // Check if "objects" exists
+    {
+        derr = CORRUPT_OBJLIST;
+        err = true;
+    }
+    if(!doc["objects"].IsObject()) // Check "objects" type
+    {
+        derr = INVALID_OBJLIST;
+        err = true;
+    }
+
+    if(err)
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                                 "Scene parsing error",
+                                 QString("SceneParsing error:\n'"+derr+"'").toStdString().c_str(),
+                                 NULL);
+        exit(-1);
+    }
 
     int x,y,w,h;
+    QString type;
+    QMap <QString, QString> trigger;
     QStringList texs;
     for(auto& i : doc["objects"].GetObject())
     {
-        assert(i.value["x"].IsInt());
-        assert(i.value["y"].IsInt());
+        texs.clear();
+        if( !(i.value["x"].IsInt() || i.value["y"].IsInt()) )
+        {
+            derr = INVALID_COORDS;
+            err = true;
+            break;
+        }
         x = i.value["x"].GetInt();
         y = i.value["y"].GetInt();
 
-        assert(i.value["w"].IsInt());
-        assert(i.value["h"].IsInt());
+        if( !(i.value["w"].IsInt() || i.value["h"].IsInt()) )
+        {
+            derr = INVALID_DIMS;
+            err = true;
+            break;
+        }
         w = i.value["w"].GetInt();
         h = i.value["h"].GetInt();
 
-        assert(i.value["textures"].IsArray());
+        if(!i.value["type"].IsString())
+        {
+            derr = INVALID_TYPE;
+            err = true;
+            break;
+        }
+        type = i.value["type"].GetString();
+
         for(SizeType n=0; n < i.value["textures"].Size(); n++)
+        {
+            if(!i.value["textures"][n].IsString())
+            {
+                derr = INVALID_TEXS;
+                err = true;
+                break;
+            }
             texs.append(i.value["textures"][n].GetString());
+        }
 
-        target->addActor(vec2(x,y), vec2(w,h), texs);
+        if(type == "button")
+        {
+            if(!i.value["hover"].IsString())
+            {
+                derr = INVALID_OBJLIST;
+                err = true;
+                break;
+            }
+            trigger["hover"] = i.value["hover"].GetString();
+            if(!i.value["click"].IsString())
+            {
+                derr = INVALID_OBJLIST;
+                err = true;
+                break;
+            }
+            trigger["click"] = i.value["click"].GetString();
+        }
 
-        Logger::log("SceneParser", "Obj '"+QString(i.name.GetString())+"' Pos("+QString::number(x)+","+QString::number(y)+")");
+        target->addActor(vec2(x,y), vec2(w,h), texs, i.name.GetString(), type, trigger);
+    }
+
+    if(err)
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                                 "Scene parsing error",
+                                 QString("SceneParsing error:\n'"+derr+"'").toStdString().c_str(),
+                                 NULL);
+        exit(-1);
     }
 
     if(target->sinfo.name.toLower() != "menu") // Not necessary to show game special scenes.
         Logger::log("SceneParser", QString("Loaded scene '"+target->sinfo.name+
                                            "', made by '"+target->sinfo.author+"'") );
+}
+
+void SceneParser::loadScene(Scene2d *target, QString file)
+{
+    target->objs().clear();
+    readScene(target, file);
 }
