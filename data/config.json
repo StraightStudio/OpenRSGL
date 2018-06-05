@@ -19,5 +19,13 @@
 		"mario"			: "mario.png",
 		"quit"			: "quit.png"
 	},
-	"background-audio" : ["music/menu_01.ogg"]
+	"sounds"			: 
+	{
+		"hover"			: "hover.wav"
+	},
+	"music"				:
+	{
+		"menu_01"		: "amadeus_superior.ogg",
+		"n_one"			: "n_one.ogg"
+	}
 }

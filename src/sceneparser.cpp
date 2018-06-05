@@ -81,9 +81,11 @@ void SceneParser::readScene(Scene2d *target, QString file)
     QString type;
     QMap <QString, QString> trigger;
     QStringList texs;
+    int o_fps;
     for(auto& i : doc["objects"].GetObject())
     {
         texs.clear();
+        o_fps = 0;
         if( !(i.value["x"].IsInt() || i.value["y"].IsInt()) )
         {
             derr = INVALID_COORDS;
@@ -121,6 +123,14 @@ void SceneParser::readScene(Scene2d *target, QString file)
             texs.append(i.value["textures"][n].GetString());
         }
 
+        if(!i.value["fps"].IsInt())
+        {
+            derr = "'fps' must be INT!";
+            err = true;
+            break;
+        }
+        o_fps = i.value["fps"].GetInt();
+
         if(type == "button")
         {
             if(!i.value["hover"].IsString())
@@ -139,7 +149,18 @@ void SceneParser::readScene(Scene2d *target, QString file)
             trigger["click"] = i.value["click"].GetString();
         }
 
-        target->addActor(vec2(x,y), vec2(w,h), texs, i.name.GetString(), type, trigger);
+        target->addActor(vec2(x,y), vec2(w,h), texs, i.name.GetString(), type, trigger, o_fps);
+    }
+
+    if(doc.HasMember("bg-track"))
+    {
+        if(!doc["bg-track"].IsString())
+        {
+            derr = "Failed to get background track!";
+            err = true;
+        }
+        else
+            target->sinfo.setBgTrack(doc["bg-track"].GetString());
     }
 
     if(err)

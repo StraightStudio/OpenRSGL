@@ -8,6 +8,7 @@
 #include <include/texloader.h>
 #include <include/sceneparser.h>
 #include <include/gameevents.h>
+#include <include/audiomanager.h>
 
 class Core
 {
@@ -18,8 +19,9 @@ public:
     void spawn();
     int exec();
     void loadTextures();
-    void parse_ui();
     void draw_objs();
+
+    void processEvents();
 
 private:
     QString current_scene;
@@ -29,14 +31,13 @@ private:
     SDL_Event m_event;
     Scene2d m_scene;
     bool m_quit;
+
     TexLoader m_texloader;
+    AudioManager m_audiomgr;
     SceneParser m_sceneparser;
+    GameEvents m_processor;
 
     AppConfig m_appconf;
-
-    QMap<QString, QString> ui_btns;
-    QList<Mix_Music*> tracks;
-    QMap<QString, Mix_Chunk*> sounds;
 };
 
 #endif // CORE_H

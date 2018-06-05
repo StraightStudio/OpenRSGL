@@ -6,7 +6,12 @@ Scene2d::Scene2d() :
 
 }
 
-void Scene2d::addActor(vec2 pos, vec2 dim, QStringList textures, QString name, QString type, QMap<QString, QString> trigger)
+void Scene2d::start(AudioManager *mgr)
+{
+    mgr->playMusic(sinfo.bg_track, true);
+}
+
+void Scene2d::addActor(vec2 pos, vec2 dim, QStringList textures, QString name, QString type, QMap<QString, QString> trigger, int fps)
 {
     Actor2d actor;
 
@@ -15,6 +20,7 @@ void Scene2d::addActor(vec2 pos, vec2 dim, QStringList textures, QString name, Q
     actor.setTexs(&textures);
     actor.setName(name);
     actor.setType(type);
+    actor.setFps(fps);
 
     actor.trigger = trigger;
 

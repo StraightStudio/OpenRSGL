@@ -9,6 +9,7 @@ public:
     Actor2d();
     SDL_Rect rect;
     QStringList texs;
+    int curTex; int frameIter; int frameRate;
     QString name;
     QString type;
     QMap<QString,QString> trigger;
@@ -43,9 +44,9 @@ public:
         return vec2(rect.w, rect.h);
     }
 
-    const QString &getTex(int id) const
+    const QString &getTex() const
     {
-        return texs.at(id);
+        return texs.at(curTex);
     }
 
     void setName(QVariant n)
@@ -56,6 +57,11 @@ public:
     const QString &getName() const
     {
         return name;
+    }
+
+    void setFps(int f)
+    {
+        frameRate = f;
     }
 
     SDL_Rect &getRect()
@@ -91,6 +97,23 @@ public:
     void addTex(QString tex)
     {
         texs.append(tex);
+    }
+
+    void nextFrame()
+    {
+        if(frameRate > 0)
+        {
+            if(frameIter == TARGET_FPS/frameRate) // TARGET_FPS/frameRate MUST BE INT
+            {
+                frameIter=0;
+                if(curTex == texs.length()-1)
+                    curTex=0;
+                else
+                    curTex++;
+            }
+            else
+                frameIter++;
+        }
     }
 
     void setTexs(QStringList *texlist);

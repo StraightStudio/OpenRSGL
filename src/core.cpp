@@ -9,13 +9,7 @@ Core::~Core()
 {
     SDL_DestroyWindow(m_window);
     SDL_DestroyRenderer(m_iout);
-    for(Mix_Music* track : tracks)
-        Mix_FreeMusic(track);
 
-    for(Mix_Chunk* chunk : sounds.values())
-        Mix_FreeChunk(chunk);
-
-    Mix_Quit();
     SDL_Quit();
 }
 
@@ -37,14 +31,8 @@ void Core::init()
     }
     Logger::log("Core", "Window & renderer created.");
     //
-    if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+
         Logger::err("Core", "Can't open audio device!");
-    for(QString track : m_appconf.background_audio_list)
-    {
-        tracks.append(Mix_LoadMUS(QString(AUDIO_ROOT+track).toStdString().c_str()));
-    }    
-    Mix_HaltMusic();
-    Mix_PlayMusic(tracks[0], 0);
     //
     SDL_SetWindowSize(m_window, m_appconf.app_width, m_appconf.app_height);
     Logger::log("Core", "Window size set.");
@@ -54,6 +42,10 @@ void Core::init()
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
     //
     m_texloader.loadTextures(m_iout, m_appconf);
+
+    m_audiomgr.init();
+    m_audiomgr.loadSounds(m_appconf);
+    m_audiomgr.loadMusic(m_appconf);
 }
 
 int Core::exec()
@@ -61,16 +53,6 @@ int Core::exec()
     m_quit = false;
 
     m_sceneparser.readScene(&m_scene, m_appconf.getStartScene());
-
-    for(Actor2d a : m_scene.objs().values())
-    {
-        if(a.type == "button")
-        {
-            QString arg = a.triggerArgument("hover");
-            if(!arg.isEmpty())
-                sounds[arg] = Mix_LoadWAV(QString(AUDIO_ROOT+arg).toStdString().c_str());
-        }
-    }
     while(!m_quit)
     {
         SDL_RenderClear(m_iout);
@@ -84,8 +66,7 @@ int Core::exec()
                 break;
             }
         }
-        //
-        parse_ui();
+        processEvents();
         //
         draw_objs();
 
@@ -94,57 +75,63 @@ int Core::exec()
     return 0;
 }
 
-void Core::parse_ui()
-{
-    for(Actor2d obj : m_scene.objs().values())
-    {
-        if(obj.type == "button")
-        {
-            if(GameEvents::isMouseOver(&obj.getRect()))
-            {
-                if(ui_btns[obj.getName()] != "hovered")
-                {
-                    if(obj.triggerAction("hover") == SOUND_ACTION)
-                    {
-                        Mix_PlayChannel(-1, sounds[obj.triggerArgument("hover")], 0);
-                    }
-                    m_scene.objs()[obj.getName()].setDim(vec2(obj.getRect().w+16, obj.getRect().h+16));
-                    m_scene.objs()[obj.getName()].setPos(vec2(obj.getRect().x-8, obj.getRect().y-8));
-                    ui_btns[obj.getName()] = "hovered";
-                }
-                if(GameEvents::isMouseDown(1))
-                {
-                    switch(obj.triggerAction("click"))
-                    {
-                        case SCENE_ACTION:
-                            m_sceneparser.loadScene(&m_scene, obj.triggerArgument("click"));
-                        break;
-                        case QUIT_ACTION:
-                            m_quit=true;
-                        break;
-                    }
-                }
-            }
-
-            if(!GameEvents::isMouseOver(&obj.getRect()))
-            {
-                if(ui_btns[obj.getName()] == "hovered")
-                {
-                    m_scene.objs()[obj.getName()].setDim(vec2(obj.getRect().w-16, obj.getRect().h-16));
-                    m_scene.objs()[obj.getName()].setPos(vec2(obj.getRect().x+8, obj.getRect().y+8));
-                    ui_btns[obj.getName()] = "none";
-                }
-            }
-        }
-        // ======================================================================================
-
-    }
-}
-
 void Core::draw_objs()
 {
     for(Actor2d a: m_scene.objs().values())
     {
-        SDL_RenderCopy(m_iout, m_texloader.getTex( a.getTex(0) ), NULL, &a.rect);
+        SDL_RenderCopy(m_iout, m_texloader.getTex( a.getTex() ), NULL, &a.rect);
+        m_scene.objs()[a.getName()].nextFrame();
+    }
+}
+
+void Core::processEvents()
+{
+    Action act;
+    for(Actor2d obj : m_scene.objs().values())
+    {
+        if(obj.type == "button")
+        {
+            act = m_processor.processUIobject(obj);
+
+            switch(act.id)
+            {
+                case POS_ACTION:
+                    m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+                break;
+                case POS_RES_ACTION:
+                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                    m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+                break;
+                case RESIZE_ACTION:
+                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                break;
+                case RES_SND_ACTION:
+                    m_audiomgr.playSound(act.stringData());
+                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                break;
+                case POS_RES_SND_ACTION:
+                    m_audiomgr.playSound(act.stringData());
+                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                    m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+                break;
+
+                case SOUND_ACTION:
+                    m_audiomgr.playSound(act.stringData());
+                break;
+                case SCENE_ACTION:
+                    m_sceneparser.loadScene(&m_scene, act.stringData());
+                    m_scene.start(&m_audiomgr);
+                break;
+                case QUIT_ACTION:
+                m_quit = act.boolData();
+                break;
+                case 0:
+                break;
+                default:
+                Config::cfgwarn("Undefined event triggered!");
+                break;
+            }
+            act.reset();
+        }
     }
 }

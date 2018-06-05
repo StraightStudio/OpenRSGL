@@ -37,8 +37,6 @@ void Config::loadCfg(AppConfig *conf)
         cfgerr(CORRUPT_CONFIG_AUTHOR);
     if(!doc.HasMember("app_version") || !doc["app_version"].IsString())
         cfgerr(CORRUPT_CONFIG_VERSION);
-    if(!doc.HasMember("background-audio") || !doc["background-audio"].IsArray())
-        cfgerr("'background-audio' must be STRING ARRAY!");
 
     if(!doc.HasMember("width") || !doc["width"].IsInt() ||
        !doc.HasMember("height") || !doc["height"].IsInt() )
@@ -59,6 +57,13 @@ void Config::loadCfg(AppConfig *conf)
     if(!doc.HasMember("textures"))
         cfgerr("Can't find 'textures' list!");
 
+    if(!doc.HasMember("sounds"))
+        cfgerr("Can't find 'sounds' list!");
+
+    if(!doc.HasMember("music"))
+        cfgerr("Can't find 'music' list!");
+
+
     for( auto& s : doc["scenes"].GetObject() )
     {
         if(!s.name.IsString())
@@ -73,9 +78,48 @@ void Config::loadCfg(AppConfig *conf)
         conf->app_textures[t.name.GetString()] = t.value.GetString();
     }
 
-    for(SizeType i=0; i < doc["background-audio"].Size(); i++)
+
+    for( auto& s : doc["sounds"].GetObject() )
     {
-        conf->background_audio_list.append(doc["background-audio"][i].GetString());
+        if(!s.name.IsString())
+            cfgerr("Corrupt 'textures' list!");
+        conf->sound_files[s.name.GetString()] = s.value.GetString();
     }
+
+    for( auto& m : doc["music"].GetObject() )
+    {
+        if(!m.name.IsString())
+            cfgerr("Corrupt 'textures' list!");
+        conf->music_files[m.name.GetString()] = m.value.GetString();
+    }
+
     Logger::log("Config", "Loaded 'config.json'.");
+}
+
+void Config::cfgwarn(QString warnmsg)
+{
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
+                             "Warning in app!",
+                             warnmsg.toStdString().c_str(),
+                             NULL);
+}
+
+QStringList AppConfig::getSoundAliases()
+{
+    return sound_files.keys();
+}
+
+QStringList AppConfig::getSoundFiles()
+{
+    return sound_files.values();
+}
+
+QStringList AppConfig::getMusicAliases()
+{
+    return music_files.keys();
+}
+
+QStringList AppConfig::getMusicFiles()
+{
+    return music_files.values();
 }

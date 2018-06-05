@@ -2,7 +2,9 @@
 
 Actor2d::Actor2d()
 {
-
+    frameIter   = 0;
+    frameRate   = 0;
+    curTex      = 0;
 }
 
 void Actor2d::setTexs(QStringList* texlist)

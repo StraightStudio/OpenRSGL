@@ -24,7 +24,8 @@ struct AppConfig
 
     QString start_scene;
     QMap<QString, QString> app_scenes;
-    QStringList background_audio_list;
+    QMap<QString, QString> sound_files;
+    QMap<QString, QString> music_files;
 
     AppConfig(){}
 
@@ -39,6 +40,11 @@ struct AppConfig
     const QString &version() const { return app_version; }
 
     const QString &getStartScene() const { return start_scene; }
+
+    QStringList getSoundAliases();
+    QStringList getSoundFiles();
+    QStringList getMusicAliases();
+    QStringList getMusicFiles();
 };
 
 class Config
@@ -46,5 +52,6 @@ class Config
 public:
     static void cfgerr(QString errmsg);
     static void loadCfg(AppConfig *conf);
+    static void cfgwarn(QString warnmsg);
 };
 #endif // CONFIG_H

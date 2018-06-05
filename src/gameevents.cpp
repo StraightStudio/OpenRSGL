@@ -28,6 +28,51 @@ bool GameEvents::isMouseUp(int mbtn)
     return !( SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(mbtn) ); // 1 - left, 2 - middle, 3 - right
 }
 
+Action GameEvents::processUIobject(Actor2d &obj)
+{
+    vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
+    if(isMouseOver(&obj.getRect()))
+    {
+        if(ui_btns[obj.getName()] != "hovered")
+        {
+            res = vec2(obj.getRect().w+16, obj.getRect().h+16);
+            trs = vec2(obj.getRect().x-8, obj.getRect().y-8);
+            ui_btns[obj.getName()] = "hovered";
+            switch(obj.triggerAction("hover"))
+            {
+                case SOUND_ACTION:
+                    return Action(POS_RES_SND_ACTION, obj.triggerArgument("hover"), res, trs);
+                break;
+            }
+            return Action(POS_RES_ACTION, 0, res, trs);
+        }
+        if(isMouseDown(1))
+        {
+            switch(obj.triggerAction("click"))
+            {
+                case SCENE_ACTION:
+                    return Action(SCENE_ACTION, obj.triggerArgument("click"));
+                break;
+                case QUIT_ACTION:
+                    return Action(QUIT_ACTION, true);
+                break;
+            }
+        }
+    }
+
+    if(!isMouseOver(&obj.getRect()))
+    {
+        if(ui_btns[obj.getName()] == "hovered")
+        {
+            res = vec2(obj.getRect().w-16, obj.getRect().h-16);
+            trs = vec2(obj.getRect().x+8, obj.getRect().y+8);
+            ui_btns[obj.getName()] = "none";
+            return Action(POS_RES_ACTION, 0, res, trs);
+        }
+    }
+    return Action(0, "0");
+}
+
 GameEvents::GameEvents()
 {
 

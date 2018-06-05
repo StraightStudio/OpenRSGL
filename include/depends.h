@@ -16,11 +16,13 @@
 #include <QTextStream>
 #include <QVariant>
 #include <QMessageBox>
+#include <QObject>
 
 #include <rapidjson/document.h>
 
 #include <include/config.h>
 
+#define TARGET_FPS 60
 
 // ================ S C E N E   S T R U C T U R E =========================
 
@@ -55,9 +57,16 @@
 
 // ========================================================================
 
-#define SOUND_ACTION    0x534e44    // 'SND' in hex
-#define SCENE_ACTION    0x53434e    // 'SCN' in hex
-#define QUIT_ACTION     0xffffff    // Just for fun
+#define SOUND_ACTION        0x534e44    // 'SND' in hex
+#define SCENE_ACTION        0x53434e    // 'SCN' in hex
+
+#define RESIZE_ACTION       0x524553    // 'RES' in hex
+#define POS_ACTION          0x504f53    // 'POS' in hex
+#define POS_RES_ACTION      0xa294a6    // 'POS' + 'RES' in hex
+#define RES_SND_ACTION      0xa59397    // 'SND' + 'RES' in hex
+#define POS_RES_SND_ACTION  0xf2e3f9    // 'POS' + 'RES' + 'SND' in hex
+
+#define QUIT_ACTION         0xffffff    // Just for fun
 
 using namespace std;
 using namespace rapidjson;
@@ -75,5 +84,7 @@ struct vec2
     int H(){return y;}
 
 };
+
+Q_DECLARE_METATYPE(vec2)
 
 #endif // DEPENDS_H
