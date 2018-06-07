@@ -5,7 +5,7 @@ SceneParser::SceneParser()
 
 }
 
-void SceneParser::readScene(Scene2d *target, QString file)
+void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
 {
     QFile sfile(SCENE_ROOT+file);
     sfile.open(QIODevice::ReadOnly);
@@ -130,7 +130,7 @@ void SceneParser::readScene(Scene2d *target, QString file)
             trigger["click"] = i.value["click"].GetString();
         }
 
-        target->addActor(vec2(x,y), vec2(w,h), i.name.GetString(), type, trigger, anim);
+        target->addActor(conf, vec2(x,y), vec2(w,h), i.name.GetString(), type, trigger, anim);
     }
 
     if(doc.HasMember("bg-track"))
@@ -162,13 +162,11 @@ void SceneParser::readScene(Scene2d *target, QString file)
 void SceneParser::loadScene(Scene2d *target, AppConfig &conf)
 {
     target->objs().clear();
-    readScene(target, conf.getStartScene());
-    target->loadAnimations(conf);
+    readScene(conf, target, conf.getStartScene());
 }
 
 void SceneParser::loadScene(Scene2d *target, QString file, AppConfig &conf)
 {
     target->objs().clear();
-    readScene(target, file);
-    target->loadAnimations(conf);
+    readScene(conf, target, file);
 }

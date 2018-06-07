@@ -27,14 +27,14 @@ void TexLoader::addTex(QString file, QString texAlias, SDL_Renderer* rend)
         return;
     }
     texLib[texAlias] = SDL_CreateTextureFromSurface(rend, IMG_Load( QString(IMG_ROOT+file).toStdString().c_str() ));
-    Logger::log("Core", "'" IMG_ROOT+file+"' texture imported as '"+texAlias+"'.");
+    Logger::log("TexLoader", "'" IMG_ROOT+file+"' texture imported as '"+texAlias+"'.");
 }
 
 void TexLoader::loadTextures(SDL_Renderer* rend, AppConfig &conf)
 {
-    for(QString tfile : conf.app_animations.keys())
+    for(QString tid : conf.app_animations.keys())
     {
-        Logger::log("TexLoader", "Loading '"+tfile+".png'...");
-        addTex(tfile+".png", tfile, rend);
+        Logger::log("TexLoader", "Loading '"+conf.app_animations[tid].tex+"'...");
+        addTex(conf.app_animations[tid].tex, tid, rend);
     }
 }

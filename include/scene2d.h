@@ -43,9 +43,7 @@ public:
     QMap<QString, Actor2d> &objs();
 
     SceneInfo sinfo;
-    void addActor(vec2 pos, vec2 dim, QString name, QString type, QMap<QString, QString> trigger, QString anim);
-
-    void loadAnimations(AppConfig &conf);
+    void addActor(AppConfig &conf, vec2 pos, vec2 dim, QString name, QString type, QMap<QString, QString> trigger, QString anim);
 private:
     QMap<QString, Actor2d> m_objs;
     QString name;

@@ -84,7 +84,4 @@ struct vec2
     int H(){return y;}
 
 };
-
-Q_DECLARE_METATYPE(vec2)
-
 #endif // DEPENDS_H

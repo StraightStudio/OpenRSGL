@@ -8,7 +8,7 @@ class SceneParser
 {
 public:
     SceneParser();
-    void readScene(Scene2d *target, QString file);
+    void readScene(AppConfig &conf, Scene2d *target, QString file);
     void loadScene(Scene2d *target, AppConfig &conf);
     void loadScene(Scene2d *target, QString file, AppConfig &conf);
 };

@@ -61,7 +61,8 @@ void Config::loadCfg(AppConfig *conf)
         conf->app_scenes[s.name.GetString()] = s.value.GetString();
     }
 
-    QString an;
+    QString an, af;
+    int afps, afc;
     QByteArray adata;
     Document anim;
     SDL_Rect tmprect;
@@ -84,22 +85,36 @@ void Config::loadCfg(AppConfig *conf)
             an = anims.name.GetString();
             for(auto& params : anim[anims.name.GetString()].GetObject())
             {
-                if(params.value.GetType() == 6)
+                if(params.value.IsString())
+                {
+                    if(QString(params.name.GetString()) == "img")
+                    {
+                        af = params.value.GetString();
+                    }
+                }
+                else if(params.value.GetType() == 6)
                 {
                     if(QString(params.name.GetString()) == "frame-w")
                         tmprect.w = params.value.GetInt();
                     if(QString(params.name.GetString()) == "frame-h")
                         tmprect.h = params.value.GetInt();
                     if(QString(params.name.GetString()) == "fps")
-                        conf->anim_fps[an] = params.value.GetInt();
+                    {
+                        if(params.value.GetInt() == 0)
+                            afps = 0;
+                        else
+                            afps = params.value.GetInt();
+                    }
                     if(QString(params.name.GetString()) == "frame-count")
                     {
+                        afc = params.value.GetInt();
+                        conf->app_animations[an] = Animation2d(an, af, afc, afps);
                         for(int i=0; i < params.value.GetInt(); i++)
                         {
                             tmprect.x = i*tmprect.w;
-                            conf->app_animations[an].append( tmprect );
+                            conf->app_animations[an].addFrame(tmprect);
                         }
-                        Logger::log("Config", "Loaded "+QString::number(params.value.GetInt())+" frame(-s) of '"+an+"' animation with fps="+QString::number(conf->anim_fps[an]));
+                        Logger::log("Config", "Loaded "+QString::number(afc)+" frame(-s) of '"+an+"' animation ("+af+") with fps="+QString::number(afps));
                     }
                 }
             }

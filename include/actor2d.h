@@ -3,38 +3,6 @@
 
 #include <include/depends.h>
 
-struct Animation2d {
-    QString name;
-    QString tex;
-    int fps;
-    QList<SDL_Rect> frames;
-
-    Animation2d(QString n, QString t, int f, QList<SDL_Rect> fr)
-    {
-        name = n;
-        tex = t;
-        fps = f;
-        frames = fr;
-    }
-    Animation2d(){}
-
-    void addFrame(SDL_Rect r)
-    {
-        frames.append(r);
-    }
-
-    const SDL_Rect &getFrame(int i) const
-    {
-        return frames.at(i);
-    }
-
-    void setFrames(QList<SDL_Rect> fr)
-    {
-        frames.clear();
-        frames = fr;
-    }
-};
-
 class Actor2d
 {
 public:
@@ -123,14 +91,9 @@ public:
         type = t.toString();
     }
 
-    void addFrame(QString anim, SDL_Rect frame)
+    void setAnim(QString alias, Animation2d anim)
     {
-        animations[anim].addFrame(frame);
-    }
-
-    void addFrame(SDL_Rect frame)
-    {
-        animations[curAnim].addFrame(frame);
+        animations[alias] = anim;
     }
 
     void nextFrame()
@@ -140,7 +103,7 @@ public:
             if(frameIter == TARGET_FPS/animations[curAnim].fps) // TARGET_FPS/frameRate MUST BE INT
             {
                 frameIter=0;
-                if(curFrame == animations[curAnim].frames.length()-1)
+                if(curFrame == animations[curAnim].frameCount-1)
                     curFrame=0;
                 else
                     curFrame++;
@@ -150,10 +113,6 @@ public:
         }
     }
 
-    void setFrames(QList<SDL_Rect> &frames)
-    {
-        animations[curAnim].setFrames(frames);
-    }
     void setTexs(QStringList texs, QList<SDL_Rect> frames);
 };
 
