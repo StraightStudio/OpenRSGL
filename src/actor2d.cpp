@@ -3,12 +3,16 @@
 Actor2d::Actor2d()
 {
     frameIter   = 0;
-    frameRate   = 0;
-    curTex      = 0;
+    curFrame      = 0;
+    curAnim     = "idle";
 }
 
-void Actor2d::setTexs(QStringList* texlist)
+void Actor2d::setTexs(QStringList texs, QList<SDL_Rect> frames)
 {
-    for(int i=0; i < texlist->count(); i++)
-        texs.append(texlist->at(i));
+    animations.clear();
+    for(QString tex : texs)
+    {
+        for(SDL_Rect r : frames)
+            animations[tex].addFrame(r);
+    }
 }

@@ -39,11 +39,13 @@ public:
     void spawn(vec2 pos=vec2(0,0), vec2 dim=vec2(0,0), QString textureAlias="none", TexLoader *tl=0);
     void spawn(vec2 pos=vec2(0,0), QString textureAlias="none", TexLoader *tl=0);
 
-    void addActor(vec2 pos, vec2 dim, QStringList textures, QString name, QString type, QMap<QString, QString> trigger, int fps);
     SDL_Rect &getRect(QString name="");
     QMap<QString, Actor2d> &objs();
 
     SceneInfo sinfo;
+    void addActor(vec2 pos, vec2 dim, QString name, QString type, QMap<QString, QString> trigger, QString anim);
+
+    void loadAnimations(AppConfig &conf);
 private:
     QMap<QString, Actor2d> m_objs;
     QString name;

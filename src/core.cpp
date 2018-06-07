@@ -52,7 +52,7 @@ int Core::exec()
 {
     m_quit = false;
 
-    m_sceneparser.readScene(&m_scene, m_appconf.getStartScene());
+    m_sceneparser.loadScene(&m_scene, m_appconf);
     while(!m_quit)
     {
         SDL_RenderClear(m_iout);
@@ -71,6 +71,7 @@ int Core::exec()
         draw_objs();
 
         SDL_RenderPresent(m_iout);
+        SDL_Delay(1000/TARGET_FPS);
     }
     return 0;
 }
@@ -79,7 +80,7 @@ void Core::draw_objs()
 {
     for(Actor2d a: m_scene.objs().values())
     {
-        SDL_RenderCopy(m_iout, m_texloader.getTex( a.getTex() ), NULL, &a.rect);
+        SDL_RenderCopy(m_iout, m_texloader.getTex( a.curAnim ), &a.getFrame(), &a.rect);
         m_scene.objs()[a.getName()].nextFrame();
     }
 }
@@ -119,7 +120,7 @@ void Core::processEvents()
                     m_audiomgr.playSound(act.stringData());
                 break;
                 case SCENE_ACTION:
-                    m_sceneparser.loadScene(&m_scene, act.stringData());
+                    m_sceneparser.loadScene(&m_scene, act.stringData(), m_appconf);
                     m_scene.start(&m_audiomgr);
                 break;
                 case QUIT_ACTION:

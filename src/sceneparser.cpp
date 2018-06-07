@@ -78,14 +78,10 @@ void SceneParser::readScene(Scene2d *target, QString file)
     }
 
     int x,y,w,h;
-    QString type;
+    QString type, anim;
     QMap <QString, QString> trigger;
-    QStringList texs;
-    int o_fps;
     for(auto& i : doc["objects"].GetObject())
     {
-        texs.clear();
-        o_fps = 0;
         if( !(i.value["x"].IsInt() || i.value["y"].IsInt()) )
         {
             derr = INVALID_COORDS;
@@ -106,30 +102,15 @@ void SceneParser::readScene(Scene2d *target, QString file)
 
         if(!i.value["type"].IsString())
         {
-            derr = INVALID_TYPE;
-            err = true;
-            break;
+            Config::cfgerr(INVALID_TYPE);
         }
         type = i.value["type"].GetString();
 
-        for(SizeType n=0; n < i.value["textures"].Size(); n++)
+        if(!i.value["animations"].IsArray())
         {
-            if(!i.value["textures"][n].IsString())
-            {
-                derr = INVALID_TEXS;
-                err = true;
-                break;
-            }
-            texs.append(i.value["textures"][n].GetString());
+            Config::cfgerr(INVALID_TEXS);
         }
-
-        if(!i.value["fps"].IsInt())
-        {
-            derr = "'fps' must be INT!";
-            err = true;
-            break;
-        }
-        o_fps = i.value["fps"].GetInt();
+        anim = i.value["animations"][0].GetString();
 
         if(type == "button")
         {
@@ -149,7 +130,7 @@ void SceneParser::readScene(Scene2d *target, QString file)
             trigger["click"] = i.value["click"].GetString();
         }
 
-        target->addActor(vec2(x,y), vec2(w,h), texs, i.name.GetString(), type, trigger, o_fps);
+        target->addActor(vec2(x,y), vec2(w,h), i.name.GetString(), type, trigger, anim);
     }
 
     if(doc.HasMember("bg-track"))
@@ -175,10 +156,19 @@ void SceneParser::readScene(Scene2d *target, QString file)
     if(target->sinfo.name.toLower() != "menu") // Not necessary to show game special scenes.
         Logger::log("SceneParser", QString("Loaded scene '"+target->sinfo.name+
                                            "', made by '"+target->sinfo.author+"'") );
+
 }
 
-void SceneParser::loadScene(Scene2d *target, QString file)
+void SceneParser::loadScene(Scene2d *target, AppConfig &conf)
+{
+    target->objs().clear();
+    readScene(target, conf.getStartScene());
+    target->loadAnimations(conf);
+}
+
+void SceneParser::loadScene(Scene2d *target, QString file, AppConfig &conf)
 {
     target->objs().clear();
     readScene(target, file);
+    target->loadAnimations(conf);
 }

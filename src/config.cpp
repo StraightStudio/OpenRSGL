@@ -7,6 +7,7 @@ void Config::cfgerr(QString errmsg)
                              "Config load error!",
                              errmsg.toStdString().c_str(),
                              NULL);
+    exit(-1);
 }
 
 void Config::loadCfg(AppConfig *conf)
@@ -14,22 +15,11 @@ void Config::loadCfg(AppConfig *conf)
     QFile cfg(RES_ROOT"config.json");
 
     if(!cfg.open(QIODevice::ReadOnly))
-    {
         cfgerr(CORRUPT_CONFIG);
-        exit(-1);
-    }
-    QTextStream in(&cfg);
-    QByteArray cdata;
-    QString line;
-    while(!in.atEnd())
-    {
-        line = in.readLine();
-        if(!line.trimmed().startsWith("#"))
-            cdata.append(line);
-    }
 
     Document doc;
-    doc.Parse(cdata.constData());
+    doc.Parse(cfg.readAll().constData());
+    cfg.close();
 
     if(!doc.HasMember("app_name") || !doc["app_name"].IsString())
         cfgerr(CORRUPT_CONFIG_NAME);
@@ -54,8 +44,8 @@ void Config::loadCfg(AppConfig *conf)
     if(!doc.HasMember("scenes"))
         cfgerr("Can't find 'scenes' list!");
 
-    if(!doc.HasMember("textures"))
-        cfgerr("Can't find 'textures' list!");
+    if(!doc.HasMember("animations"))
+        cfgerr("Can't find 'animations' list!");
 
     if(!doc.HasMember("sounds"))
         cfgerr("Can't find 'sounds' list!");
@@ -71,11 +61,49 @@ void Config::loadCfg(AppConfig *conf)
         conf->app_scenes[s.name.GetString()] = s.value.GetString();
     }
 
-    for( auto& t : doc["textures"].GetObject() )
+    QString an;
+    QByteArray adata;
+    Document anim;
+    SDL_Rect tmprect;
+    QFile animfile;
+    for( auto& a : doc["animations"].GetObject() )
     {
-        if(!t.name.IsString())
-            cfgerr("Corrupt 'textures' list!");
-        conf->app_textures[t.name.GetString()] = t.value.GetString();
+        if(!a.name.IsString())
+            cfgerr("Corrupt 'animations' list!");
+
+        animfile.setFileName(IMG_ROOT+QString(a.value.GetString()));
+        animfile.open(QIODevice::ReadOnly);
+        if(!animfile.isOpen())
+            cfgerr("Error while "+QString(a.value.GetString())+" file open!");
+        adata = animfile.readAll();
+        animfile.close();
+
+        anim.Parse(adata.constData());
+        for(auto& anims : anim.GetObject())
+        {
+            an = anims.name.GetString();
+            for(auto& params : anim[anims.name.GetString()].GetObject())
+            {
+                if(params.value.GetType() == 6)
+                {
+                    if(QString(params.name.GetString()) == "frame-w")
+                        tmprect.w = params.value.GetInt();
+                    if(QString(params.name.GetString()) == "frame-h")
+                        tmprect.h = params.value.GetInt();
+                    if(QString(params.name.GetString()) == "fps")
+                        conf->anim_fps[an] = params.value.GetInt();
+                    if(QString(params.name.GetString()) == "frame-count")
+                    {
+                        for(int i=0; i < params.value.GetInt(); i++)
+                        {
+                            tmprect.x = i*tmprect.w;
+                            conf->app_animations[an].append( tmprect );
+                        }
+                        Logger::log("Config", "Loaded "+QString::number(params.value.GetInt())+" frame(-s) of '"+an+"' animation with fps="+QString::number(conf->anim_fps[an]));
+                    }
+                }
+            }
+        }
     }
 
 

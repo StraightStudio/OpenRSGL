@@ -32,8 +32,9 @@ void TexLoader::addTex(QString file, QString texAlias, SDL_Renderer* rend)
 
 void TexLoader::loadTextures(SDL_Renderer* rend, AppConfig &conf)
 {
-    for(QString talias : conf.app_textures.keys())
+    for(QString tfile : conf.app_animations.keys())
     {
-        addTex(conf.app_textures[talias], talias, rend);
+        Logger::log("TexLoader", "Loading '"+tfile+".png'...");
+        addTex(tfile+".png", tfile, rend);
     }
 }

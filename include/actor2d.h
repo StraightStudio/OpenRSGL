@@ -3,13 +3,47 @@
 
 #include <include/depends.h>
 
+struct Animation2d {
+    QString name;
+    QString tex;
+    int fps;
+    QList<SDL_Rect> frames;
+
+    Animation2d(QString n, QString t, int f, QList<SDL_Rect> fr)
+    {
+        name = n;
+        tex = t;
+        fps = f;
+        frames = fr;
+    }
+    Animation2d(){}
+
+    void addFrame(SDL_Rect r)
+    {
+        frames.append(r);
+    }
+
+    const SDL_Rect &getFrame(int i) const
+    {
+        return frames.at(i);
+    }
+
+    void setFrames(QList<SDL_Rect> fr)
+    {
+        frames.clear();
+        frames = fr;
+    }
+};
+
 class Actor2d
 {
 public:
     Actor2d();
     SDL_Rect rect;
-    QStringList texs;
-    int curTex; int frameIter; int frameRate;
+    QString curAnim;
+
+    QMap <QString, Animation2d> animations; // idle, walk, attack, die, etc...
+    int curFrame; int frameIter;
     QString name;
     QString type;
     QMap<QString,QString> trigger;
@@ -44,9 +78,9 @@ public:
         return vec2(rect.w, rect.h);
     }
 
-    const QString &getTex() const
+    const SDL_Rect &getFrame() const
     {
-        return texs.at(curTex);
+        return animations[curAnim].getFrame(curFrame); // Get frame from animation.
     }
 
     void setName(QVariant n)
@@ -57,11 +91,6 @@ public:
     const QString &getName() const
     {
         return name;
-    }
-
-    void setFps(int f)
-    {
-        frameRate = f;
     }
 
     SDL_Rect &getRect()
@@ -94,29 +123,38 @@ public:
         type = t.toString();
     }
 
-    void addTex(QString tex)
+    void addFrame(QString anim, SDL_Rect frame)
     {
-        texs.append(tex);
+        animations[anim].addFrame(frame);
+    }
+
+    void addFrame(SDL_Rect frame)
+    {
+        animations[curAnim].addFrame(frame);
     }
 
     void nextFrame()
     {
-        if(frameRate > 0)
+        if(animations[curAnim].fps > 0)
         {
-            if(frameIter == TARGET_FPS/frameRate) // TARGET_FPS/frameRate MUST BE INT
+            if(frameIter == TARGET_FPS/animations[curAnim].fps) // TARGET_FPS/frameRate MUST BE INT
             {
                 frameIter=0;
-                if(curTex == texs.length()-1)
-                    curTex=0;
+                if(curFrame == animations[curAnim].frames.length()-1)
+                    curFrame=0;
                 else
-                    curTex++;
+                    curFrame++;
             }
             else
                 frameIter++;
         }
     }
 
-    void setTexs(QStringList *texlist);
+    void setFrames(QList<SDL_Rect> &frames)
+    {
+        animations[curAnim].setFrames(frames);
+    }
+    void setTexs(QStringList texs, QList<SDL_Rect> frames);
 };
 
 #endif // ACTOR2D_H

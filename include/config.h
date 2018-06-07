@@ -20,7 +20,8 @@ struct AppConfig
     int app_width;
     int app_height;
     bool is_full;
-    QMap<QString, QString> app_textures;
+    QMap<QString, QList<SDL_Rect>> app_animations;
+    QMap<QString, int> anim_fps;
 
     QString start_scene;
     QMap<QString, QString> app_scenes;

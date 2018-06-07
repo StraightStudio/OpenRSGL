@@ -12,12 +12,10 @@
 		"TestLobby" 	: "lobby.json"
 	},
 	"start_scene"		: "menu.json",
-	"textures" 			:
+	"animations"		:
 	{
-		"play"			: "play.png",
-		"menu_back"		: "background.png",
-		"mario"			: "mario.png",
-		"quit"			: "quit.png"
+		"ui"			: "buttons.json",
+		"ussr_soldier"	: "ussr_soldier.json"
 	},
 	"sounds"			: 
 	{
@@ -26,6 +24,7 @@
 	"music"				:
 	{
 		"menu_01"		: "amadeus_superior.ogg",
-		"n_one"			: "n_one.ogg"
+		"n_one"			: "n_one.ogg",
+		"ussr_hymn"		: "ussr_hymn.ogg"
 	}
 }
