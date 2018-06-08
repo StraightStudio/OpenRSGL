@@ -30,7 +30,7 @@
 	},
 	"music"				:
 	{
-		"menu_01"		: "amadeus_superior.ogg",
+		"amadeus_superior"	: "amadeus_superior.ogg",
 		"n_one"			: "n_one.ogg",
 		"ussr_hymn"		: "ussr_hymn.ogg"
 	}

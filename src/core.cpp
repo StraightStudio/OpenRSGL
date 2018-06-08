@@ -84,7 +84,12 @@ void Core::draw_objs()
         if(a.type == "actor")
         {
             SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-            SDL_RenderDrawRect(m_iout, &a.healthBar());
+            SDL_RenderFillRect(m_iout, &a.healthBar());
+            //
+            if(a.move_direction != IDLE)
+            {
+                SDL_RenderDrawLine(m_iout, a.rect.x+a.rect.w/2, a.rect.y+a.rect.h-16, a.targetPos.x+a.rect.w/2, a.targetPos.y+a.rect.h-16);
+            }
         }
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
