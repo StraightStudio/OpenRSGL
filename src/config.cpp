@@ -44,6 +44,9 @@ void Config::loadCfg(AppConfig *conf)
     if(!doc.HasMember("scenes"))
         cfgerr("Can't find 'scenes' list!");
 
+    if(!doc.HasMember("textures"))
+        cfgerr("Can't find 'textures' list!");
+
     if(!doc.HasMember("animations"))
         cfgerr("Can't find 'animations' list!");
 
@@ -61,8 +64,15 @@ void Config::loadCfg(AppConfig *conf)
         conf->app_scenes[s.name.GetString()] = s.value.GetString();
     }
 
-    QString an, af;
-    int afps, afc;
+    for(auto& t : doc["textures"].GetObject())
+    {
+        if(!t.value.IsString())
+            cfgerr("Error while 'textures' parsing!");
+        conf->app_textures[t.name.GetString()] = t.value.GetString();
+    }
+
+    QString an;
+    int afps, afc, asf;
     QByteArray adata;
     Document anim;
     SDL_Rect tmprect;
@@ -80,24 +90,24 @@ void Config::loadCfg(AppConfig *conf)
         animfile.close();
 
         anim.Parse(adata.constData());
-        for(auto& anims : anim.GetObject())
+
+        if(!anim.HasMember("animations"))
+            cfgerr("Failed to retrieve 'animations' object from " IMG_ROOT+QString(a.value.GetString()));
+        if(!anim["animations"].IsObject())
+            cfgerr("Error in 'animations' object parsing!");
+        for(auto& anims : anim["animations"].GetObject())
         {
             an = anims.name.GetString();
-            for(auto& params : anim[anims.name.GetString()].GetObject())
+            for(auto& params : anims.value.GetObject())
             {
-                if(params.value.IsString())
-                {
-                    if(QString(params.name.GetString()) == "img")
-                    {
-                        af = params.value.GetString();
-                    }
-                }
-                else if(params.value.GetType() == 6)
+                if(params.value.GetType() == 6)
                 {
                     if(QString(params.name.GetString()) == "frame-w")
                         tmprect.w = params.value.GetInt();
                     if(QString(params.name.GetString()) == "frame-h")
                         tmprect.h = params.value.GetInt();
+                    if(QString(params.name.GetString()) == "startframe")
+                        asf = params.value.GetInt();
                     if(QString(params.name.GetString()) == "fps")
                     {
                         if(params.value.GetInt() == 0)
@@ -106,18 +116,16 @@ void Config::loadCfg(AppConfig *conf)
                             afps = params.value.GetInt();
                     }
                     if(QString(params.name.GetString()) == "frame-count")
-                    {
                         afc = params.value.GetInt();
-                        conf->app_animations[an] = Animation2d(an, af, afc, afps);
-                        for(int i=0; i < params.value.GetInt(); i++)
-                        {
-                            tmprect.x = i*tmprect.w;
-                            conf->app_animations[an].addFrame(tmprect);
-                        }
-                        Logger::log("Config", "Loaded "+QString::number(afc)+" frame(-s) of '"+an+"' animation ("+af+") with fps="+QString::number(afps));
-                    }
                 }
             }
+            conf->app_animations[an] = Animation2d(afc, afps);
+            for(int i=asf; i < afc+asf; i++)
+            {
+                tmprect.x = i*tmprect.w;
+                conf->app_animations[an].addFrame(tmprect);
+            }
+            Logger::log("Config", "Loaded "+QString::number(afc)+" frame(-s) of '"+an+"' animation with fps="+QString::number(afps));
         }
     }
 

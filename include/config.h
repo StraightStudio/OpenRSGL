@@ -13,24 +13,18 @@
 #define SCENE_ROOT RES_ROOT"scenes/"
 
 struct Animation2d {
-    QString name;
-    QString tex;
     int fps, frameCount;
     QList<SDL_Rect> frames;
 
-    Animation2d(QString n, QString t, int afc, int afps)
+    Animation2d(int afc, int afps)
     {
-        name = n;
-        tex = t;
         frameCount = afc;
         fps = afps;
     }
 
-    Animation2d(QString n, QString t, int f)
+    Animation2d(int afps)
     {
-        name = n;
-        tex = t;
-        fps = f;
+        fps = afps;
     }
 
     Animation2d(){}
@@ -38,11 +32,6 @@ struct Animation2d {
     void addFrame(SDL_Rect r)
     {
         frames.append(r);
-    }
-
-    const SDL_Rect &getFrame(int i) const
-    {
-        return frames[i];
     }
 
     void setFrames(QList<SDL_Rect> fr)
@@ -61,6 +50,7 @@ struct AppConfig
     int app_height;
     bool is_full;
     QMap<QString, Animation2d> app_animations;
+    QMap<QString, QString> app_textures;
     QMap<QString, int> anim_fps;
 
     QString start_scene;

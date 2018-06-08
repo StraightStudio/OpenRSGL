@@ -11,7 +11,7 @@ void Scene2d::start(AudioManager *mgr)
     mgr->playMusic(sinfo.bg_track, true);
 }
 
-void Scene2d::addActor(AppConfig &conf, vec2 pos, vec2 dim, QString name, QString type, QMap<QString, QString> trigger, QString anim)
+void Scene2d::addActor(vec2 pos, vec2 dim, QString name, QString type, QMap<QString, QString> trigger, QString texture, QString anim_idle)
 {
     Actor2d actor;
 
@@ -19,10 +19,11 @@ void Scene2d::addActor(AppConfig &conf, vec2 pos, vec2 dim, QString name, QStrin
     actor.setDim(dim);
     actor.setName(name);
     actor.setType(type);
+    actor.setTex(texture);
 
     actor.trigger = trigger;
-    actor.curAnim = anim;
-    actor.setAnim(anim, conf.app_animations[anim]);
+    actor.idle_anim = anim_idle;
+    actor.curAnim = actor.idle_anim;
 
     m_objs[name] = actor;
 }

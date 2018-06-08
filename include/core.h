@@ -9,6 +9,7 @@
 #include <include/sceneparser.h>
 #include <include/gameevents.h>
 #include <include/audiomanager.h>
+#include <include/animationmanager.h>
 
 class Core
 {
@@ -38,6 +39,7 @@ private:
     GameEvents m_processor;
 
     AppConfig m_appconf;
+    AnimationManager m_animator;
 };
 
 #endif // CORE_H

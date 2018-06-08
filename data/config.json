@@ -12,6 +12,13 @@
 		"TestLobby" 	: "lobby.json"
 	},
 	"start_scene"		: "menu.json",
+
+	"textures"			:
+	{
+		"play_btn"		: "play_btn.png",
+		"quit_btn"		: "quit_btn.png",
+		"ussr_soldier"	: "ussr_soldier.png"
+	},
 	"animations"		:
 	{
 		"ui"			: "buttons.json",

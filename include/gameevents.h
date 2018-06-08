@@ -60,8 +60,10 @@ public:
     bool isMouseUp(int mbtn);
 
     Action processUIobject(Actor2d &obj);
+    Action processActor(Actor2d &obj);
 private:
     QMap<QString, QString> ui_btns;
+    QMap<QString, Actor2d> selectionList;
 };
 
 #endif // GAMEEVENTS_H

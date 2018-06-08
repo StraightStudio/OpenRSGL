@@ -23,6 +23,7 @@
 #include <include/config.h>
 
 #define TARGET_FPS 60
+#define HEALTHBAR_HEIGHT 4
 
 // ================ S C E N E   S T R U C T U R E =========================
 
@@ -65,6 +66,7 @@
 #define POS_RES_ACTION      0xa294a6    // 'POS' + 'RES' in hex
 #define RES_SND_ACTION      0xa59397    // 'SND' + 'RES' in hex
 #define POS_RES_SND_ACTION  0xf2e3f9    // 'POS' + 'RES' + 'SND' in hex
+#define MOV_ACTION          0x4d4f56    // 'MOV' in hex
 
 #define QUIT_ACTION         0xffffff    // Just for fun
 

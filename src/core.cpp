@@ -42,6 +42,7 @@ void Core::init()
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
     //
     m_texloader.loadTextures(m_iout, m_appconf);
+    m_animator.loadAnimations(m_appconf);
 
     m_audiomgr.init();
     m_audiomgr.loadSounds(m_appconf);
@@ -80,8 +81,14 @@ void Core::draw_objs()
 {
     for(Actor2d a: m_scene.objs().values())
     {
-        SDL_RenderCopy(m_iout, m_texloader.getTex( a.curAnim ), &a.getFrame(), &a.rect);
-        m_scene.objs()[a.getName()].nextFrame();
+        if(a.type == "actor")
+        {
+            SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
+            SDL_RenderDrawRect(m_iout, &a.healthBar());
+        }
+        SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
+        SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
+        m_scene.objs()[a.getName()].nextFrame( m_animator.fcount(a.curAnim), m_animator.fps(a.curAnim) );
     }
 }
 
@@ -91,48 +98,53 @@ void Core::processEvents()
     for(Actor2d obj : m_scene.objs().values())
     {
         if(obj.type == "button")
-        {
             act = m_processor.processUIobject(obj);
+        else if(obj.type == "actor")
+            act = m_processor.processActor(obj);
 
-            switch(act.id)
-            {
-                case POS_ACTION:
-                    m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
-                break;
-                case POS_RES_ACTION:
-                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
-                    m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
-                break;
-                case RESIZE_ACTION:
-                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
-                break;
-                case RES_SND_ACTION:
-                    m_audiomgr.playSound(act.stringData());
-                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
-                break;
-                case POS_RES_SND_ACTION:
-                    m_audiomgr.playSound(act.stringData());
-                    m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
-                    m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
-                break;
+        switch(act.id)
+        {
+            case POS_ACTION:
+                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+            break;
+            case POS_RES_ACTION:
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+            break;
+            case RESIZE_ACTION:
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+            break;
+            case RES_SND_ACTION:
+                m_audiomgr.playSound(act.stringData());
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+            break;
+            case POS_RES_SND_ACTION:
+                m_audiomgr.playSound(act.stringData());
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+            break;
 
-                case SOUND_ACTION:
-                    m_audiomgr.playSound(act.stringData());
-                break;
-                case SCENE_ACTION:
-                    m_sceneparser.loadScene(&m_scene, act.stringData(), m_appconf);
-                    m_scene.start(&m_audiomgr);
-                break;
-                case QUIT_ACTION:
-                m_quit = act.boolData();
-                break;
-                case 0:
-                break;
-                default:
-                Config::cfgwarn("Undefined event triggered!");
-                break;
-            }
-            act.reset();
+            case MOV_ACTION:
+
+                m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
+            break;
+
+            case SOUND_ACTION:
+                m_audiomgr.playSound(act.stringData());
+            break;
+            case SCENE_ACTION:
+                m_sceneparser.loadScene(&m_scene, act.stringData(), m_appconf);
+                m_scene.start(&m_audiomgr);
+            break;
+            case QUIT_ACTION:
+            m_quit = act.boolData();
+            break;
+            case 0:
+            break;
+            default:
+            Config::cfgwarn("Undefined event triggered!");
+            break;
         }
+        act.reset();
     }
 }

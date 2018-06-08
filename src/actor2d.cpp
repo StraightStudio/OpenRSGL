@@ -1,18 +1,146 @@
-#include "../include/actor2d.h"
+#include <include/actor2d.h>
 
 Actor2d::Actor2d()
 {
     frameIter   = 0;
-    curFrame      = 0;
+    curFrame    = 0;
     curAnim     = "idle";
+    move_speed  = 1;
 }
 
 void Actor2d::setTexs(QStringList texs, QList<SDL_Rect> frames)
 {
-    animations.clear();
-    for(QString tex : texs)
+
+}
+
+void Actor2d::moveTo(vec2 target)
+{
+    frameIter=0;
+    curFrame=0;
+
+    targetPos = target;
+}
+
+void Actor2d::moveTo(int tx, int ty)
+{
+    frameIter=0;
+    curFrame=0;
+
+    targetPos = vec2(tx, ty);
+}
+
+void Actor2d::updatePath()
+{
+    if( rect.x < targetPos.x && rect.y == targetPos.y )
     {
-        for(SDL_Rect r : frames)
-            animations[tex].addFrame(r);
+        // LEFT
+        if(move_direction != RIGHT_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_right";
+            move_direction = RIGHT_DIR;
+        }
+        rect.x += move_speed;
+    }
+    else if( rect.x > targetPos.x && rect.y == targetPos.y )
+    {
+        // RIGHT
+        if(move_direction != LEFT_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_left";
+            move_direction = LEFT_DIR;
+        }
+        rect.x -= move_speed;
+    }
+    else if( rect.y < targetPos.y && rect.x == targetPos.x )
+    {
+        // DOWN
+        if(move_direction != DOWN_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_down";
+            move_direction = DOWN_DIR;
+        }
+        rect.y += move_speed;
+    }
+    else if( rect.y > targetPos.y && rect.x == targetPos.x)
+    {
+        // UP
+        if(move_direction != UP_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_up";
+            move_direction = UP_DIR;
+        }
+        rect.y -= move_speed;
+    }
+
+    else if( rect.x < targetPos.x && rect.y < targetPos.y )
+    {
+        // DOWN+LEFT
+        if(move_direction != DOWN_RIGHT_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_down_right";
+            move_direction = DOWN_RIGHT_DIR;
+        }
+        rect.x += move_speed;
+        rect.y += move_speed;
+    }
+    else if( rect.x < targetPos.x && rect.y > targetPos.y )
+    {
+        // UP+LEFT
+        if(move_direction != UP_RIGHT_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_up_right";
+            move_direction = UP_RIGHT_DIR;
+        }
+        rect.x += move_speed;
+        rect.y -= move_speed;
+    }
+    else if( rect.x > targetPos.x && rect.y > targetPos.y )
+    {
+        // UP+RIGHT
+        if(move_direction != UP_LEFT_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_up_left";
+            move_direction = UP_LEFT_DIR;
+        }
+        rect.x -= move_speed;
+        rect.y -= move_speed;
+    }
+    else if( rect.x > targetPos.x && rect.y < targetPos.y )
+    {
+        // DOWN+RIGHT
+        if(move_direction != DOWN_LEFT_DIR)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim+"_down_left";
+            move_direction = DOWN_LEFT_DIR;
+        }
+        rect.x -= move_speed;
+        rect.y += move_speed;
+    }
+
+    else
+    {
+        if(move_direction != IDLE)
+        {
+            frameIter = 0;
+            curFrame = 0;
+            curAnim = idle_anim;
+            move_direction = IDLE;
+        }
     }
 }

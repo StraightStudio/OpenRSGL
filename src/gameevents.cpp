@@ -59,8 +59,7 @@ Action GameEvents::processUIobject(Actor2d &obj)
             }
         }
     }
-
-    if(!isMouseOver(&obj.getRect()))
+    else
     {
         if(ui_btns[obj.getName()] == "hovered")
         {
@@ -68,6 +67,34 @@ Action GameEvents::processUIobject(Actor2d &obj)
             trs = vec2(obj.getRect().x+8, obj.getRect().y+8);
             ui_btns[obj.getName()] = "none";
             return Action(POS_RES_ACTION, 0, res, trs);
+        }
+    }
+    return Action(0, "0");
+}
+
+Action GameEvents::processActor(Actor2d &obj)
+{
+    vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
+    if(isMouseOver(&obj.getRect()))
+    {
+        if(isMouseDown(1))
+        {
+            selectionList[obj.getName()] = obj;
+        }
+    }
+    else
+    {
+        if(isMouseDown(1))
+        {
+            selectionList.remove(obj.getName());
+        }
+        if(isMouseDown(3))
+        {
+            if(selectionList.contains( obj.getName() ) )
+            {
+                trs = vec2( mousePos().x-obj.rect.w/2, mousePos().y-obj.rect.h+16 );
+                return Action(MOV_ACTION, 0, res, trs);
+            }
         }
     }
     return Action(0, "0");

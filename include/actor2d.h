@@ -1,7 +1,22 @@
-#ifndef ACTOR2D_H
+﻿#ifndef ACTOR2D_H
 #define ACTOR2D_H
 
 #include <include/depends.h>
+
+enum DIRECTIONS {
+    UP_DIR=0,
+    DOWN_DIR=4,
+
+    UP_LEFT_DIR=1,
+    LEFT_DIR=2,
+    DOWN_LEFT_DIR=3,
+
+    UP_RIGHT_DIR=7,
+    RIGHT_DIR=6,
+    DOWN_RIGHT_DIR=5,
+
+    IDLE=-1
+};
 
 class Actor2d
 {
@@ -9,20 +24,46 @@ public:
     Actor2d();
     SDL_Rect rect;
     QString curAnim;
+    QString texture;
 
-    QMap <QString, Animation2d> animations; // idle, walk, attack, die, etc...
+    QStringList animations; // idle, walk, attack, die, etc...
+    QString idle_anim;      // animation default name: soldier, tank, etc. ( will be soldier_up, soldier_down )
+
     int curFrame; int frameIter;
     QString name;
     QString type;
     QMap<QString,QString> trigger;
 
+
+
+    // ========== G A M E   L O G I C   V A R I A B L E S ===========================
+    vec2 targetPos; // Moving to...
+    int move_speed;
+    int move_direction;
+    //
+    int health_percentage;
+    SDL_Rect health_rect;
+    // ==============================================================================
+
+    const QString &tex() const
+    {
+        return texture;
+    }
+
+    void setTex(QVariant t)
+    {
+        texture = t.toString();
+    }
+
     void setPos(vec2 pos)
     {
+        targetPos = pos;
         rect.x = pos.x;
         rect.y = pos.y;
     }
     void setPos(int x, int y)
     {
+        targetPos = vec2(x, y);
         rect.x = x;
         rect.y = y;
     }
@@ -44,11 +85,6 @@ public:
     const vec2 &getDim() const
     {
         return vec2(rect.w, rect.h);
-    }
-
-    const SDL_Rect &getFrame() const
-    {
-        return animations[curAnim].getFrame(curFrame); // Get frame from animation.
     }
 
     void setName(QVariant n)
@@ -91,19 +127,16 @@ public:
         type = t.toString();
     }
 
-    void setAnim(QString alias, Animation2d anim)
+    void nextFrame(int afc, int afps) // FrameCount, FPS
     {
-        animations[alias] = anim;
-    }
-
-    void nextFrame()
-    {
-        if(animations[curAnim].fps > 0)
+        if(afps > 0)
         {
-            if(frameIter == TARGET_FPS/animations[curAnim].fps) // TARGET_FPS/frameRate MUST BE INT
+            updatePath();
+
+            if(frameIter == TARGET_FPS/afps) // TARGET_FPS/frameRate MUST BE INT
             {
                 frameIter=0;
-                if(curFrame == animations[curAnim].frameCount-1)
+                if(curFrame == afc-1)
                     curFrame=0;
                 else
                     curFrame++;
@@ -113,7 +146,20 @@ public:
         }
     }
 
+    SDL_Rect &healthBar()
+    {
+        health_rect.x = rect.x;
+        health_rect.y = rect.y-HEALTHBAR_HEIGHT;
+        health_rect.w = rect.w;
+        health_rect.h = HEALTHBAR_HEIGHT;
+        return health_rect;
+    }
+
     void setTexs(QStringList texs, QList<SDL_Rect> frames);
+
+    void moveTo(vec2 target);
+    void moveTo(int tx, int ty);
+    void updatePath();
 };
 
 #endif // ACTOR2D_H

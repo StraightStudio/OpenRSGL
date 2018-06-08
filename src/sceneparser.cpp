@@ -78,7 +78,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
     }
 
     int x,y,w,h;
-    QString type, anim;
+    QString type, anim, tex;
     QMap <QString, QString> trigger;
     for(auto& i : doc["objects"].GetObject())
     {
@@ -106,11 +106,17 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         }
         type = i.value["type"].GetString();
 
-        if(!i.value["animations"].IsArray())
+        if(!i.value["texture"].IsString())
         {
-            Config::cfgerr(INVALID_TEXS);
+            Config::cfgerr(INVALID_TYPE);
         }
-        anim = i.value["animations"][0].GetString();
+        tex = i.value["texture"].GetString();
+
+        if(!i.value["animation"].IsString())
+        {
+            Config::cfgerr(INVALID_TYPE);
+        }
+        anim = i.value["animation"].GetString();
 
         if(type == "button")
         {
@@ -130,7 +136,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
             trigger["click"] = i.value["click"].GetString();
         }
 
-        target->addActor(conf, vec2(x,y), vec2(w,h), i.name.GetString(), type, trigger, anim);
+        target->addActor(vec2(x,y), vec2(w,h), i.name.GetString(), type, trigger, tex, anim);
     }
 
     if(doc.HasMember("bg-track"))
