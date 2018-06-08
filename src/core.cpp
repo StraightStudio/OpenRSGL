@@ -2,13 +2,14 @@
 
 Core::Core()
 {
-
 }
 
 Core::~Core()
 {
     SDL_DestroyWindow(m_window);
     SDL_DestroyRenderer(m_iout);
+
+    SDL_ShowCursor(SDL_ENABLE);
 
     SDL_Quit();
 }
@@ -40,6 +41,8 @@ void Core::init()
     Logger::log("Core", "Window title set.");
     if(m_appconf.is_full)
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+
+    SDL_ShowCursor(SDL_DISABLE);
     //
     m_texloader.loadTextures(m_iout, m_appconf);
     m_animator.loadAnimations(m_appconf);
@@ -47,6 +50,10 @@ void Core::init()
     m_audiomgr.init();
     m_audiomgr.loadSounds(m_appconf);
     m_audiomgr.loadMusic(m_appconf);
+
+    //
+    mouse_rect.w = 32;
+    mouse_rect.h = 32;
 }
 
 int Core::exec()
@@ -88,13 +95,52 @@ void Core::draw_objs()
             //
             if(a.move_direction != IDLE)
             {
+                for(Actor2d ta : m_scene.objs().values())
+                {
+                    if(ta.getName() == a.getName())
+                        continue;
+                    if(m_processor.rectOverlap(ta.rect, a.rect))
+                        m_scene.objs()[a.getName()].targetPos = vec2(a.rect.x, a.rect.y);
+                }
                 SDL_RenderDrawLine(m_iout, a.rect.x+a.rect.w/2, a.rect.y+a.rect.h-16, a.targetPos.x+a.rect.w/2, a.targetPos.y+a.rect.h-16);
             }
+            SDL_SetRenderDrawColor(m_iout, 255, 0, 0, SDL_ALPHA_OPAQUE);
+            SDL_RenderDrawRect(m_iout, &a.real_rect);
+        }
+        if(m_processor.isMouseDown(1))
+        {
+            if(m_processor.oldmpos.x == 0 && m_processor.oldmpos.y == 0)
+            {
+                m_processor.oldmpos = m_processor.mousePos();
+                selection_rect.x = m_processor.oldmpos.x;
+                selection_rect.y = m_processor.oldmpos.y;
+            }
+            selection_rect.w = m_processor.mousePos().x-m_processor.oldmpos.x;
+            selection_rect.h = m_processor.mousePos().y-m_processor.oldmpos.y;
+            SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
+            SDL_RenderDrawRect(m_iout, &selection_rect);
+        }
+        else
+        {
+            if( (selection_rect.w >= 4 && selection_rect.h >= 4) || (selection_rect.w <= -4 && selection_rect.h <= -4) )
+            {
+                m_processor.addSelected(m_scene.objs().values(), selection_rect);
+            }
+            else
+            {
+                if( m_processor.isMouseOver(a.real_rect) )
+                    m_processor.selectionList[a.getName()] = a;
+            }
+            //
+            if(m_processor.oldmpos.x != 0 && m_processor.oldmpos.y != 0)
+                m_processor.oldmpos = vec2(0,0);
         }
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
         m_scene.objs()[a.getName()].nextFrame( m_animator.fcount(a.curAnim), m_animator.fps(a.curAnim) );
     }
+    mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
+    SDL_RenderCopy(m_iout, m_texloader.getTex("cursor"), NULL, &mouse_rect);
 }
 
 void Core::processEvents()

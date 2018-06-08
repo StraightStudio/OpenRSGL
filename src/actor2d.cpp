@@ -143,4 +143,6 @@ void Actor2d::updatePath()
             move_direction = IDLE;
         }
     }
+    real_rect.x = rect.x+(rect.w-real_rect.w)/2;
+    real_rect.y = rect.y+(rect.h-real_rect.h)/2;
 }

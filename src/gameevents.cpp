@@ -7,12 +7,24 @@ vec2 GameEvents::mousePos()
     return vec2(x, y);
 }
 
-bool GameEvents::isMouseOver(SDL_Rect *rect)
+bool GameEvents::rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2)
 {
+    if(rect_1.x <= rect_2.x+rect_2.w && rect_1.x >= rect_2.x &&
+       rect_1.y <= rect_2.y+rect_2.h && rect_1.y >= rect_2.y)
+        return true;
+    else
+        return false;
+}
+
+bool GameEvents::isMouseOver(SDL_Rect &rect)
+{
+    SDL_Rect mr;
     int x,y;
     SDL_GetMouseState(&x, &y);
-    if(x <= rect->x+rect->w && x >= rect->x &&
-       y <= rect->y+rect->h && y >= rect->y)
+    mr.x = x;
+    mr.y = y;
+
+    if(rectOverlap(mr, rect))
         return true;
     else
         return false;
@@ -28,10 +40,27 @@ bool GameEvents::isMouseUp(int mbtn)
     return !( SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(mbtn) ); // 1 - left, 2 - middle, 3 - right
 }
 
+bool GameEvents::keyDown(int scancode)
+{
+    return SDL_GetKeyboardState(NULL)[scancode];
+}
+
+void GameEvents::addSelected(const QList<Actor2d> &objs, SDL_Rect &selrect)
+{
+    for(Actor2d a : objs)
+    {
+        if(rectOverlap(a.real_rect, selrect))
+        {
+            if(!selectionList.contains(a.getName()))
+                selectionList[a.getName()] = a;
+        }
+    }
+}
+
 Action GameEvents::processUIobject(Actor2d &obj)
 {
     vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
-    if(isMouseOver(&obj.getRect()))
+    if(isMouseOver(obj.getRect()))
     {
         if(ui_btns[obj.getName()] != "hovered")
         {
@@ -75,7 +104,7 @@ Action GameEvents::processUIobject(Actor2d &obj)
 Action GameEvents::processActor(Actor2d &obj)
 {
     vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
-    if(isMouseOver(&obj.getRect()))
+    if(isMouseOver(obj.real_rect))
     {
         if(isMouseDown(1))
         {
@@ -86,7 +115,8 @@ Action GameEvents::processActor(Actor2d &obj)
     {
         if(isMouseDown(1))
         {
-            selectionList.remove(obj.getName());
+            if(!keyDown(SDL_SCANCODE_LSHIFT))
+                selectionList.clear();
         }
         if(isMouseDown(3))
         {

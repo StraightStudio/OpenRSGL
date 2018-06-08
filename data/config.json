@@ -15,6 +15,7 @@
 
 	"textures"			:
 	{
+		"cursor"		: "hand.png",
 		"play_btn"		: "play_btn.png",
 		"quit_btn"		: "quit_btn.png",
 		"ussr_soldier"	: "ussr_soldier.png"

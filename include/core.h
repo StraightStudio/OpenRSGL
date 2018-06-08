@@ -40,6 +40,10 @@ private:
 
     AppConfig m_appconf;
     AnimationManager m_animator;
+
+    //
+    SDL_Rect selection_rect;
+    SDL_Rect mouse_rect;
 };
 
 #endif // CORE_H

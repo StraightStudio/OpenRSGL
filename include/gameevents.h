@@ -53,17 +53,23 @@ class GameEvents
 {
 public:
     GameEvents();
+    vec2 oldmpos;
 
     vec2 mousePos();
-    bool isMouseOver(SDL_Rect *rect);
+    bool rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2);
+    bool isMouseOver(SDL_Rect &rect);
     bool isMouseDown(int mbtn);
     bool isMouseUp(int mbtn);
+    bool keyDown(int scancode);
 
     Action processUIobject(Actor2d &obj);
     Action processActor(Actor2d &obj);
+    void addSelected(const QList<Actor2d> &objs, SDL_Rect &selrect);
+
+    QMap<QString, Actor2d> selectionList;
 private:
     QMap<QString, QString> ui_btns;
-    QMap<QString, Actor2d> selectionList;
+
 };
 
 #endif // GAMEEVENTS_H

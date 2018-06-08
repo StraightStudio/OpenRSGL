@@ -23,6 +23,7 @@ class Actor2d
 public:
     Actor2d();
     SDL_Rect rect;
+    SDL_Rect real_rect; // Rect with 'real' width and height
     QString curAnim;
     QString texture;
 
@@ -60,14 +61,19 @@ public:
         targetPos = pos;
         rect.x = pos.x;
         rect.y = pos.y;
+        real_rect.x = pos.x;
+        real_rect.y = pos.y;
     }
     void setPos(int x, int y)
     {
         targetPos = vec2(x, y);
         rect.x = x;
         rect.y = y;
+        real_rect.x = x;
+        real_rect.y = y;
     }
-    const vec2 &getPos() const
+
+    vec2 getPos()
     {
         return vec2(rect.x, rect.y);
     }
@@ -82,7 +88,17 @@ public:
         rect.w = w;
         rect.h = h;
     }
-    const vec2 &getDim() const
+    void setRealDim(int rw, int rh)
+    {
+        real_rect.w = rw;
+        real_rect.h = rh;
+    }
+    void setRealDim(vec2 rdim)
+    {
+        real_rect.w = rdim.x;
+        real_rect.h = rdim.y;
+    }
+    vec2 getDim()
     {
         return vec2(rect.w, rect.h);
     }

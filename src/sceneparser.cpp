@@ -77,7 +77,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         exit(-1);
     }
 
-    int x,y,w,h;
+    int x,y,w,h,rw,rh;
     QString type, anim, tex;
     QMap <QString, QString> trigger;
     for(auto& i : doc["objects"].GetObject())
@@ -99,6 +99,17 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         }
         w = i.value["w"].GetInt();
         h = i.value["h"].GetInt();
+
+        if( !(i.value.HasMember("rw") || i.value.HasMember("rh")) )
+        {
+            rw = w;
+            rh = h;
+        }
+        else
+        {
+            rw = i.value["rw"].GetInt();
+            rh = i.value["rh"].GetInt();
+        }
 
         if(!i.value["type"].IsString())
         {
@@ -136,7 +147,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
             trigger["click"] = i.value["click"].GetString();
         }
 
-        target->addActor(vec2(x,y), vec2(w,h), i.name.GetString(), type, trigger, tex, anim);
+        target->addActor(vec2(x,y), vec2(w,h), vec2(rw, rh), i.name.GetString(), type, trigger, tex, anim);
     }
 
     if(doc.HasMember("bg-track"))
