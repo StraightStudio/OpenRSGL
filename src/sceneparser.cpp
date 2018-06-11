@@ -78,7 +78,8 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
     }
 
     int x,y,w,h,rw,rh;
-    QString type, anim, tex;
+    vec2 so; // Spawn Offset
+    QString type, anim, tex, st;
     QMap <QString, QString> trigger;
     for(auto& i : doc["objects"].GetObject())
     {
@@ -115,7 +116,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         {
             Config::cfgerr(INVALID_TYPE);
         }
-        type = i.value["type"].GetString();
+        type = QString(i.value["type"].GetString()).toLower();
 
         if(!i.value["texture"].IsString())
         {
@@ -146,8 +147,31 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
             }
             trigger["click"] = i.value["click"].GetString();
         }
+        else if(type == "building")
+        {
+            if(!i.value.HasMember("sox"))
+                Config::cfgerr("'sox' variable must be set!");
+            if(!i.value.HasMember("soy"))
+                Config::cfgerr("'soy' variable must be set!");
+            if(!i.value.HasMember("stype"))
+                Config::cfgerr("'stype' variable must be set!");
+
+            if(!i.value["sox"].IsInt()) // Spawn Offset X
+                Config::cfgerr("'sox' variable must be INT!");
+            so.x = i.value["sox"].GetInt();
+
+            if(!i.value["soy"].IsInt()) // Spawn Offset Y
+                Config::cfgerr("'soy' variable must be INT!");
+            so.y = i.value["soy"].GetInt();
+
+            if(!i.value["stype"].IsString())
+                Config::cfgerr("'stype' variable must be STRING!");
+            st = i.value["stype"].GetString();
+        }
 
         target->addActor(vec2(x,y), vec2(w,h), vec2(rw, rh), i.name.GetString(), type, trigger, tex, anim);
+        target->objs().last().setSO(so);
+        target->objs().last().setStructType(st);
     }
 
     if(doc.HasMember("bg-track"))

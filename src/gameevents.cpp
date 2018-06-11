@@ -1,5 +1,13 @@
 #include "../include/gameevents.h"
 
+GameEvents::GameEvents()
+{
+    mouse_state = "none";
+    button_down[0] = false;
+    button_down[1] = false;
+    button_down[2] = false;
+}
+
 vec2 GameEvents::mousePos()
 {
     int x,y;
@@ -14,6 +22,29 @@ bool GameEvents::rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2)
         return true;
     else
         return false;
+}
+
+bool GameEvents::mouseClicked(int mbtn)
+{
+    if(!button_down[mbtn-1])
+    {
+        if(isMouseDown(mbtn))
+        {
+            button_down[mbtn-1] = true;
+            return true;
+        }
+    }
+    if(isMouseUp(mbtn))
+    {
+        button_down[mbtn-1] = false;
+        return false;
+    }
+    return false;
+}
+
+void GameEvents::updateMouse()
+{
+
 }
 
 bool GameEvents::isMouseOver(SDL_Rect &rect)
@@ -32,12 +63,17 @@ bool GameEvents::isMouseOver(SDL_Rect &rect)
 
 bool GameEvents::isMouseDown(int mbtn)
 {
-    return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(mbtn); // 1 - left, 2 - middle, 3 - right
+    return ( SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(mbtn) ); // 1 - left, 2 - middle, 3 - right
 }
 
 bool GameEvents::isMouseUp(int mbtn)
 {
-    return !( SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(mbtn) ); // 1 - left, 2 - middle, 3 - right
+    if(!isMouseDown(mbtn))
+    {
+        button_down[mbtn-1] = false;
+        return true;
+    }
+    return false;
 }
 
 bool GameEvents::keyDown(int scancode)
@@ -45,11 +81,18 @@ bool GameEvents::keyDown(int scancode)
     return SDL_GetKeyboardState(NULL)[scancode];
 }
 
+bool GameEvents::isSelected(Actor2d &a)
+{
+    if(selectionList.contains(a.getName()))
+        return true;
+    return false;
+}
+
 void GameEvents::addSelected(const QList<Actor2d> &objs, SDL_Rect &selrect)
 {
     for(Actor2d a : objs)
     {
-        if(rectOverlap(a.real_rect, selrect))
+        if(rectOverlap(a.real_rect, selrect) && a.type == "actor")
         {
             if(!selectionList.contains(a.getName()))
                 selectionList[a.getName()] = a;
@@ -60,6 +103,8 @@ void GameEvents::addSelected(const QList<Actor2d> &objs, SDL_Rect &selrect)
 Action GameEvents::processUIobject(Actor2d &obj)
 {
     vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
+    if(!obj.visible)
+        return Action(0, "0");
     if(isMouseOver(obj.getRect()))
     {
         if(ui_btns[obj.getName()] != "hovered")
@@ -75,12 +120,15 @@ Action GameEvents::processUIobject(Actor2d &obj)
             }
             return Action(POS_RES_ACTION, 0, res, trs);
         }
-        if(isMouseDown(1))
+        if(mouseClicked(1))
         {
             switch(obj.triggerAction("click"))
             {
                 case SCENE_ACTION:
                     return Action(SCENE_ACTION, obj.triggerArgument("click"));
+                break;
+                case SPW_ACTION:
+                    return Action(SPW_ACTION, "barracks:conscript_");
                 break;
                 case QUIT_ACTION:
                     return Action(QUIT_ACTION, true);
@@ -104,11 +152,13 @@ Action GameEvents::processUIobject(Actor2d &obj)
 Action GameEvents::processActor(Actor2d &obj)
 {
     vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
+    if(!obj.visible)
+        return Action(0, "0");
     if(isMouseOver(obj.real_rect))
     {
-        if(isMouseDown(1))
+        if(mouse_state != "over")
         {
-            selectionList[obj.getName()] = obj;
+            mouse_state = "over";
         }
     }
     else
@@ -118,7 +168,7 @@ Action GameEvents::processActor(Actor2d &obj)
             if(!keyDown(SDL_SCANCODE_LSHIFT))
                 selectionList.clear();
         }
-        if(isMouseDown(3))
+        if(isMouseDown(SDL_BUTTON_RIGHT))
         {
             if(selectionList.contains( obj.getName() ) )
             {
@@ -130,7 +180,18 @@ Action GameEvents::processActor(Actor2d &obj)
     return Action(0, "0");
 }
 
-GameEvents::GameEvents()
+Action GameEvents::processBuilding(Actor2d &obj)
 {
-
+    vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
+    if(!obj.visible)
+        return Action(0, "0");
+    if(isMouseOver(obj.real_rect))
+    {
+        if(mouse_state != "over")
+            mouse_state = "over";
+        if(mouseClicked(1))
+        {
+            obj.structSelected = true;
+        }
+    }
 }

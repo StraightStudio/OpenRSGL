@@ -44,6 +44,7 @@ private:
     //
     SDL_Rect selection_rect;
     SDL_Rect mouse_rect;
+    int spawnid;
 };
 
 #endif // CORE_H

@@ -36,14 +36,20 @@ public:
     QMap<QString,QString> trigger;
 
 
-
     // ========== G A M E   L O G I C   V A R I A B L E S ===========================
+    bool visible;
+
     vec2 targetPos; // Moving to...
     int move_speed;
     int move_direction;
     //
     int health_percentage;
     SDL_Rect health_rect;
+
+    // Building variables
+    vec2 so; // Spawn Offset
+    bool structSelected;
+    QString structType;
     // ==============================================================================
 
     const QString &tex() const
@@ -54,6 +60,22 @@ public:
     void setTex(QVariant t)
     {
         texture = t.toString();
+    }
+
+    void setSO(vec2 s)
+    {
+        so = s;
+    }
+
+    void setSO(int sx, int sy)
+    {
+        so.x = sx;
+        so.y = sy;
+    }
+
+    void setStructType(QVariant t)
+    {
+        structType = t.toString();
     }
 
     void setPos(vec2 pos)
@@ -126,6 +148,8 @@ public:
                 return SOUND_ACTION;
             else if(trigger[event].split(" ")[0] == "scn")
                 return SCENE_ACTION;
+            else if(trigger[event].split(" ")[0] == "spw")
+                return SPW_ACTION;
             else if(trigger[event].split(" ")[0] == "quit")
                 return QUIT_ACTION;
         }

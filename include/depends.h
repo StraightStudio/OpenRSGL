@@ -67,6 +67,7 @@
 #define RES_SND_ACTION      0xa59397    // 'SND' + 'RES' in hex
 #define POS_RES_SND_ACTION  0xf2e3f9    // 'POS' + 'RES' + 'SND' in hex
 #define MOV_ACTION          0x4d4f56    // 'MOV' in hex
+#define SPW_ACTION          0x535057    // 'SPW' in hex
 
 #define QUIT_ACTION         0xffffff    // Just for fun
 
@@ -79,6 +80,20 @@ struct vec2
     vec2(int a, int b):
         x(a), y(b){}
     vec2(){}
+
+    vec2 &operator+(vec2 a)
+    {
+        x = a.x+x;
+        y = a.y+y;
+        return *this;
+    }
+
+    vec2 &operator-(vec2 a)
+    {
+        x = x-a.x;
+        y = y-a.y;
+        return *this;
+    }
 
     int X(){return x;}
     int Y(){return y;}

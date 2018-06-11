@@ -55,18 +55,27 @@ public:
     GameEvents();
     vec2 oldmpos;
 
+    bool mouseClicked(int mbtn);
+
+    void updateMouse();
     vec2 mousePos();
     bool rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2);
     bool isMouseOver(SDL_Rect &rect);
     bool isMouseDown(int mbtn);
     bool isMouseUp(int mbtn);
+    bool isMouseClicked(int mbtn);
     bool keyDown(int scancode);
+    bool isSelected(Actor2d &a);
 
     Action processUIobject(Actor2d &obj);
     Action processActor(Actor2d &obj);
+    Action processBuilding(Actor2d &obj);
     void addSelected(const QList<Actor2d> &objs, SDL_Rect &selrect);
 
     QMap<QString, Actor2d> selectionList;
+
+    QString mouse_state;
+    bool button_down[3];
 private:
     QMap<QString, QString> ui_btns;
 

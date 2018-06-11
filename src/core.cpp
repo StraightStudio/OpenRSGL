@@ -1,6 +1,6 @@
 #include "../include/core.h"
 
-Core::Core()
+Core::Core() : spawnid(0)
 {
 }
 
@@ -39,6 +39,7 @@ void Core::init()
     Logger::log("Core", "Window size set.");
     SDL_SetWindowTitle(m_window, QString( m_appconf.app_name+" "+m_appconf.app_version ).toStdString().c_str() );
     Logger::log("Core", "Window title set.");
+    SDL_SetRenderDrawBlendMode(m_iout, SDL_BLENDMODE_ADD);
     if(m_appconf.is_full)
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
 
@@ -86,26 +87,26 @@ int Core::exec()
 
 void Core::draw_objs()
 {
-    for(Actor2d a: m_scene.objs().values())
+    Actor2d a;
+    for(int i=m_scene.objs().count()-1; i >= 0; i--)
     {
-        if(a.type == "actor")
+        a = m_scene.objs().values().at(i);
+        if(a.type == "actor" || a.type == "building")
         {
-            SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-            SDL_RenderFillRect(m_iout, &a.healthBar());
+            if(m_processor.isSelected(a) || m_processor.isMouseOver(a.real_rect))
+            {
+                SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                SDL_RenderFillRect(m_iout, &a.healthBar());
+            }
             //
             if(a.move_direction != IDLE)
             {
-                for(Actor2d ta : m_scene.objs().values())
-                {
-                    if(ta.getName() == a.getName())
-                        continue;
-                    if(m_processor.rectOverlap(ta.rect, a.rect))
-                        m_scene.objs()[a.getName()].targetPos = vec2(a.rect.x, a.rect.y);
-                }
                 SDL_RenderDrawLine(m_iout, a.rect.x+a.rect.w/2, a.rect.y+a.rect.h-16, a.targetPos.x+a.rect.w/2, a.targetPos.y+a.rect.h-16);
             }
+#ifdef DEBUG
             SDL_SetRenderDrawColor(m_iout, 255, 0, 0, SDL_ALPHA_OPAQUE);
             SDL_RenderDrawRect(m_iout, &a.real_rect);
+#endif
         }
         if(m_processor.isMouseDown(1))
         {
@@ -118,40 +119,52 @@ void Core::draw_objs()
             selection_rect.w = m_processor.mousePos().x-m_processor.oldmpos.x;
             selection_rect.h = m_processor.mousePos().y-m_processor.oldmpos.y;
             SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-            SDL_RenderDrawRect(m_iout, &selection_rect);
+            if( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) )
+                SDL_RenderDrawRect(m_iout, &selection_rect);
+
+            if(m_processor.isMouseOver(a.real_rect) && m_processor.isMouseUp(3))
+            {
+                m_processor.selectionList[a.getName()] = a;
+            }
         }
         else
         {
-            if( (selection_rect.w >= 4 && selection_rect.h >= 4) || (selection_rect.w <= -4 && selection_rect.h <= -4) )
+            if( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) )
             {
                 m_processor.addSelected(m_scene.objs().values(), selection_rect);
             }
-            else
-            {
-                if( m_processor.isMouseOver(a.real_rect) )
-                    m_processor.selectionList[a.getName()] = a;
-            }
             //
-            if(m_processor.oldmpos.x != 0 && m_processor.oldmpos.y != 0)
-                m_processor.oldmpos = vec2(0,0);
+            m_processor.oldmpos = vec2(0,0);
         }
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
         m_scene.objs()[a.getName()].nextFrame( m_animator.fcount(a.curAnim), m_animator.fps(a.curAnim) );
     }
     mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
-    SDL_RenderCopy(m_iout, m_texloader.getTex("cursor"), NULL, &mouse_rect);
+    SDL_RenderCopy(m_iout, m_texloader.getTex("cursor_"+m_processor.mouse_state), NULL, &mouse_rect);
 }
 
 void Core::processEvents()
 {
+    m_processor.updateMouse();
+    m_processor.mouse_state = "none";
+    //
+    if(m_processor.keyDown(SDL_SCANCODE_LCTRL))
+        SDL_RenderSetScale(m_iout, 2.0f, 2.0f);
+    else if(m_processor.keyDown(SDL_SCANCODE_LSHIFT))
+        SDL_RenderSetScale(m_iout, 1.0f, 1.0f);
+    //
     Action act;
+    QStringList info;
+    vec2 sp;
     for(Actor2d obj : m_scene.objs().values())
     {
         if(obj.type == "button")
             act = m_processor.processUIobject(obj);
         else if(obj.type == "actor")
             act = m_processor.processActor(obj);
+        else if(obj.type == "building")
+            act = m_processor.processBuilding(obj);
 
         switch(act.id)
         {
@@ -176,7 +189,6 @@ void Core::processEvents()
             break;
 
             case MOV_ACTION:
-
                 m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
             break;
 
@@ -186,6 +198,24 @@ void Core::processEvents()
             case SCENE_ACTION:
                 m_sceneparser.loadScene(&m_scene, act.stringData(), m_appconf);
                 m_scene.start(&m_audiomgr);
+            break;
+            case SPW_ACTION:
+            info = act.stringData().split(":");
+            if(info.count() != 2)
+                break;
+            for(Actor2d a : m_scene.objs().values())
+            {
+                if(a.structType == info[0])
+                {
+                    sp = a.getPos()+a.so;
+                    break;
+                }
+            }
+            m_scene.addActor(sp, vec2(64,72), vec2(48,64), info[1]+QString::number(spawnid), "actor", "ussr_soldier", "ussr_sw");
+            spawnid++;
+            //
+            srand(time(0));
+            m_audiomgr.playSound("ussr_soldier_spawn_"+QString::number(random() % 3));
             break;
             case QUIT_ACTION:
             m_quit = act.boolData();

@@ -15,19 +15,29 @@
 
 	"textures"			:
 	{
-		"cursor"		: "hand.png",
+		"cursor_none"	: "cursor_hand.png",
+		"cursor_over"	: "cursor_over.png",
 		"play_btn"		: "play_btn.png",
 		"quit_btn"		: "quit_btn.png",
-		"ussr_soldier"	: "ussr_soldier.png"
+		"conscript_btn"	: "cons_button.png",
+
+		"ussr_soldier"	: "ussr_soldier.png",
+		"ussr_barracks"	: "ussr_barracks_100.png"
 	},
 	"animations"		:
 	{
 		"ui"			: "buttons.json",
-		"ussr_soldier"	: "ussr_soldier.json"
+		"ussr_soldier"	: "ussr_soldier.json",
+		"ussr_buildings": "ussr_buildings.json"
 	},
 	"sounds"			: 
 	{
-		"hover"			: "hover.wav"
+		"hover"			: "hover.wav",
+
+		"ussr_soldier_spawn_0" : "ussr_soldier_spawn_0.wav",
+		"ussr_soldier_spawn_1" : "ussr_soldier_spawn_1.wav",
+		"ussr_soldier_spawn_2" : "ussr_soldier_spawn_2.wav",
+		"ussr_soldier_spawn_3" : "ussr_soldier_spawn_3.wav"
 	},
 	"music"				:
 	{

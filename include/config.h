@@ -1,6 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// -----------=
+//#define DEBUG
+// -----------=
+
 #define DW_WIDTH 1280
 #define DW_HEIGHT 720
 

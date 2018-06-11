@@ -6,6 +6,7 @@ Actor2d::Actor2d()
     curFrame    = 0;
     curAnim     = "idle";
     move_speed  = 1;
+    visible     = true;
 }
 
 void Actor2d::setTexs(QStringList texs, QList<SDL_Rect> frames)
