@@ -1,6 +1,7 @@
 #ifndef ANIMATIONMANAGER_H
 #define ANIMATIONMANAGER_H
 
+
 #include <include/depends.h>
 
 class AnimationManager

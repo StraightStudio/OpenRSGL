@@ -55,9 +55,6 @@ public:
     GameEvents();
     vec2 oldmpos;
 
-    bool mouseClicked(int mbtn);
-
-    void updateMouse();
     vec2 mousePos();
     bool rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2);
     bool isMouseOver(SDL_Rect &rect);
@@ -76,9 +73,10 @@ public:
 
     QString mouse_state;
     bool button_down[3];
+    bool button_clicked[3];
 private:
     QMap<QString, QString> ui_btns;
-
+    SDL_Event e;
 };
 
 #endif // GAMEEVENTS_H

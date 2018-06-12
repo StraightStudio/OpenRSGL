@@ -2,6 +2,7 @@
 #define ACTOR2D_H
 
 #include <include/depends.h>
+#include <include/vec2.h>
 
 enum DIRECTIONS {
     UP_DIR=0,
@@ -45,6 +46,8 @@ public:
     //
     int health_percentage;
     SDL_Rect health_rect;
+    QStringList sel_taunts;
+    QStringList mov_taunts;
 
     // Building variables
     vec2 so; // Spawn Offset
@@ -183,6 +186,22 @@ public:
             }
             else
                 frameIter++;
+        }
+    }
+
+    QString taunt(QVariant t)
+    {
+        srand(time(0));
+        int rt=0;
+        if(t.toString().toUpper() == "SELECT")
+        {
+            rt = random() % sel_taunts.length();
+            return sel_taunts[rt];
+        }
+        else if(t.toString().toUpper() == "MOVE")
+        {
+            rt = random() % mov_taunts.length();
+            return mov_taunts[rt];
         }
     }
 

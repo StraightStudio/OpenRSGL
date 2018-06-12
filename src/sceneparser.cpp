@@ -25,8 +25,6 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         err = true;
     }
 
-
-
     if(!doc.HasMember("name")) // Check if "name" exists.
     {
         derr = CORRUPT_SCENE_NAME;
@@ -56,6 +54,19 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         target->sinfo.setAuthor( doc["author"].GetString() ); // Get "author"
 
 
+    if(!doc.HasMember("type")) // If "type" exists.
+    {
+        derr = CORRUPT_SCENE;
+        err = true;
+    }
+    if(!doc["type"].IsString()) // Check "type" type
+    {
+        derr = INVALID_TYPE;
+        err = true;
+    }
+    else
+        target->sinfo.setType( doc["type"].GetString() ); // Get "type"
+
 
     if(!doc.HasMember("objects")) // Check if "objects" exists
     {
@@ -77,101 +88,25 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         exit(-1);
     }
 
-    int x,y,w,h,rw,rh;
-    vec2 so; // Spawn Offset
-    QString type, anim, tex, st;
-    QMap <QString, QString> trigger;
+    int x,y;
+    QString model;
     for(auto& i : doc["objects"].GetObject())
     {
         if( !(i.value["x"].IsInt() || i.value["y"].IsInt()) )
-        {
-            derr = INVALID_COORDS;
-            err = true;
-            break;
-        }
+            Config::cfgerr(INVALID_COORDS);
         x = i.value["x"].GetInt();
         y = i.value["y"].GetInt();
 
-        if( !(i.value["w"].IsInt() || i.value["h"].IsInt()) )
-        {
-            derr = INVALID_DIMS;
-            err = true;
-            break;
-        }
-        w = i.value["w"].GetInt();
-        h = i.value["h"].GetInt();
+        if(x < 0)
+            x = conf.app_width+x;
+        if(y < 0)
+            y = conf.app_height+y;
 
-        if( !(i.value.HasMember("rw") || i.value.HasMember("rh")) )
-        {
-            rw = w;
-            rh = h;
-        }
-        else
-        {
-            rw = i.value["rw"].GetInt();
-            rh = i.value["rh"].GetInt();
-        }
+        if(!i.value["model"].IsString())
+            Config::cfgerr("'model' variable must be STRING!");
+        model = QString(i.value["model"].GetString());
 
-        if(!i.value["type"].IsString())
-        {
-            Config::cfgerr(INVALID_TYPE);
-        }
-        type = QString(i.value["type"].GetString()).toLower();
-
-        if(!i.value["texture"].IsString())
-        {
-            Config::cfgerr(INVALID_TYPE);
-        }
-        tex = i.value["texture"].GetString();
-
-        if(!i.value["animation"].IsString())
-        {
-            Config::cfgerr(INVALID_TYPE);
-        }
-        anim = i.value["animation"].GetString();
-
-        if(type == "button")
-        {
-            if(!i.value["hover"].IsString())
-            {
-                derr = INVALID_OBJLIST;
-                err = true;
-                break;
-            }
-            trigger["hover"] = i.value["hover"].GetString();
-            if(!i.value["click"].IsString())
-            {
-                derr = INVALID_OBJLIST;
-                err = true;
-                break;
-            }
-            trigger["click"] = i.value["click"].GetString();
-        }
-        else if(type == "building")
-        {
-            if(!i.value.HasMember("sox"))
-                Config::cfgerr("'sox' variable must be set!");
-            if(!i.value.HasMember("soy"))
-                Config::cfgerr("'soy' variable must be set!");
-            if(!i.value.HasMember("stype"))
-                Config::cfgerr("'stype' variable must be set!");
-
-            if(!i.value["sox"].IsInt()) // Spawn Offset X
-                Config::cfgerr("'sox' variable must be INT!");
-            so.x = i.value["sox"].GetInt();
-
-            if(!i.value["soy"].IsInt()) // Spawn Offset Y
-                Config::cfgerr("'soy' variable must be INT!");
-            so.y = i.value["soy"].GetInt();
-
-            if(!i.value["stype"].IsString())
-                Config::cfgerr("'stype' variable must be STRING!");
-            st = i.value["stype"].GetString();
-        }
-
-        target->addActor(vec2(x,y), vec2(w,h), vec2(rw, rh), i.name.GetString(), type, trigger, tex, anim);
-        target->objs().last().setSO(so);
-        target->objs().last().setStructType(st);
+        target->addActor(conf, vec2(x,y), model);
     }
 
     if(doc.HasMember("bg-track"))
@@ -202,7 +137,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
 
 void SceneParser::loadScene(Scene2d *target, AppConfig &conf)
 {
-    target->objs().clear();
+    target->clear();
     readScene(conf, target, conf.getStartScene());
 }
 

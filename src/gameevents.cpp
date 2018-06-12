@@ -6,6 +6,10 @@ GameEvents::GameEvents()
     button_down[0] = false;
     button_down[1] = false;
     button_down[2] = false;
+
+    button_clicked[0] = false;
+    button_clicked[1] = false;
+    button_clicked[2] = false;
 }
 
 vec2 GameEvents::mousePos()
@@ -17,39 +21,18 @@ vec2 GameEvents::mousePos()
 
 bool GameEvents::rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2)
 {
-    if(rect_1.x <= rect_2.x+rect_2.w && rect_1.x >= rect_2.x &&
-       rect_1.y <= rect_2.y+rect_2.h && rect_1.y >= rect_2.y)
+    SDL_Rect res;
+    if(SDL_IntersectRect(&rect_1, &rect_2, &res) == SDL_TRUE)
         return true;
     else
         return false;
 }
 
-bool GameEvents::mouseClicked(int mbtn)
-{
-    if(!button_down[mbtn-1])
-    {
-        if(isMouseDown(mbtn))
-        {
-            button_down[mbtn-1] = true;
-            return true;
-        }
-    }
-    if(isMouseUp(mbtn))
-    {
-        button_down[mbtn-1] = false;
-        return false;
-    }
-    return false;
-}
-
-void GameEvents::updateMouse()
-{
-
-}
-
 bool GameEvents::isMouseOver(SDL_Rect &rect)
 {
     SDL_Rect mr;
+    mr.w = 16;
+    mr.h = 16;
     int x,y;
     SDL_GetMouseState(&x, &y);
     mr.x = x;
@@ -63,17 +46,17 @@ bool GameEvents::isMouseOver(SDL_Rect &rect)
 
 bool GameEvents::isMouseDown(int mbtn)
 {
-    return ( SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(mbtn) ); // 1 - left, 2 - middle, 3 - right
+    return button_down[mbtn-1]; // 1 - left, 2 - middle, 3 - right
 }
 
 bool GameEvents::isMouseUp(int mbtn)
 {
-    if(!isMouseDown(mbtn))
-    {
-        button_down[mbtn-1] = false;
-        return true;
-    }
-    return false;
+    return !button_down[mbtn-1];
+}
+
+bool GameEvents::isMouseClicked(int mbtn)
+{
+    return button_clicked[mbtn-1];
 }
 
 bool GameEvents::keyDown(int scancode)
@@ -109,8 +92,8 @@ Action GameEvents::processUIobject(Actor2d &obj)
     {
         if(ui_btns[obj.getName()] != "hovered")
         {
-            res = vec2(obj.getRect().w+16, obj.getRect().h+16);
-            trs = vec2(obj.getRect().x-8, obj.getRect().y-8);
+            res = vec2(obj.getRect().w+2, obj.getRect().h+2);
+            trs = vec2(obj.getRect().x-1, obj.getRect().y-1);
             ui_btns[obj.getName()] = "hovered";
             switch(obj.triggerAction("hover"))
             {
@@ -120,7 +103,7 @@ Action GameEvents::processUIobject(Actor2d &obj)
             }
             return Action(POS_RES_ACTION, 0, res, trs);
         }
-        if(mouseClicked(1))
+        if(isMouseClicked(SDL_BUTTON_LEFT))
         {
             switch(obj.triggerAction("click"))
             {
@@ -128,7 +111,7 @@ Action GameEvents::processUIobject(Actor2d &obj)
                     return Action(SCENE_ACTION, obj.triggerArgument("click"));
                 break;
                 case SPW_ACTION:
-                    return Action(SPW_ACTION, "barracks:conscript_");
+                    return Action(SPW_ACTION, "barracks:ussr_soldier");
                 break;
                 case QUIT_ACTION:
                     return Action(QUIT_ACTION, true);
@@ -140,8 +123,8 @@ Action GameEvents::processUIobject(Actor2d &obj)
     {
         if(ui_btns[obj.getName()] == "hovered")
         {
-            res = vec2(obj.getRect().w-16, obj.getRect().h-16);
-            trs = vec2(obj.getRect().x+8, obj.getRect().y+8);
+            res = vec2(obj.getRect().w-2, obj.getRect().h-2);
+            trs = vec2(obj.getRect().x+1, obj.getRect().y+1);
             ui_btns[obj.getName()] = "none";
             return Action(POS_RES_ACTION, 0, res, trs);
         }
@@ -154,26 +137,32 @@ Action GameEvents::processActor(Actor2d &obj)
     vec2 res; /* res - resizing */ vec2 trs; /* trs - translation */
     if(!obj.visible)
         return Action(0, "0");
-    if(isMouseOver(obj.real_rect))
+
+    if(isMouseOver(obj.rect))
     {
         if(mouse_state != "over")
-        {
             mouse_state = "over";
+
+        if(isMouseClicked(SDL_BUTTON_LEFT))
+        {
+            Logger::log("GameEvents", "Selected '"+obj.getName()+"'");
+            selectionList.insert(obj.getName(), obj);
+            return Action(SOUND_ACTION, obj.taunt("SELECT"));
         }
     }
     else
     {
-        if(isMouseDown(1))
+        if(isMouseClicked(SDL_BUTTON_LEFT))
         {
             if(!keyDown(SDL_SCANCODE_LSHIFT))
-                selectionList.clear();
+                selectionList.remove(obj.getName());
         }
-        if(isMouseDown(SDL_BUTTON_RIGHT))
+        if(isMouseClicked(SDL_BUTTON_RIGHT))
         {
-            if(selectionList.contains( obj.getName() ) )
+            if( selectionList.contains(obj.getName()) )
             {
                 trs = vec2( mousePos().x-obj.rect.w/2, mousePos().y-obj.rect.h+16 );
-                return Action(MOV_ACTION, 0, res, trs);
+                return Action(SND_MOV_ACTION, obj.taunt("MOVE"), res, trs);
             }
         }
     }
@@ -189,9 +178,5 @@ Action GameEvents::processBuilding(Actor2d &obj)
     {
         if(mouse_state != "over")
             mouse_state = "over";
-        if(mouseClicked(1))
-        {
-            obj.structSelected = true;
-        }
     }
 }

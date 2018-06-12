@@ -5,12 +5,14 @@
 #include <include/actor2d.h>
 #include <include/texloader.h>
 #include <include/audiomanager.h>
+#include <include/config.h>
 
 struct SceneInfo
 {
   QString name;
   QString author;
   QString bg_track;
+  QString type;
 
   SceneInfo(QVariant n, QVariant a): name(n.toString()), author(a.toString()) {}
 
@@ -27,6 +29,10 @@ struct SceneInfo
   {
       bg_track = a.toString();
   }
+  void setType(QVariant t)
+  {
+      type = t.toString();
+  }
 };
 
 class Scene2d
@@ -42,13 +48,16 @@ public:
     SDL_Rect &getRect(QString name="");
     QMap<QString, Actor2d> &objs();
 
+    void clear();
+
     SceneInfo sinfo;
-    void addActor(vec2 pos, vec2 dim, vec2 rdim, QString name, QString type, QMap<QString, QString> trigger, QString texture, QString anim_idle);
-    void addActor(vec2 pos, vec2 dim, vec2 rdim, QString name, QString type, QString texture, QString anim_idle);
+    void addActor(AppConfig &conf, vec2 pos, QString model);
+    void addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> trigger, QString name, QString type, QString texture, QString anim_idle);
 private:
     QMap<QString, Actor2d> m_objs;
     QString name;
     QString author;
+    int objid;
 };
 
 #endif // SCENE2D_H

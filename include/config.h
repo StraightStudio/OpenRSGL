@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 // -----------=
-//#define DEBUG
+#define DEBUG
 // -----------=
 
 #define DW_WIDTH 1280
@@ -10,11 +10,15 @@
 
 #include <include/depends.h>
 #include <include/logger.h>
+#include <include/actor2d.h>
 
 #define RES_ROOT "data/"
 #define IMG_ROOT RES_ROOT"img/"
 #define AUDIO_ROOT RES_ROOT"audio/"
 #define SCENE_ROOT RES_ROOT"scenes/"
+#define MODELS_ROOT RES_ROOT"models/"
+
+class Actor2d;
 
 struct Animation2d {
     int fps, frameCount;
@@ -58,7 +62,7 @@ struct AppConfig
     QMap<QString, int> anim_fps;
 
     QString start_scene;
-    QMap<QString, QString> app_scenes;
+    QMap<QString, Actor2d> app_models;
     QMap<QString, QString> sound_files;
     QMap<QString, QString> music_files;
 

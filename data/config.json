@@ -6,11 +6,7 @@
 	"width"				: 1280,
 	"height"			: 720,
 	"fullscreen"		: false,
-	"scenes"			:
-	{
-		"Menu"			: "menu.json",
-		"TestLobby" 	: "lobby.json"
-	},
+	
 	"start_scene"		: "menu.json",
 
 	"textures"			:
@@ -20,6 +16,7 @@
 		"play_btn"		: "play_btn.png",
 		"quit_btn"		: "quit_btn.png",
 		"conscript_btn"	: "cons_button.png",
+		"rocketman_btn"	: "rocket_button.png",
 
 		"ussr_soldier"	: "ussr_soldier.png",
 		"ussr_barracks"	: "ussr_barracks_100.png"
@@ -30,14 +27,28 @@
 		"ussr_soldier"	: "ussr_soldier.json",
 		"ussr_buildings": "ussr_buildings.json"
 	},
+	"models"			:
+	{
+		"ui"			: "buttons.json",
+		"ussr_structs"	: "ussr_buildings.json",
+		"ussr_units"	: "ussr_units.json"
+	},
 	"sounds"			: 
 	{
-		"hover"			: "hover.wav",
+		"hover"					: "hover.wav",
 
-		"ussr_soldier_spawn_0" : "ussr_soldier_spawn_0.wav",
-		"ussr_soldier_spawn_1" : "ussr_soldier_spawn_1.wav",
-		"ussr_soldier_spawn_2" : "ussr_soldier_spawn_2.wav",
-		"ussr_soldier_spawn_3" : "ussr_soldier_spawn_3.wav"
+		"ussr_soldier_spawn_0"	: "ussr_soldier_spawn_0.wav",
+		"ussr_soldier_spawn_1"	: "ussr_soldier_spawn_1.wav",
+		"ussr_soldier_spawn_2"	: "ussr_soldier_spawn_2.wav",
+		"ussr_soldier_spawn_3"	: "ussr_soldier_spawn_3.wav",
+
+		"USTS_01"				: "ussr_soldier_taunt_select_01.wav",
+		"USTS_02"				: "ussr_soldier_taunt_select_02.wav",
+		"USTS_03"				: "ussr_soldier_taunt_select_03.wav",
+
+		"USTM_01"				: "ussr_soldier_taunt_move_01.wav",
+		"USTM_02"				: "ussr_soldier_taunt_move_02.wav",
+		"USTM_03"				: "ussr_soldier_taunt_move_03.wav"
 	},
 	"music"				:
 	{

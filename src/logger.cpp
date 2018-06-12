@@ -10,6 +10,7 @@ void Logger::err(QString module, QString msg)
 {
     fprintf(stdout, "\n[E] < [ %s ] - %s >!!!\n", module.toStdString().c_str(), msg.toStdString().c_str());
     fflush(stdout);
+    exit(-1);
 }
 
 void Logger::warn(QString module, QString msg)

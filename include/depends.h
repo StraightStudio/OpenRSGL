@@ -1,6 +1,3 @@
-#ifndef DEPENDS_H
-#define DEPENDS_H
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -9,6 +6,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <QString>
 #include <QMap>
@@ -67,38 +65,10 @@
 #define RES_SND_ACTION      0xa59397    // 'SND' + 'RES' in hex
 #define POS_RES_SND_ACTION  0xf2e3f9    // 'POS' + 'RES' + 'SND' in hex
 #define MOV_ACTION          0x4d4f56    // 'MOV' in hex
+#define SND_MOV_ACTION      0xa09d9a    // 'MOV' in hex
 #define SPW_ACTION          0x535057    // 'SPW' in hex
 
-#define QUIT_ACTION         0xffffff    // Just for fun
+#define QUIT_ACTION         0x2a        // Just for fun
 
 using namespace std;
 using namespace rapidjson;
-
-struct vec2
-{
-    int x, y;
-    vec2(int a, int b):
-        x(a), y(b){}
-    vec2(){}
-
-    vec2 &operator+(vec2 a)
-    {
-        x = a.x+x;
-        y = a.y+y;
-        return *this;
-    }
-
-    vec2 &operator-(vec2 a)
-    {
-        x = x-a.x;
-        y = y-a.y;
-        return *this;
-    }
-
-    int X(){return x;}
-    int Y(){return y;}
-    int W(){return x;}
-    int H(){return y;}
-
-};
-#endif // DEPENDS_H

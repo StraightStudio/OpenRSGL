@@ -6,11 +6,14 @@ Core::Core() : spawnid(0)
 
 Core::~Core()
 {
+    Logger::log("Core", "Started cleanup...");
+
     SDL_DestroyWindow(m_window);
     SDL_DestroyRenderer(m_iout);
 
     SDL_ShowCursor(SDL_ENABLE);
 
+    IMG_Quit();
     SDL_Quit();
 }
 
@@ -18,28 +21,38 @@ void Core::init()
 {
     Config::loadCfg(&m_appconf);
 
+    if(TTF_Init() < 0)
+    {
+        Logger::err("Core", TTF_GetError());
+    }
+
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0)
     {
         Logger::err("Core", SDL_GetError());
-        exit(-1);
     }
     Logger::log("Core", "SDL2 init complete.");
     SDL_CreateWindowAndRenderer(DW_WIDTH, DW_HEIGHT, SDL_WINDOW_SHOWN, &m_window, &m_iout);
     if(m_window == 0 || m_iout == 0)
     {
         Logger::err("Core", "SDL2 failed to create window and/or renderer.");
-        exit(-1);
     }
     Logger::log("Core", "Window & renderer created.");
-    //
-
-        Logger::err("Core", "Can't open audio device!");
-    //
     SDL_SetWindowSize(m_window, m_appconf.app_width, m_appconf.app_height);
     Logger::log("Core", "Window size set.");
     SDL_SetWindowTitle(m_window, QString( m_appconf.app_name+" "+m_appconf.app_version ).toStdString().c_str() );
     Logger::log("Core", "Window title set.");
-    SDL_SetRenderDrawBlendMode(m_iout, SDL_BLENDMODE_ADD);
+
+    map_rect.w = 164;
+    map_rect.h = 164;
+    map_rect.x = 2;
+    map_rect.y = m_appconf.app_height-map_rect.h-2;
+
+    menu_rect.w = m_appconf.app_width;
+    menu_rect.h = map_rect.h+4;
+    menu_rect.x = 0;
+    menu_rect.y = m_appconf.app_height-menu_rect.h;
+
+
     if(m_appconf.is_full)
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
 
@@ -65,18 +78,32 @@ int Core::exec()
     while(!m_quit)
     {
         SDL_RenderClear(m_iout);
+        // =====================================================
         while(SDL_PollEvent(&m_event))
         {
             switch (m_event.type) {
-            case SDL_QUIT:
-                m_quit = true;
+                case SDL_QUIT:
+                    m_quit = true;
                 break;
-            default:
+                case SDL_MOUSEBUTTONDOWN:
+                    if(m_event.button.button > 0)
+                    {
+                        m_processor.button_clicked[m_event.button.button-1] = true;
+                        m_processor.button_down[m_event.button.button-1] = true;
+                    }
+                break;
+                case SDL_MOUSEBUTTONUP:
+                    if(m_event.button.button > 0)
+                    {
+                        m_processor.button_down[m_event.button.button-1] = false;
+                    }
+                break;
+                default:
                 break;
             }
         }
+        // =====================================================
         processEvents();
-        //
         draw_objs();
 
         SDL_RenderPresent(m_iout);
@@ -87,54 +114,57 @@ int Core::exec()
 
 void Core::draw_objs()
 {
-    Actor2d a;
-    for(int i=m_scene.objs().count()-1; i >= 0; i--)
+    if(m_scene.sinfo.type == "game")
     {
-        a = m_scene.objs().values().at(i);
-        if(a.type == "actor" || a.type == "building")
+        SDL_SetRenderDrawColor(m_iout, 192, 192, 192, SDL_ALPHA_OPAQUE);
+        SDL_RenderFillRect(m_iout, &menu_rect);
+        SDL_SetRenderDrawColor(m_iout, 255, 255, 255, SDL_ALPHA_OPAQUE);
+        SDL_RenderFillRect(m_iout, &map_rect);
+        SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    }
+    for(Actor2d a : m_scene.objs().values())
+    {
+        if(m_scene.sinfo.type == "game")
         {
-            if(m_processor.isSelected(a) || m_processor.isMouseOver(a.real_rect))
+            if(a.type == "actor")
             {
+                if(m_processor.isSelected(a) || m_processor.isMouseOver(a.real_rect))
+                {
+                    SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                    SDL_RenderFillRect(m_iout, &a.healthBar());
+                    if(a.move_direction != IDLE)
+                    {
+                        SDL_RenderDrawLine(m_iout, a.rect.x+a.rect.w/2, a.rect.y+a.rect.h-16, a.targetPos.x+a.rect.w/2, a.targetPos.y+a.rect.h-16);
+                    }
+        #ifdef DEBUG
+                    SDL_SetRenderDrawColor(m_iout, 255, 0, 0, SDL_ALPHA_OPAQUE);
+                    SDL_RenderDrawRect(m_iout, &a.real_rect);
+        #endif
+                }
+            }
+            if(m_processor.isMouseDown(1))
+            {
+                if(m_processor.oldmpos.x == 0 && m_processor.oldmpos.y == 0)
+                {
+                    m_processor.oldmpos = m_processor.mousePos();
+                    selection_rect.x = m_processor.oldmpos.x;
+                    selection_rect.y = m_processor.oldmpos.y;
+                }
+                selection_rect.w = m_processor.mousePos().x-m_processor.oldmpos.x;
+                selection_rect.h = m_processor.mousePos().y-m_processor.oldmpos.y;
                 SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-                SDL_RenderFillRect(m_iout, &a.healthBar());
+                if( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) )
+                    SDL_RenderDrawRect(m_iout, &selection_rect);
             }
-            //
-            if(a.move_direction != IDLE)
+            else
             {
-                SDL_RenderDrawLine(m_iout, a.rect.x+a.rect.w/2, a.rect.y+a.rect.h-16, a.targetPos.x+a.rect.w/2, a.targetPos.y+a.rect.h-16);
+                if( ( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) ) )
+                {
+                    m_processor.addSelected(m_scene.objs().values(), selection_rect);
+                }
+                //
+                m_processor.oldmpos = vec2(0,0);
             }
-#ifdef DEBUG
-            SDL_SetRenderDrawColor(m_iout, 255, 0, 0, SDL_ALPHA_OPAQUE);
-            SDL_RenderDrawRect(m_iout, &a.real_rect);
-#endif
-        }
-        if(m_processor.isMouseDown(1))
-        {
-            if(m_processor.oldmpos.x == 0 && m_processor.oldmpos.y == 0)
-            {
-                m_processor.oldmpos = m_processor.mousePos();
-                selection_rect.x = m_processor.oldmpos.x;
-                selection_rect.y = m_processor.oldmpos.y;
-            }
-            selection_rect.w = m_processor.mousePos().x-m_processor.oldmpos.x;
-            selection_rect.h = m_processor.mousePos().y-m_processor.oldmpos.y;
-            SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-            if( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) )
-                SDL_RenderDrawRect(m_iout, &selection_rect);
-
-            if(m_processor.isMouseOver(a.real_rect) && m_processor.isMouseUp(3))
-            {
-                m_processor.selectionList[a.getName()] = a;
-            }
-        }
-        else
-        {
-            if( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) )
-            {
-                m_processor.addSelected(m_scene.objs().values(), selection_rect);
-            }
-            //
-            m_processor.oldmpos = vec2(0,0);
         }
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
@@ -146,19 +176,19 @@ void Core::draw_objs()
 
 void Core::processEvents()
 {
-    m_processor.updateMouse();
     m_processor.mouse_state = "none";
-    //
+
     if(m_processor.keyDown(SDL_SCANCODE_LCTRL))
         SDL_RenderSetScale(m_iout, 2.0f, 2.0f);
     else if(m_processor.keyDown(SDL_SCANCODE_LSHIFT))
         SDL_RenderSetScale(m_iout, 1.0f, 1.0f);
-    //
+
     Action act;
     QStringList info;
     vec2 sp;
     for(Actor2d obj : m_scene.objs().values())
     {
+        act.reset();
         if(obj.type == "button")
             act = m_processor.processUIobject(obj);
         else if(obj.type == "actor")
@@ -192,6 +222,11 @@ void Core::processEvents()
                 m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
             break;
 
+            case SND_MOV_ACTION:
+                m_audiomgr.playSound(act.stringData());
+                m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
+            break;
+
             case SOUND_ACTION:
                 m_audiomgr.playSound(act.stringData());
             break;
@@ -211,11 +246,13 @@ void Core::processEvents()
                     break;
                 }
             }
-            m_scene.addActor(sp, vec2(64,72), vec2(48,64), info[1]+QString::number(spawnid), "actor", "ussr_soldier", "ussr_sw");
-            spawnid++;
-            //
-            srand(time(0));
-            m_audiomgr.playSound("ussr_soldier_spawn_"+QString::number(random() % 3));
+            if(sp.x != 0)
+            {
+                m_scene.addActor(m_appconf, sp, info[1]);
+                //
+                srand(time(0));
+                m_audiomgr.playSound("ussr_soldier_spawn_"+QString::number(random() % 3));
+            }
             break;
             case QUIT_ACTION:
             m_quit = act.boolData();
@@ -226,6 +263,9 @@ void Core::processEvents()
             Config::cfgwarn("Undefined event triggered!");
             break;
         }
-        act.reset();
     }
+    if(m_processor.isMouseClicked(SDL_BUTTON_LEFT))
+            m_processor.button_clicked[0] = false;
+    if(m_processor.isMouseClicked(SDL_BUTTON_RIGHT))
+            m_processor.button_clicked[2] = false;
 }

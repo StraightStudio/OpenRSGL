@@ -10,6 +10,7 @@
 #include <include/gameevents.h>
 #include <include/audiomanager.h>
 #include <include/animationmanager.h>
+#include <include/vec2.h>
 
 class Core
 {
@@ -45,6 +46,10 @@ private:
     SDL_Rect selection_rect;
     SDL_Rect mouse_rect;
     int spawnid;
+    //
+
+    SDL_Rect menu_rect;
+    SDL_Rect map_rect;
 };
 
 #endif // CORE_H
