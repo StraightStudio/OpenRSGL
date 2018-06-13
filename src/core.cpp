@@ -20,6 +20,7 @@ Core::~Core()
 void Core::init()
 {
     Config::loadCfg(&m_appconf);
+    pname = m_appconf.playername;
 
     if(TTF_Init() < 0)
     {
@@ -167,11 +168,19 @@ void Core::draw_objs()
             }
         }
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
-        SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
-        m_scene.objs()[a.getName()].nextFrame( m_animator.fcount(a.curAnim), m_animator.fps(a.curAnim) );
+        if(a.visible)
+        {
+            SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
+            m_scene.objs()[a.getName()].nextFrame( m_animator.fcount(a.curAnim), m_animator.fps(a.curAnim) );
+        }
     }
     mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
     SDL_RenderCopy(m_iout, m_texloader.getTex("cursor_"+m_processor.mouse_state), NULL, &mouse_rect);
+}
+
+void Core::initialSpawn()
+{
+    m_scene.addActor(m_appconf, vec2(200, 200), "ussr_barracks", pname);
 }
 
 void Core::processEvents()
@@ -188,6 +197,9 @@ void Core::processEvents()
     vec2 sp;
     for(Actor2d obj : m_scene.objs().values())
     {
+        if(m_scene.sinfo.type == "game" && pname != obj.parent)
+            continue;
+
         act.reset();
         if(obj.type == "button")
             act = m_processor.processUIobject(obj);
@@ -233,6 +245,8 @@ void Core::processEvents()
             case SCENE_ACTION:
                 m_sceneparser.loadScene(&m_scene, act.stringData(), m_appconf);
                 m_scene.start(&m_audiomgr);
+                if(m_scene.sinfo.type == "game")
+                    initialSpawn();
             break;
             case SPW_ACTION:
             info = act.stringData().split(":");
@@ -248,11 +262,17 @@ void Core::processEvents()
             }
             if(sp.x != 0)
             {
-                m_scene.addActor(m_appconf, sp, info[1]);
+                m_scene.addActor(m_appconf, sp, info[1], pname);
                 //
                 srand(time(0));
                 m_audiomgr.playSound("ussr_soldier_spawn_"+QString::number(random() % 3));
             }
+            break;
+            case SELECTED_BUILDING_ACTION:
+
+            break;
+            case DESELECTED_BUILDING_ACTION:
+
             break;
             case QUIT_ACTION:
             m_quit = act.boolData();

@@ -57,6 +57,7 @@ struct AppConfig
     int app_width;
     int app_height;
     bool is_full;
+    QString playername;
     QMap<QString, Animation2d> app_animations;
     QMap<QString, QString> app_textures;
     QMap<QString, int> anim_fps;

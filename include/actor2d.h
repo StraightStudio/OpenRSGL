@@ -22,7 +22,7 @@ enum DIRECTIONS {
 class Actor2d
 {
 public:
-    Actor2d();
+    Actor2d();    
     SDL_Rect rect;
     SDL_Rect real_rect; // Rect with 'real' width and height
     QString curAnim;
@@ -35,9 +35,10 @@ public:
     QString name;
     QString type;
     QMap<QString,QString> trigger;
-
+    QString source; // From where do I get these?
 
     // ========== G A M E   L O G I C   V A R I A B L E S ===========================
+    QString parent; // Player or PC or another player.
     bool visible;
 
     vec2 targetPos; // Moving to...
@@ -53,6 +54,7 @@ public:
     vec2 so; // Spawn Offset
     bool structSelected;
     QString structType;
+    QStringList punits; // Producing units.
     // ==============================================================================
 
     const QString &tex() const

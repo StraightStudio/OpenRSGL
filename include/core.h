@@ -23,6 +23,8 @@ public:
     void loadTextures();
     void draw_objs();
 
+    void initialSpawn();
+
     void processEvents();
 
 private:
@@ -50,6 +52,23 @@ private:
 
     SDL_Rect menu_rect;
     SDL_Rect map_rect;
+
+    // ================ L O G I C   V A R I A B L E S ================
+    QString colony_name;
+    QString cash_name;
+    QString religion_name;
+    QString commander_name;
+
+    float popularity; // 0.00 - 1.00 ( 0-100% )
+
+
+    int cash_balance;
+    int wood_balance;
+    int stone_balance;
+    int iron_balance;
+    // etc...
+    QString pname;
+    vec2 cam_pos; // Camera Position.
 };
 
 #endif // CORE_H

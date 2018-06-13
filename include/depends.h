@@ -68,6 +68,9 @@
 #define SND_MOV_ACTION      0xa09d9a    // 'MOV' in hex
 #define SPW_ACTION          0x535057    // 'SPW' in hex
 
+#define SELECTED_BUILDING_ACTION 0xfb572d // FuckingBuilding5e7ec2eD
+#define DESELECTED_BUILDING_ACTION 0xfbd72d // FuckingBuildingDese7ec2eD
+
 #define QUIT_ACTION         0x2a        // Just for fun
 
 using namespace std;

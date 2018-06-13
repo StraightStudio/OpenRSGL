@@ -51,7 +51,7 @@ public:
     void clear();
 
     SceneInfo sinfo;
-    void addActor(AppConfig &conf, vec2 pos, QString model);
+    void addActor(AppConfig &conf, vec2 pos, QString model, QString parent);
     void addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> trigger, QString name, QString type, QString texture, QString anim_idle);
 private:
     QMap<QString, Actor2d> m_objs;

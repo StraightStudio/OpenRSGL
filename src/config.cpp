@@ -34,12 +34,23 @@ void Config::loadCfg(AppConfig *conf)
         cfgerr(CORRUPT_CONFIG_DIMS);
     }
 
+    if(!doc.HasMember("playername"))
+        conf->playername = "Guest";
+    else
+    {
+        if(!doc["playername"].IsString())
+            cfgerr("'playername' parameter must be STRING!");
+        conf->playername = doc["playername"].GetString();
+    }
+
+
     conf->setName( doc["app_name"].GetString() );
     conf->setAuthor( doc["app_author"].GetString() );
     conf->setVersion( QByteArray::fromHex( doc["app_version"].GetString() ).data() );
     conf->setDimension( doc["width"].GetInt(), doc["height"].GetInt() );
     conf->is_full = doc["fullscreen"].GetBool();
     conf->setStartScene( doc["start_scene"].GetString() );
+
 
     if(!doc.HasMember("textures"))
         cfgerr("Can't find 'textures' list!");
@@ -57,8 +68,8 @@ void Config::loadCfg(AppConfig *conf)
         cfgerr("Can't find 'music' list!");
 
     QFile mfile;
-    QString tex, type, anim, st, name;
-    QStringList sts, mts;
+    QString tex, type, anim, st, name, source;
+    QStringList sts, mts, punits;
     int w,h, rw,rh;
     vec2 so;
     QMap<QString, QString> trigger;
@@ -137,8 +148,18 @@ void Config::loadCfg(AppConfig *conf)
                     Config::cfgerr("'stype' variable must be STRING!");
                 st = p.value["stype"].GetString();
 
+                if(p.value.HasMember("units"))
+                {
+                    if(p.value["units"].IsArray())
+                    {
+                        for(auto& u : p.value["units"].GetArray())
+                            punits.append(u.GetString());
+                    }
+                }
+
                 actor.setSO(so);
                 actor.setStructType(st);
+                actor.punits = punits;
             }
 
             if(type == "actor")
@@ -156,6 +177,12 @@ void Config::loadCfg(AppConfig *conf)
                     cfgerr("'mov-taunts' variable must be STRING ARRAY!");
                 for(auto& t : p.value["mov-taunts"].GetArray())
                     mts.append(t.GetString());
+
+                if(!p.value.HasMember("source"))
+                    cfgerr("'source' variable must be defined in actor!");
+                if(!p.value["source"].IsString())
+                    cfgerr("'source' variable must be STRING!");
+                source = p.value["source"].GetString();
             }
             actor.setName(m.name.GetString());
             actor.setDim(w, h);
@@ -167,6 +194,7 @@ void Config::loadCfg(AppConfig *conf)
             actor.curAnim = anim;
             actor.sel_taunts = sts;
             actor.mov_taunts = mts;
+            actor.source = source;
             conf->app_models[name] = actor;
             Logger::log("Config", "Loaded model '"+name+"'.");
         }

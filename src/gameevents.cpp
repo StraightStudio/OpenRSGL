@@ -111,7 +111,7 @@ Action GameEvents::processUIobject(Actor2d &obj)
                     return Action(SCENE_ACTION, obj.triggerArgument("click"));
                 break;
                 case SPW_ACTION:
-                    return Action(SPW_ACTION, "barracks:ussr_soldier");
+                    return Action(SPW_ACTION, obj.triggerArgument("click"));
                 break;
                 case QUIT_ACTION:
                     return Action(QUIT_ACTION, true);
@@ -178,5 +178,18 @@ Action GameEvents::processBuilding(Actor2d &obj)
     {
         if(mouse_state != "over")
             mouse_state = "over";
+        if(isMouseClicked(SDL_BUTTON_LEFT))
+        {
+            Logger::log("GameEvents", "Selected "+obj.getName());
+            return Action(SELECTED_BUILDING_ACTION, obj.getName()+":"+obj.structType);
+        }
+    }
+    else
+    {
+        if(isMouseClicked(SDL_BUTTON_LEFT))
+        {
+            Logger::log("GameEvents", "DESelected "+obj.getName());
+            return Action(DESELECTED_BUILDING_ACTION, obj.getName()+":"+obj.structType);
+        }
     }
 }

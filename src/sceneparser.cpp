@@ -67,29 +67,27 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
     else
         target->sinfo.setType( doc["type"].GetString() ); // Get "type"
 
+    if(doc["type"].GetString() == "game")
+    {
+        if(!doc.HasMember("players"))
+            Config::cfgerr("Unable to get 'players' OBJECT!");
+        if(!doc["players"].IsObject())
+            Config::cfgerr("'players' must be OBJECT!");
+
+        for(auto& p : doc["players"].GetObject())
+        {
+
+        }
+    }
+
 
     if(!doc.HasMember("objects")) // Check if "objects" exists
-    {
-        derr = CORRUPT_OBJLIST;
-        err = true;
-    }
+        Config::cfgerr("Unable to get 'objects' OBJECT!");
     if(!doc["objects"].IsObject()) // Check "objects" type
-    {
-        derr = INVALID_OBJLIST;
-        err = true;
-    }
-
-    if(err)
-    {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                                 "Scene parsing error",
-                                 QString("SceneParsing error:\n'"+derr+"'").toStdString().c_str(),
-                                 NULL);
-        exit(-1);
-    }
+        Config::cfgerr("'objects' must be OBJECT!");
 
     int x,y;
-    QString model;
+    QString model, parent;
     for(auto& i : doc["objects"].GetObject())
     {
         if( !(i.value["x"].IsInt() || i.value["y"].IsInt()) )
@@ -102,11 +100,21 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
         if(y < 0)
             y = conf.app_height+y;
 
+        if(!i.value.HasMember("model"))
+            Config::cfgerr("'model' parameter must exist!");
         if(!i.value["model"].IsString())
             Config::cfgerr("'model' variable must be STRING!");
         model = QString(i.value["model"].GetString());
 
-        target->addActor(conf, vec2(x,y), model);
+        if(!i.value.HasMember("parent"))
+            parent = "player";
+        else
+        {
+            if(!i.value["parent"].IsString())
+                Config::cfgerr("'parent' variable must be STRING!");
+            parent = i.value["parent"].GetString();
+        }
+        target->addActor(conf, vec2(x,y), model, parent);
     }
 
     if(doc.HasMember("bg-track"))

@@ -6,6 +6,7 @@
 	"width"				: 1280,
 	"height"			: 720,
 	"fullscreen"		: false,
+	"playername"		: "Dennis",
 	
 	"start_scene"		: "menu.json",
 
@@ -42,13 +43,13 @@
 		"ussr_soldier_spawn_2"	: "ussr_soldier_spawn_2.wav",
 		"ussr_soldier_spawn_3"	: "ussr_soldier_spawn_3.wav",
 
-		"USTS_01"				: "ussr_soldier_taunt_select_01.wav",
-		"USTS_02"				: "ussr_soldier_taunt_select_02.wav",
-		"USTS_03"				: "ussr_soldier_taunt_select_03.wav",
+		"USTS_01_C"				: "ussr_soldier_taunt_select_01.wav",
+		"USTS_02_C"				: "ussr_soldier_taunt_select_02.wav",
+		"USTS_03_C"				: "ussr_soldier_taunt_select_03.wav",
 
-		"USTM_01"				: "ussr_soldier_taunt_move_01.wav",
-		"USTM_02"				: "ussr_soldier_taunt_move_02.wav",
-		"USTM_03"				: "ussr_soldier_taunt_move_03.wav"
+		"USTM_01_C"				: "ussr_soldier_taunt_move_01.wav",
+		"USTM_02_C"				: "ussr_soldier_taunt_move_02.wav",
+		"USTM_03_C"				: "ussr_soldier_taunt_move_03.wav"
 	},
 	"music"				:
 	{

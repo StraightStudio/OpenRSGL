@@ -31,12 +31,13 @@ void Scene2d::addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> tri
 }
 
 
-void Scene2d::addActor(AppConfig &conf, vec2 pos, QString model)
+void Scene2d::addActor(AppConfig &conf, vec2 pos, QString model, QString parent)
 {
     Actor2d actor;
     actor = conf.app_models[model];
 
     actor.setName(model+"_"+QString::number(objid));
+    actor.parent = parent;
     objid++;
     actor.setPos(pos);
 
