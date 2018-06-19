@@ -1,12 +1,14 @@
+#ifndef DEPENDS_H
+#define DEPENDS_H
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_net.h>
-#include <SDL2/SDL_ttf.h>
+#include <include/SDL2/SDL.h>
+#include <include/SDL2/SDL_image.h>
+#include <include/SDL2/SDL_mixer.h>
+#include <include/SDL2/SDL_net.h>
+#include <include/SDL2/SDL_ttf.h>
 
 #include <QString>
 #include <QMap>
@@ -17,8 +19,6 @@
 #include <QObject>
 
 #include <rapidjson/document.h>
-
-#include <include/config.h>
 
 #define TARGET_FPS 60
 #define HEALTHBAR_HEIGHT 4
@@ -75,3 +75,5 @@
 
 using namespace std;
 using namespace rapidjson;
+
+#endif

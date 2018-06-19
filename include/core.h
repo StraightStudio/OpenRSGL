@@ -16,8 +16,8 @@ class Core
 {
 public:
     Core();
-    ~Core();
     void init();
+    void cleanup();
     void spawn();
     int exec();
     void loadTextures();

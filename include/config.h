@@ -7,6 +7,7 @@
 
 #define DW_WIDTH 1280
 #define DW_HEIGHT 720
+#define DW_VERSION "0.1b"
 
 #include <include/depends.h>
 #include <include/logger.h>

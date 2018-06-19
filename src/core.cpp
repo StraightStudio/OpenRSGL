@@ -4,7 +4,7 @@ Core::Core() : spawnid(0)
 {
 }
 
-Core::~Core()
+void Core::cleanup()
 {
     Logger::log("Core", "Started cleanup...");
 
@@ -32,10 +32,25 @@ void Core::init()
         Logger::err("Core", SDL_GetError());
     }
     Logger::log("Core", "SDL2 init complete.");
-    SDL_CreateWindowAndRenderer(DW_WIDTH, DW_HEIGHT, SDL_WINDOW_SHOWN, &m_window, &m_iout);
-    if(m_window == 0 || m_iout == 0)
+    m_window    = SDL_CreateWindow("Stratwenty " DW_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, DW_WIDTH, DW_HEIGHT, SDL_WINDOW_SHOWN);
+
+    m_iout      = SDL_CreateRenderer(m_window, 0, SDL_RENDERER_ACCELERATED);
+
+    if(m_iout == 0)
     {
-        Logger::err("Core", "SDL2 failed to create window and/or renderer.");
+        Config::cfgwarn("HW renderer failed to init.\nRunning in SW mode.");
+        m_iout = SDL_CreateRenderer(m_window, 0, SDL_RENDERER_SOFTWARE);
+        if(m_iout == 0)
+        {
+            Config::cfgwarn("SW renderer failed to init.\nExiting with error: "+QString(SDL_GetError()));
+            cleanup();
+            exit(-1);
+        }
+    }
+
+    if(m_window == 0)
+    {
+        Logger::err("Core", "SDL2 failed to create window.");
     }
     Logger::log("Core", "Window & renderer created.");
     SDL_SetWindowSize(m_window, m_appconf.app_width, m_appconf.app_height);
@@ -110,6 +125,7 @@ int Core::exec()
         SDL_RenderPresent(m_iout);
         SDL_Delay(1000/TARGET_FPS);
     }
+    cleanup();
     return 0;
 }
 

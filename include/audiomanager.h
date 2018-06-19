@@ -3,6 +3,7 @@
 
 
 #include <include/depends.h>
+#include <include/config.h>
 #include <include/logger.h>
 
 class AudioManager
