@@ -18,6 +18,8 @@
 #include <QMessageBox>
 #include <QObject>
 
+#include <cairo/cairo-svg.h>
+
 #include <rapidjson/document.h>
 
 #define TARGET_FPS 60
@@ -49,10 +51,6 @@
 // ============== C O N F I G   S T R U C T U R E =========================
 
 #define CORRUPT_CONFIG          "Config file is damaged or incomplete!"
-#define CORRUPT_CONFIG_NAME     "'app_name' is damaged or incomplete!"
-#define CORRUPT_CONFIG_AUTHOR   "'app_author' is damaged or incomplete!"
-#define CORRUPT_CONFIG_VERSION  "'app_version' is damaged or incomplete!"
-#define CORRUPT_CONFIG_DIMS            "'width' and 'height' must be INT!"
 
 // ========================================================================
 

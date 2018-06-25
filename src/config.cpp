@@ -22,16 +22,16 @@ void Config::loadCfg(AppConfig *conf)
     cfg.close();
 
     if(!doc.HasMember("app_name") || !doc["app_name"].IsString())
-        cfgerr(CORRUPT_CONFIG_NAME);
+        cfgerr(CORRUPT_CONFIG);
     if(!doc.HasMember("app_author") || !doc["app_author"].IsString())
-        cfgerr(CORRUPT_CONFIG_AUTHOR);
+        cfgerr(CORRUPT_CONFIG);
     if(!doc.HasMember("app_version") || !doc["app_version"].IsString())
-        cfgerr(CORRUPT_CONFIG_VERSION);
+        cfgerr(CORRUPT_CONFIG);
 
     if(!doc.HasMember("width") || !doc["width"].IsInt() ||
        !doc.HasMember("height") || !doc["height"].IsInt() )
     {
-        cfgerr(CORRUPT_CONFIG_DIMS);
+        cfgerr(CORRUPT_CONFIG);
     }
 
     if(!doc.HasMember("playername"))

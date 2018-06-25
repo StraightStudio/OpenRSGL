@@ -145,7 +145,6 @@ Action GameEvents::processActor(Actor2d &obj)
 
         if(isMouseClicked(SDL_BUTTON_LEFT))
         {
-            Logger::log("GameEvents", "Selected '"+obj.getName()+"'");
             selectionList.insert(obj.getName(), obj);
             return Action(SOUND_ACTION, obj.taunt("SELECT"));
         }
@@ -180,7 +179,6 @@ Action GameEvents::processBuilding(Actor2d &obj)
             mouse_state = "over";
         if(isMouseClicked(SDL_BUTTON_LEFT))
         {
-            Logger::log("GameEvents", "Selected "+obj.getName());
             return Action(SELECTED_BUILDING_ACTION, obj.getName()+":"+obj.structType);
         }
     }
@@ -188,7 +186,6 @@ Action GameEvents::processBuilding(Actor2d &obj)
     {
         if(isMouseClicked(SDL_BUTTON_LEFT))
         {
-            Logger::log("GameEvents", "DESelected "+obj.getName());
             return Action(DESELECTED_BUILDING_ACTION, obj.getName()+":"+obj.structType);
         }
     }
