@@ -33,6 +33,14 @@ struct SceneInfo
   {
       type = t.toString();
   }
+
+  void reset()
+  {
+      name.clear();
+      author.clear();
+      bg_track.clear();
+      type.clear();
+  }
 };
 
 class Scene2d

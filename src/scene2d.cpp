@@ -9,7 +9,11 @@ Scene2d::Scene2d() :
 
 void Scene2d::start(AudioManager *mgr)
 {
-    mgr->playMusic(sinfo.bg_track, true);
+    mgr->stopMusic();
+    if(!sinfo.bg_track.isEmpty())
+    {
+        mgr->playMusic(sinfo.bg_track, true);
+    }
 }
 
 void Scene2d::addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> trigger, QString name, QString type, QString texture, QString anim_idle)

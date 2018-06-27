@@ -91,6 +91,7 @@ int Core::exec()
     m_quit = false;
 
     m_sceneparser.loadScene(&m_scene, m_appconf);
+    m_scene.start(&m_audiomgr);
     while(!m_quit)
     {
         SDL_RenderClear(m_iout);

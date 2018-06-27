@@ -145,12 +145,14 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
 
 void SceneParser::loadScene(Scene2d *target, AppConfig &conf)
 {
+    target->sinfo.reset();
     target->clear();
     readScene(conf, target, conf.getStartScene());
 }
 
 void SceneParser::loadScene(Scene2d *target, QString file, AppConfig &conf)
 {
+    target->sinfo.reset();
     target->objs().clear();
     readScene(conf, target, file);
 }

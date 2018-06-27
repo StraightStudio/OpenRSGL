@@ -51,10 +51,8 @@
 		"USTM_02_C"				: "ussr_soldier_taunt_move_02.wav",
 		"USTM_03_C"				: "ussr_soldier_taunt_move_03.wav"
 	},
-	"music"				:
+	"music"						:
 	{
-		"amadeus_superior"	: "amadeus_superior.ogg",
-		"n_one"			: "n_one.ogg",
-		"ussr_hymn"		: "ussr_hymn.ogg"
+		"menu_music"			: "Podington_Bear_-_05_-_1-800-Podbear.ogg"
 	}
 }
