@@ -1,71 +1,54 @@
-#include "./include/sceneparser.h"
+#include <include/sceneparser.h>
 
 SceneParser::SceneParser()
 {
 
 }
 
-void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
+void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
 {
-    QFile sfile(SCENE_ROOT+file);
-    sfile.open(QIODevice::ReadOnly);
+    ifstream sfile;
+    sfile.open(SCENE_ROOT+file);
+    if(!sfile.is_open())
+        Config::cfgerr("Failed to open config.json!");
 
-    QByteArray sdata = sfile.readAll();
+    unistring fbuff;
+    getline(sfile, fbuff, (char)sfile.eof());
+
     sfile.close();
-
     Document doc;
 
-    bool err=false;
-    QString derr;
-
-    doc.Parse(sdata.constData());   
+    doc.Parse(fbuff.c_str());
     if(!doc.IsObject()) // Check for json integrity
-    {
-        derr = CORRUPT_SCENE;
-        err = true;
-    }
+        Config::cfgerr(CORRUPT_SCENE);
+
 
     if(!doc.HasMember("name")) // Check if "name" exists.
-    {
-        derr = CORRUPT_SCENE_NAME;
-        err = true;
-    }
+        Config::cfgerr(CORRUPT_SCENE);
+
     if(!doc["name"].IsString()) // Check "name" type
-    {
-        derr = INVALID_SCENE_NAME;
-        err = true;
-    }
+        Config::cfgerr(CORRUPT_SCENE);
     else
         target->sinfo.setName( doc["name"].GetString() ); // Get "name"
 
 
-
     if(!doc.HasMember("author")) // If "author" exists.
-    {
-        derr = CORRUPT_SCENE_AUTHOR;
-        err = true;
-    }
+        Config::cfgerr(CORRUPT_SCENE);
+
     if(!doc["author"].IsString()) // Check "author" type
-    {
-        derr = INVALID_SCENE_AUTHOR;
-        err = true;
-    }
+        Config::cfgerr(CORRUPT_SCENE);
     else
         target->sinfo.setAuthor( doc["author"].GetString() ); // Get "author"
 
 
     if(!doc.HasMember("type")) // If "type" exists.
-    {
-        derr = CORRUPT_SCENE;
-        err = true;
-    }
+        Config::cfgerr(CORRUPT_SCENE);
+
     if(!doc["type"].IsString()) // Check "type" type
-    {
-        derr = INVALID_TYPE;
-        err = true;
-    }
+        Config::cfgerr(CORRUPT_SCENE);
     else
         target->sinfo.setType( doc["type"].GetString() ); // Get "type"
+
 
     if(doc["type"].GetString() == "game")
     {
@@ -83,11 +66,13 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
 
     if(!doc.HasMember("objects")) // Check if "objects" exists
         Config::cfgerr("Unable to get 'objects' OBJECT!");
+
     if(!doc["objects"].IsObject()) // Check "objects" type
         Config::cfgerr("'objects' must be OBJECT!");
 
+
     int x,y;
-    QString model, parent;
+    unistring model, parent;
     for(auto& i : doc["objects"].GetObject())
     {
         if( !(i.value["x"].IsInt() || i.value["y"].IsInt()) )
@@ -104,7 +89,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
             Config::cfgerr("'model' parameter must exist!");
         if(!i.value["model"].IsString())
             Config::cfgerr("'model' variable must be STRING!");
-        model = QString(i.value["model"].GetString());
+        model = i.value["model"].GetString();
 
         if(!i.value.HasMember("parent"))
             parent = "player";
@@ -120,26 +105,14 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, QString file)
     if(doc.HasMember("bg-track"))
     {
         if(!doc["bg-track"].IsString())
-        {
-            derr = "Failed to get background track!";
-            err = true;
-        }
+            Config::cfgerr(CORRUPT_SCENE);
         else
             target->sinfo.setBgTrack(doc["bg-track"].GetString());
     }
 
-    if(err)
-    {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                                 "Scene parsing error",
-                                 QString("SceneParsing error:\n'"+derr+"'").toStdString().c_str(),
-                                 NULL);
-        exit(-1);
-    }
-
-    if(target->sinfo.name.toLower() != "menu") // Not necessary to show game special scenes.
-        Logger::log("SceneParser", QString("Loaded scene '"+target->sinfo.name+
-                                           "', made by '"+target->sinfo.author+"'") );
+    if(target->sinfo.name != "menu") // Not necessary to show game special scenes.
+        Logger::log(unistring("SceneParser"), "Loaded scene '"+target->sinfo.name+
+                                              "', made by '"+target->sinfo.author+"'" );
 
 }
 
@@ -150,9 +123,9 @@ void SceneParser::loadScene(Scene2d *target, AppConfig &conf)
     readScene(conf, target, conf.getStartScene());
 }
 
-void SceneParser::loadScene(Scene2d *target, QString file, AppConfig &conf)
+void SceneParser::loadScene(Scene2d *target, unistring file, AppConfig &conf)
 {
     target->sinfo.reset();
     target->objs().clear();
-    readScene(conf, target, file);
+    readScene(conf, target, file.c_str());
 }

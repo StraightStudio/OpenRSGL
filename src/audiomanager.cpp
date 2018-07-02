@@ -1,4 +1,4 @@
-#include "include/audiomanager.h"
+#include <include/audiomanager.h>
 
 AudioManager::AudioManager()
 {
@@ -7,11 +7,11 @@ AudioManager::AudioManager()
 
 AudioManager::~AudioManager()
 {
-    for(Mix_Chunk* ch : a_sounds.values())
-        Mix_FreeChunk(ch);
+    for(auto ch : a_sounds)
+        Mix_FreeChunk(ch.second);
 
-    for(Mix_Music* ms : a_music.values())
-        Mix_FreeMusic(ms);
+    for(auto ms : a_music)
+        Mix_FreeMusic(ms.second);
 
 
     Mix_CloseAudio();
@@ -20,7 +20,7 @@ AudioManager::~AudioManager()
 
 void AudioManager::init()
 {
-    if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    if(Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                                  "Audio device is not open!",
@@ -32,42 +32,42 @@ void AudioManager::init()
 
 void AudioManager::loadSounds(AppConfig &conf)
 {
-    for(QString s : conf.getSoundAliases())
+    for(unistring s : conf.getSoundAliases())
     {
-        if(!s.isEmpty())
-            a_sounds[s] = Mix_LoadWAV( QString(AUDIO_ROOT "sounds/"+conf.sound_files[s]).toStdString().c_str() );
+        if(!s.empty())
+            a_sounds[s] = Mix_LoadWAV( unistring( AUDIO_ROOT "sounds/"+conf.sound_files[s] ).c_str() );
     }
 }
 
 void AudioManager::loadMusic(AppConfig &conf)
 {
-    for(QString m : conf.getMusicAliases())
+    for(unistring m : conf.getMusicAliases())
     {
-        if(!m.isEmpty())
-            a_music[m] = Mix_LoadMUS( QString(AUDIO_ROOT "music/"+conf.music_files[m]).toStdString().c_str() );
+        if(!m.empty())
+            a_music[m] = Mix_LoadMUS( unistring( AUDIO_ROOT "music/"+conf.music_files[m] ).c_str() );
     }
 }
 
-void AudioManager::playSound(QString sound)
+void AudioManager::playSound(unistring sound)
 {
-    Mix_PlayChannel(-1, a_sounds[sound], 0);
+    Mix_PlayChannel(-1, a_sounds[sound.c_str()], 0);
 }
 
-void AudioManager::playMusic(QString track, bool looped)
+void AudioManager::playMusic(unistring track, bool looped)
 {
     if(Mix_PlayingMusic())
         stopMusic();
     if(looped)
-        Mix_PlayMusic(a_music[track], -1);
+        Mix_PlayMusic(a_music[track.c_str()], -1);
     else
-        Mix_PlayMusic(a_music[track], 0);
+        Mix_PlayMusic(a_music[track.c_str()], 0);
 }
 
-void AudioManager::playMusic(QString track)
+void AudioManager::playMusic(unistring track)
 {
     if(Mix_PlayingMusic())
         stopMusic();
-    Mix_PlayMusic(a_music[track], 0);
+    Mix_PlayMusic(a_music[track.c_str()], 0);
 }
 
 void AudioManager::stopMusic()

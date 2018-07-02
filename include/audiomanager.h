@@ -17,14 +17,14 @@ public:
     void loadSounds(AppConfig &conf);
     void loadMusic(AppConfig &conf);
 
-    void playSound(QString sound);
+    void playSound(unistring sound);
 
-    void playMusic(QString track);
-    void playMusic(QString track, bool looped);
+    void playMusic(unistring track);
+    void playMusic(unistring track, bool looped);
     void stopMusic();
 private:
-    QMap <QString, Mix_Chunk* > a_sounds;
-    QMap <QString, Mix_Music* > a_music;
+    map<unistring, Mix_Chunk* > a_sounds;
+    map<unistring, Mix_Music* > a_music;
 };
 
 #endif // AUDIOMANAGER_H

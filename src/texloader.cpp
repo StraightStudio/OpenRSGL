@@ -1,4 +1,4 @@
-#include "../include/texloader.h"
+#include <include/texloader.h>
 
 TexLoader::TexLoader()
 {
@@ -15,26 +15,26 @@ TexLoader::~TexLoader()
     }
 }
 
-SDL_Texture *TexLoader::getTex(QString texAlias)
+SDL_Texture *TexLoader::getTex(unistring texAlias)
 {
-    return texLib[texAlias];
+    return texLib[texAlias.c_str()];
 }
 
-void TexLoader::addTex(QString file, QString texAlias, SDL_Renderer* rend)
+void TexLoader::addTex(unistring file, unistring texAlias, SDL_Renderer* rend)
 {
-    if(!IMG_Load( QString(IMG_ROOT+file).toStdString().c_str() ) ){
+    if(!IMG_Load( unistring(IMG_ROOT+file).c_str() ) ){
         Logger::err("TexLoader", "No such texture: " IMG_ROOT+file);
         return;
     }
-    texLib[texAlias] = SDL_CreateTextureFromSurface(rend, IMG_Load( QString(IMG_ROOT+file).toStdString().c_str() ));
+    texLib[texAlias.c_str()] = SDL_CreateTextureFromSurface(rend, IMG_Load( unistring(IMG_ROOT+file).c_str() ));
     Logger::log("TexLoader", "'" IMG_ROOT+file+"' texture imported as '"+texAlias+"'.");
 }
 
 void TexLoader::loadTextures(SDL_Renderer* rend, AppConfig &conf)
 {
-    for(QString tid : conf.app_textures.keys())
+    for(auto texture : conf.app_textures)
     {
-        Logger::log("TexLoader", "Loading '"+conf.app_textures[tid]+"'...");
-        addTex(conf.app_textures[tid], tid, rend);
+        Logger::log("TexLoader", "Loading '"+texture.first+"'...");
+        addTex(texture.second, texture.first, rend);
     }
 }

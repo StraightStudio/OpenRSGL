@@ -10,8 +10,8 @@ class TexLoader
 public:
     TexLoader();
     ~TexLoader();
-    SDL_Texture *getTex(QString texAlias);
-    void addTex(QString file, QString texAlias, SDL_Renderer *rend);
+    SDL_Texture *getTex(unistring texAlias);
+    void addTex(unistring file, unistring texAlias, SDL_Renderer *rend);
 
     void loadTextures(SDL_Renderer *rend, AppConfig &conf);
     QMap <QString, SDL_Texture*> texLib;

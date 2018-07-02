@@ -4,7 +4,9 @@ Actor2d::Actor2d()
 {
     frameIter   = 0;
     curFrame    = 0;
-    curAnim     = "idle";
+    idle_anim   = "idle";
+    curAnim     = idle_anim;
+
     move_speed  = 1;
     visible     = true;
 }

@@ -1,25 +1,32 @@
-#include "../include/config.h"
+#include <include/config.h>
 
 
-void Config::cfgerr(QString errmsg)
+void Config::cfgerr(unistring errmsg)
 {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                              "Config load error!",
-                             errmsg.toStdString().c_str(),
+                             errmsg.c_str(),
                              NULL);
     exit(-1);
 }
 
 void Config::loadCfg(AppConfig *conf)
 {
-    QFile cfg(RES_ROOT"config.json");
+    ifstream cfg;
+    cfg.open(RES_ROOT "config.json");
 
-    if(!cfg.open(QIODevice::ReadOnly))
+    if(!cfg.is_open())
         cfgerr(CORRUPT_CONFIG);
 
+    unistring fbuff;
+    getline (cfg, fbuff, (char)cfg.eof());
+
     Document doc;
-    doc.Parse(cfg.readAll().constData());
+    doc.Parse(fbuff.c_str());
     cfg.close();
+
+    if(!doc.IsObject())
+        cfgerr(CORRUPT_CONFIG);
 
     if(!doc.HasMember("app_name") || !doc["app_name"].IsString())
         cfgerr(CORRUPT_CONFIG);
@@ -67,8 +74,8 @@ void Config::loadCfg(AppConfig *conf)
     if(!doc.HasMember("music"))
         cfgerr("Can't find 'music' list!");
 
-    QFile mfile;
-    QString tex, type, anim, st, name, source;
+    ifstream mfile;
+    unistring tex, type, anim, st, name;
     QStringList sts, mts, punits;
     int w,h, rw,rh;
     vec2 so;
@@ -79,12 +86,14 @@ void Config::loadCfg(AppConfig *conf)
     {
         if(!m.value.IsString())
             cfgerr("Corrupt 'models' list!");
-        mfile.setFileName(MODELS_ROOT+QString(m.value.GetString()));
-        mfile.open(QIODevice::ReadOnly);
-        if(!mfile.isOpen())
-            cfgerr("Unable to open '" MODELS_ROOT+QString(m.value.GetString())+"'!");
+        mfile.open(MODELS_ROOT+unistring(m.value.GetString()));
+        if(!mfile.is_open())
+            cfgerr("Unable to open '" MODELS_ROOT+unistring(m.value.GetString())+"'!");
 
-        mds.Parse(mfile.readAll().constData());
+        unistring afbuff;
+        getline(mfile, afbuff, (char)mfile.eof());
+
+        mds.Parse(afbuff.c_str());
         mfile.close();
         for(auto& p : mds.GetObject())
         {
@@ -107,15 +116,15 @@ void Config::loadCfg(AppConfig *conf)
 
             if(!p.value["type"].IsString())
                 Config::cfgerr(INVALID_TYPE);
-            type = QString(p.value["type"].GetString()).toLower();
+            type = p.value["type"].GetString();
 
             if(!p.value["texture"].IsString())
                 Config::cfgerr(INVALID_TYPE);
-            tex = QString(p.value["texture"].GetString());
+            tex = p.value["texture"].GetString();
 
             if(!p.value["animation"].IsString())
                 Config::cfgerr(INVALID_TYPE);
-            anim = QString(p.value["animation"].GetString());
+            anim = p.value["animation"].GetString();
 
             if(type == "button")
             {
@@ -124,7 +133,7 @@ void Config::loadCfg(AppConfig *conf)
                 trigger["hover"] = p.value["hover"].GetString();
 
                 if(!p.value["click"].IsString())
-                    cfgerr("'click' event is not defined!");
+                    cfgerr("'click' event is not defmined!");
                 trigger["click"] = p.value["click"].GetString();
             }
             else if(type == "building")
@@ -177,12 +186,6 @@ void Config::loadCfg(AppConfig *conf)
                     cfgerr("'mov-taunts' variable must be STRING ARRAY!");
                 for(auto& t : p.value["mov-taunts"].GetArray())
                     mts.append(t.GetString());
-
-                if(!p.value.HasMember("source"))
-                    cfgerr("'source' variable must be defined in actor!");
-                if(!p.value["source"].IsString())
-                    cfgerr("'source' variable must be STRING!");
-                source = p.value["source"].GetString();
             }
             actor.setName(m.name.GetString());
             actor.setDim(w, h);
@@ -194,7 +197,6 @@ void Config::loadCfg(AppConfig *conf)
             actor.curAnim = anim;
             actor.sel_taunts = sts;
             actor.mov_taunts = mts;
-            actor.source = source;
             conf->app_models[name] = actor;
             Logger::log("Config", "Loaded model '"+name+"'.");
         }
@@ -207,28 +209,31 @@ void Config::loadCfg(AppConfig *conf)
         conf->app_textures[t.name.GetString()] = t.value.GetString();
     }
 
-    QString an;
+    unistring an;
     int afps, afc, asf;
-    QByteArray adata;
     Document anim_doc;
     SDL_Rect tmprect;
-    QFile animfile;
+    ifstream animfile;
     for( auto& a : doc["animations"].GetObject() )
     {
         if(!a.name.IsString())
             cfgerr("Corrupt 'animations' list!");
 
-        animfile.setFileName(IMG_ROOT+QString(a.value.GetString()));
-        animfile.open(QIODevice::ReadOnly);
-        if(!animfile.isOpen())
-            cfgerr("Error while "+QString(a.value.GetString())+" file open!");
-        adata = animfile.readAll();
+        animfile.open(IMG_ROOT+unistring(a.value.GetString()));
+        if(!animfile.is_open())
+            cfgerr("Error while "+unistring(a.value.GetString())+" file open!");
+
+
+        string afbuff;
+        getline(animfile, afbuff, (char)animfile.eof());
+
         animfile.close();
 
-        anim_doc.Parse(adata.constData());
+
+        anim_doc.Parse(afbuff.c_str());
 
         if(!anim_doc.HasMember("animations"))
-            cfgerr("Failed to retrieve 'animations' object from " IMG_ROOT+QString(a.value.GetString()));
+            cfgerr("Failed to retrieve 'animations' object from " IMG_ROOT+unistring(a.value.GetString()));
         if(!anim_doc["animations"].IsObject())
             cfgerr("Error in 'animations' object parsing!");
         for(auto& anims : anim_doc["animations"].GetObject())
@@ -261,7 +266,7 @@ void Config::loadCfg(AppConfig *conf)
                 tmprect.x = i*tmprect.w;
                 conf->app_animations[an].addFrame(tmprect);
             }
-            Logger::log("Config", "Loaded "+QString::number(afc)+" frame(-s) of '"+an+"' animation with fps="+QString::number(afps));
+            Logger::log("Config", "Loaded "+to_string(afc)+" frame(-s) of '"+an+"' animation with fps="+to_string(afps));
         }
     }
 
@@ -283,30 +288,45 @@ void Config::loadCfg(AppConfig *conf)
     Logger::log("Config", "Loaded 'config.json'.");
 }
 
-void Config::cfgwarn(QString warnmsg)
+void Config::cfgwarn(unistring warnmsg)
 {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
                              "Warning in app!",
-                             warnmsg.toStdString().c_str(),
+                             warnmsg.c_str(),
                              NULL);
 }
 
-QStringList AppConfig::getSoundAliases()
+vector<unistring> AppConfig::getSoundAliases()
 {
-    return sound_files.keys();
+    vector<unistring> sndAliases;
+    sndAliases.resize(sound_files.size(), "");
+    for(auto snd : sound_files)
+        sndAliases.push_back(snd.first);
+    return sndAliases;
 }
 
-QStringList AppConfig::getSoundFiles()
+vector<unistring> AppConfig::getSoundFiles()
 {
-    return sound_files.values();
+    vector<unistring> sndFiles;
+    sndFiles.resize(sound_files.size(), "");
+    for(auto snd : sound_files)
+        sndFiles.push_back(snd.second);
+    return sndFiles;
+}
+vector<unistring> AppConfig::getMusicAliases()
+{
+    vector<unistring> musAliases;
+    musAliases.resize(music_files.size(), "");
+    for(auto snd : music_files)
+        musAliases.push_back(snd.first);
+    return musAliases;
 }
 
-QStringList AppConfig::getMusicAliases()
+vector<unistring> AppConfig::getMusicFiles()
 {
-    return music_files.keys();
-}
-
-QStringList AppConfig::getMusicFiles()
-{
-    return music_files.values();
+    vector<unistring> musFiles;
+    musFiles.resize(music_files.size(), "");
+    for(auto snd : music_files)
+        musFiles.push_back(snd.second);
+    return musFiles;
 }

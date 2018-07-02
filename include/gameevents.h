@@ -7,41 +7,34 @@
 
 struct Action {
     int id;
-    QVariant data;
+    unistring data;
     vec2 transform_data[2];
 
     Action() :
-        id(0), data(0), transform_data({vec2(0, 0), vec2(0, 0)}) {}
-    Action(int i, QVariant d) : id(i)
+        id(0), data(""), transform_data({vec2(0, 0), vec2(0, 0)}) {}
+    Action(int i, unistring d) : id(i), data(d) {}
+    Action(int i, unistring d, vec2 da, vec2 dd)
+        : id(i), data(d), transform_data({da, dd}) {}
+
+    ~Action()
     {
-        data.setValue(d);
+        data.clear();
+        id=0;
+        transform_data[0]=vec2(0,0);
+        transform_data[1]=vec2(0,0);
     }
-    Action(int i, QVariant d, vec2 da, vec2 dd)
-        : id(i)
+
+    bool boolData()
     {
-        data.setValue(d);
-        transform_data[0] = da;
-        transform_data[1] = dd;
+        if(data == "true" || data == "TRUE")
+            return true;
+        return false;
     }
 
     void reset()
     {
         id = 0;
         data.clear();
-    }
-
-    QString stringData()
-    {
-        if(data.userType() == QMetaType::QString)
-            return data.toString();
-        return "";
-    }
-
-    bool boolData()
-    {
-        if(data.userType() == QMetaType::Bool)
-            return data.toBool();
-        return 0;
     }
 
     vec2 vec2Data(int i)
@@ -72,7 +65,7 @@ public:
 
     QMap<QString, Actor2d> selectionList;
 
-    QString mouse_state;
+    unistring mouse_state;
     bool button_down[3];
     bool button_clicked[3];
 private:

@@ -27,8 +27,11 @@ public:
 
     void processEvents();
 
+    //
+    void updateConsole();
+
 private:
-    QString current_scene;
+    unistring current_scene;
 
     SDL_Window* m_window;
     SDL_Renderer* m_iout;
@@ -53,11 +56,21 @@ private:
     SDL_Rect menu_rect;
     SDL_Rect map_rect;
 
+
+    bool m_console;
+    unistring m_cinput;
+    TTF_Font *m_consolefont;
+    SDL_Rect m_consolerect;
+    SDL_Color m_consolecolour;
+
+    SDL_Rect m_consoletextrect;
+    SDL_Texture* m_consoletext;
+
+    int m_citem;
+    vector<unistring> m_consoleHistory;
+
     // ================ L O G I C   V A R I A B L E S ================
-    QString colony_name;
-    QString cash_name;
-    QString religion_name;
-    QString commander_name;
+
 
     float popularity; // 0.00 - 1.00 ( 0-100% )
 
@@ -67,7 +80,7 @@ private:
     int stone_balance;
     int iron_balance;
     // etc...
-    QString pname;
+    unistring pname;
     vec2 cam_pos; // Camera Position.
 };
 

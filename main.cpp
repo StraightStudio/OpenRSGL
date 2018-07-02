@@ -2,6 +2,8 @@
 
 int main()
 {
+    setlocale(0, "");
+
     Core core;
     //
     core.init();

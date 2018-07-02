@@ -1,6 +1,6 @@
-#include "../include/core.h"
+#include <include/core.h>
 
-Core::Core() : spawnid(0)
+Core::Core() : spawnid(0), m_console(false), m_cinput(""), m_consoletext(0), m_consolecolour({255, 255, 255, 0}), m_citem(0)
 {
 }
 
@@ -8,11 +8,20 @@ void Core::cleanup()
 {
     Logger::log("Core", "Started cleanup...");
 
+    m_cinput.clear();
+    m_consoletext = 0;
+    m_consoleHistory.clear();
+
     SDL_DestroyWindow(m_window);
     SDL_DestroyRenderer(m_iout);
 
     SDL_ShowCursor(SDL_ENABLE);
 
+    //
+    SDL_DestroyTexture(m_consoletext);
+    TTF_CloseFont(m_consolefont);
+    //
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }
@@ -26,6 +35,7 @@ void Core::init()
     {
         Logger::err("Core", TTF_GetError());
     }
+    m_consolefont = TTF_OpenFont(RES_ROOT "fonts/freemono.ttf", 18);
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0)
     {
@@ -42,7 +52,7 @@ void Core::init()
         m_iout = SDL_CreateRenderer(m_window, 0, SDL_RENDERER_SOFTWARE);
         if(m_iout == 0)
         {
-            Config::cfgwarn("SW renderer failed to init.\nExiting with error: "+QString(SDL_GetError()));
+            Config::cfgwarn("SW renderer failed to init.\nExiting with error: "+unistring(SDL_GetError()));
             cleanup();
             exit(-1);
         }
@@ -55,7 +65,7 @@ void Core::init()
     Logger::log("Core", "Window & renderer created.");
     SDL_SetWindowSize(m_window, m_appconf.app_width, m_appconf.app_height);
     Logger::log("Core", "Window size set.");
-    SDL_SetWindowTitle(m_window, QString( m_appconf.app_name+" "+m_appconf.app_version ).toStdString().c_str() );
+    SDL_SetWindowTitle(m_window, unistring(m_appconf.app_name+" "+m_appconf.app_version).c_str() );
     Logger::log("Core", "Window title set.");
 
     map_rect.w = 164;
@@ -67,6 +77,12 @@ void Core::init()
     menu_rect.h = map_rect.h+4;
     menu_rect.x = 0;
     menu_rect.y = m_appconf.app_height-menu_rect.h;
+
+    m_consolerect.x = 0; m_consolerect.y = 0;
+    m_consolerect.w = m_appconf.app_width; m_consolerect.h = 24;
+
+     m_consoletextrect.x = 0; m_consoletextrect.y = 0;
+     m_consoletextrect.w = 16; m_consoletextrect.h = 24;
 
 
     if(m_appconf.is_full)
@@ -86,6 +102,12 @@ void Core::init()
     mouse_rect.h = 32;
 }
 
+void Core::updateConsole()
+{
+    m_consoletext = SDL_CreateTextureFromSurface(m_iout, TTF_RenderText_Solid(m_consolefont, m_cinput.c_str(), m_consolecolour) );
+    TTF_SizeText(m_consolefont, m_cinput.c_str(),&m_consoletextrect.w,&m_consoletextrect.h);
+}
+
 int Core::exec()
 {
     m_quit = false;
@@ -96,11 +118,95 @@ int Core::exec()
     {
         SDL_RenderClear(m_iout);
         // =====================================================
+        int c;
         while(SDL_PollEvent(&m_event))
         {
             switch (m_event.type) {
                 case SDL_QUIT:
                     m_quit = true;
+                break;
+                case SDL_KEYDOWN:
+                    if(m_console)
+                    {
+                        if(m_event.key.keysym.scancode == CONSOLE_KEY)
+                            m_console = false;
+                        if(m_event.key.keysym.scancode == SDL_SCANCODE_RETURN)
+                        {
+                            vector<unistring> parts;
+                            split(parts, m_cinput, is_any_of(" "), token_compress_on);
+                            if(parts.size() > 1)
+                            {
+                                if(parts[0] == "spawn")
+                                {
+                                    if(m_appconf.app_models.count(parts[1]) > 0)
+                                        m_scene.addActor(m_appconf, m_processor.mousePos(), parts[1], pname);
+                                }
+                            }
+                            else
+                            {
+                                if(m_cinput == "exit")
+                                    m_console = false;
+                            }
+
+                            m_consoleHistory.push_back(m_cinput);
+                            //
+                            m_cinput.clear();
+                            m_consoletext = 0;
+
+                            m_citem = m_consoleHistory.size();
+                        }
+                        else if(m_event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
+                        {
+                            if(m_cinput.length() > 0)
+                                m_cinput.pop_back();
+                            updateConsole();
+                        }
+                        else if(m_event.key.keysym.scancode == SDL_SCANCODE_UP)
+                        {
+                            if(m_consoleHistory.size() > 0)
+                            {
+                                if(m_citem > 0)
+                                {
+                                    --m_citem;
+                                    m_cinput = m_consoleHistory.at(m_citem);
+                                    updateConsole();
+                                }
+                            }
+                        }
+                        else if(m_event.key.keysym.scancode == SDL_SCANCODE_DOWN)
+                        {
+                            if(m_consoleHistory.size() > 0)
+                            {
+                                if(m_citem < m_consoleHistory.size()-1)
+                                {
+                                    ++m_citem;
+                                    m_cinput = m_consoleHistory.at(m_citem);
+                                }
+                                else
+                                {
+                                    m_cinput = "";
+                                    m_citem = m_consoleHistory.size();
+                                }
+                                updateConsole();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(m_event.key.keysym.scancode == CONSOLE_KEY)
+                            m_console = true;
+                    }
+                break;
+                case SDL_TEXTINPUT:
+                    c = m_event.text.text[0];
+                    if(m_console)
+                    {
+                        if( c >= 0x20 && c < 0x7E && c != 0x60) // 0x60 - `, 0x7E - ~
+                        {
+                            m_cinput += c;
+                            updateConsole();
+                        }
+                    }
                 break;
                 case SDL_MOUSEBUTTONDOWN:
                     if(m_event.button.button > 0)
@@ -188,11 +294,20 @@ void Core::draw_objs()
         if(a.visible)
         {
             SDL_RenderCopy(m_iout, m_texloader.getTex( a.tex() ), &m_animator.frame(a.curAnim, a.curFrame), &a.rect);
-            m_scene.objs()[a.getName()].nextFrame( m_animator.fcount(a.curAnim), m_animator.fps(a.curAnim) );
+            m_scene.objs()[a.getName().c_str()].nextFrame( m_animator.fcount(a.curAnim.c_str()), m_animator.fps(a.curAnim.c_str()) );
         }
     }
+    //
+    if(m_console)
+    {
+        SDL_SetRenderDrawColor(m_iout, 32, 32, 32, 0);
+        SDL_RenderFillRect(m_iout, &m_consolerect);
+        SDL_RenderCopy(m_iout, m_consoletext, 0, &m_consoletextrect);
+        SDL_SetRenderDrawColor(m_iout, 0, 0, 0, 0);
+    }
+    //
     mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
-    SDL_RenderCopy(m_iout, m_texloader.getTex("cursor_"+m_processor.mouse_state), NULL, &mouse_rect);
+    SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), NULL, &mouse_rect);
 }
 
 void Core::initialSpawn()
@@ -204,13 +319,17 @@ void Core::processEvents()
 {
     m_processor.mouse_state = "none";
 
-    if(m_processor.keyDown(SDL_SCANCODE_LCTRL))
-        SDL_RenderSetScale(m_iout, 2.0f, 2.0f);
-    else if(m_processor.keyDown(SDL_SCANCODE_LSHIFT))
-        SDL_RenderSetScale(m_iout, 1.0f, 1.0f);
+    if(m_scene.sinfo.type == "game")
+    {
+        if(m_processor.keyDown(SDL_SCANCODE_LCTRL))
+            SDL_RenderSetScale(m_iout, 2.0f, 2.0f);
+        else if(m_processor.keyDown(SDL_SCANCODE_LSHIFT))
+            SDL_RenderSetScale(m_iout, 1.0f, 1.0f);
+    }
 
     Action act;
-    QStringList info;
+    vector<unistring> info;
+    info.resize(2, "");
     vec2 sp;
     for(Actor2d obj : m_scene.objs().values())
     {
@@ -228,46 +347,46 @@ void Core::processEvents()
         switch(act.id)
         {
             case POS_ACTION:
-                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+                m_scene.objs()[obj.getName().c_str()].setPos( act.vec2Data(1) );
             break;
             case POS_RES_ACTION:
-                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
-                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName().c_str()].setPos( act.vec2Data(1) );
             break;
             case RESIZE_ACTION:
-                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
             break;
             case RES_SND_ACTION:
-                m_audiomgr.playSound(act.stringData());
-                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                m_audiomgr.playSound(act.data);
+                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
             break;
             case POS_RES_SND_ACTION:
-                m_audiomgr.playSound(act.stringData());
-                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
-                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
+                m_audiomgr.playSound(act.data);
+                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName().c_str()].setPos( act.vec2Data(1) );
             break;
 
             case MOV_ACTION:
-                m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
+                m_scene.objs()[obj.getName().c_str()].moveTo(act.vec2Data(1));
             break;
 
             case SND_MOV_ACTION:
-                m_audiomgr.playSound(act.stringData());
-                m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
+                m_audiomgr.playSound(act.data);
+                m_scene.objs()[obj.getName().c_str()].moveTo(act.vec2Data(1));
             break;
 
             case SOUND_ACTION:
-                m_audiomgr.playSound(act.stringData());
+                m_audiomgr.playSound(act.data);
             break;
             case SCENE_ACTION:
-                m_sceneparser.loadScene(&m_scene, act.stringData(), m_appconf);
+                m_sceneparser.loadScene(&m_scene, act.data, m_appconf);
                 m_scene.start(&m_audiomgr);
                 if(m_scene.sinfo.type == "game")
                     initialSpawn();
             break;
             case SPW_ACTION:
-            info = act.stringData().split(":");
-            if(info.count() != 2)
+            split(info, act.data, is_any_of(":"), token_compress_on);
+            if(info.size() != 2)
                 break;
             for(Actor2d a : m_scene.objs().values())
             {
@@ -279,10 +398,10 @@ void Core::processEvents()
             }
             if(sp.x != 0)
             {
-                m_scene.addActor(m_appconf, sp, info[1], pname);
+                m_scene.addActor(m_appconf, sp, info[1].c_str(), pname);
                 //
                 srand(time(0));
-                m_audiomgr.playSound("ussr_soldier_spawn_"+QString::number(random() % 3));
+                m_audiomgr.playSound( "ussr_soldier_spawn_"+ to_string(random()%3) );
             }
             break;
             case SELECTED_BUILDING_ACTION:
@@ -297,12 +416,12 @@ void Core::processEvents()
             case 0:
             break;
             default:
-            Config::cfgwarn("Undefined event triggered!");
+            Config::cfgwarn( "Undefined event triggered!\n"+act.data);
             break;
         }
     }
     if(m_processor.isMouseClicked(SDL_BUTTON_LEFT))
             m_processor.button_clicked[0] = false;
     if(m_processor.isMouseClicked(SDL_BUTTON_RIGHT))
-            m_processor.button_clicked[2] = false;
+        m_processor.button_clicked[2] = false;
 }

@@ -1,4 +1,4 @@
-#include "../include/animationmanager.h"
+#include <include/animationmanager.h>
 
 AnimationManager::AnimationManager()
 {
@@ -8,15 +8,15 @@ AnimationManager::AnimationManager()
 void AnimationManager::loadAnimations(AppConfig &conf)
 {
     a_animations.clear();
-    for(QString animation_alias : conf.app_animations.keys())
+    for( auto anim : conf.app_animations )
     {
-        a_animations[animation_alias] = conf.app_animations[animation_alias];
+        a_animations[anim.first.c_str()] = anim.second;
 
-        Logger::log("AnimationManager", "Added new animation: "+animation_alias+", "+QString::number(conf.app_animations[animation_alias].frameCount)+" frames.");
+        Logger::log("AnimationManager", "Added new animation: "+anim.first+", "+QString::number(anim.second.frameCount).toStdString()+" frames.");
     }
 }
 
-const SDL_Rect &AnimationManager::frame(QString anim, int i) const
+const SDL_Rect &AnimationManager::frame(unistring anim, int i) const
 {
-    return a_animations[anim].frames[i];
+    return a_animations[anim.c_str()].frames[i];
 }

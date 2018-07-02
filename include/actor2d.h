@@ -25,20 +25,19 @@ public:
     Actor2d();    
     SDL_Rect rect;
     SDL_Rect real_rect; // Rect with 'real' width and height
-    QString curAnim;
-    QString texture;
+    unistring curAnim;
+    unistring texture;
 
-    QStringList animations; // idle, walk, attack, die, etc...
-    QString idle_anim;      // animation default name: soldier, tank, etc. ( will be soldier_up, soldier_down )
+    vector<unistring> animations; // idle, walk, attack, die, etc...
+    unistring idle_anim;      // animation default name: soldier, tank, etc. ( will be soldier_up, soldier_down )
 
     int curFrame; int frameIter;
-    QString name;
-    QString type;
+    unistring name;
+    unistring type;
     QMap<QString,QString> trigger;
-    QString source; // From where do I get these?
 
     // ========== G A M E   L O G I C   V A R I A B L E S ===========================
-    QString parent; // Player or PC or another player.
+    unistring parent; // Player or PC or another player.
     bool visible;
 
     vec2 targetPos; // Moving to...
@@ -53,18 +52,18 @@ public:
     // Building variables
     vec2 so; // Spawn Offset
     bool structSelected;
-    QString structType;
+    unistring structType;
     QStringList punits; // Producing units.
     // ==============================================================================
 
-    const QString &tex() const
+    unistring tex()
     {
         return texture;
     }
 
-    void setTex(QVariant t)
+    void setTex(unistring t)
     {
-        texture = t.toString();
+        texture = t;
     }
 
     void setSO(vec2 s)
@@ -78,9 +77,9 @@ public:
         so.y = sy;
     }
 
-    void setStructType(QVariant t)
+    void setStructType(unistring t)
     {
-        structType = t.toString();
+        structType = t;
     }
 
     void setPos(vec2 pos)
@@ -130,12 +129,12 @@ public:
         return vec2(rect.w, rect.h);
     }
 
-    void setName(QVariant n)
+    void setName(unistring n)
     {
-        name = n.toString();
+        name = n;
     }
 
-    const QString &getName() const
+    unistring getName()
     {
         return name;
     }
@@ -161,15 +160,15 @@ public:
         else
             return 0;
     }
-    QString triggerArgument(QString event)
+    unistring triggerArgument(unistring event)
     {
-        if(trigger.contains(event))
-            return trigger[event].split(" ")[1];
+        if(trigger.contains(event.c_str()))
+            return trigger[event.c_str()].split(" ")[1].toStdString();
     }
 
-    void setType(QVariant t)
+    void setType(unistring t)
     {
-        type = t.toString();
+        type = t;
     }
 
     void nextFrame(int afc, int afps) // FrameCount, FPS
@@ -191,16 +190,17 @@ public:
         }
     }
 
-    QString taunt(QVariant t)
+    QString taunt(unistring t)
     {
         srand(time(0));
         int rt=0;
-        if(t.toString().toUpper() == "SELECT")
+        transform(t.begin(), t.end(), t.begin(), (int (*)(int))toupper);
+        if(t == "SELECT")
         {
             rt = random() % sel_taunts.length();
             return sel_taunts[rt];
         }
-        else if(t.toString().toUpper() == "MOVE")
+        else if(t == "MOVE")
         {
             rt = random() % mov_taunts.length();
             return mov_taunts[rt];

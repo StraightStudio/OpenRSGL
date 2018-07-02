@@ -5,11 +5,11 @@
 
 class Logger {
 public:
-    static void log(QString module, QString msg);
+    static void log(unistring module, unistring msg);
 
-    static void err(QString module, QString msg);
+    static void err(unistring module, unistring msg);
 
-    static void warn(QString module, QString msg);
+    static void warn(unistring module, unistring msg);
 private:
     Logger(){}
 };

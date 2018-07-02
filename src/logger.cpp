@@ -1,20 +1,20 @@
-#include "../include/logger.h"
+#include <include/logger.h>
 
-void Logger::log(QString module, QString msg)
+void Logger::log(unistring module, unistring msg)
 {
-    fprintf(stdout, "\n[L] [ %s ] %s\n", module.toStdString().c_str(), msg.toStdString().c_str());
+    fprintf(stdout, "\n[L] [ %s ] %s\n", module.c_str(), msg.c_str());
     fflush(stdout);
 }
 
-void Logger::err(QString module, QString msg)
+void Logger::err(unistring module, unistring msg)
 {
-    fprintf(stdout, "\n[E] < [ %s ] - %s >!!!\n", module.toStdString().c_str(), msg.toStdString().c_str());
+    fprintf(stdout, "\n[E] < [ %s ] - %s >!!!\n", module.c_str(), msg.c_str());
     fflush(stdout);
     exit(-1);
 }
 
-void Logger::warn(QString module, QString msg)
+void Logger::warn(unistring module, unistring msg)
 {
-    fprintf(stdout, "\n[W] { %s } %s\n", module.toStdString().c_str(), msg.toStdString().c_str());
+    fprintf(stdout, "\n[W] { %s } %s\n", module.c_str(), msg.c_str());
     fflush(stdout);
 }

@@ -1,8 +1,18 @@
 #ifndef DEPENDS_H
 #define DEPENDS_H
-#include <stdio.h>
-#include <stdlib.h>
+
+#include <algorithm>
+#include <fstream>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 #include <vector>
+#include <locale>
+#include <map>
+#include <boost/algorithm/string.hpp>
+
+#include <QString>
+#include <QMap>
 
 #include <include/SDL2/SDL.h>
 #include <include/SDL2/SDL_image.h>
@@ -10,17 +20,15 @@
 #include <include/SDL2/SDL_net.h>
 #include <include/SDL2/SDL_ttf.h>
 
-#include <QString>
-#include <QMap>
-#include <QFile>
-#include <QTextStream>
-#include <QVariant>
-#include <QMessageBox>
-#include <QObject>
-
-#include <cairo/cairo-svg.h>
-
 #include <rapidjson/document.h>
+
+#ifdef _WIN32
+typedef std::wstring unistring;
+#else
+typedef std::string unistring;
+#endif
+
+// ---------------------------------------------------------------------------------
 
 #define TARGET_FPS 60
 #define HEALTHBAR_HEIGHT 4
@@ -72,6 +80,7 @@
 #define QUIT_ACTION         0x2a        // Just for fun
 
 using namespace std;
+using namespace boost;
 using namespace rapidjson;
 
 #endif

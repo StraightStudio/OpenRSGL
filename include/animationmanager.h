@@ -11,7 +11,7 @@ public:
     AnimationManager();
     void loadAnimations(AppConfig &conf);
 
-    const SDL_Rect &frame(QString anim, int i) const; // i - id of frame.
+    const SDL_Rect &frame(unistring anim, int i) const; // i - id of frame.
 
     int fcount(QString anim)
     {

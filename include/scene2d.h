@@ -9,29 +9,33 @@
 
 struct SceneInfo
 {
-  QString name;
-  QString author;
-  QString bg_track;
-  QString type;
+  unistring name;
+  unistring author;
+  unistring bg_track;
+  unistring type;
 
-  SceneInfo(QVariant n, QVariant a): name(n.toString()), author(a.toString()) {}
+  SceneInfo(unistring n, unistring a): name(n), author(a) {}
 
-  void setName(QVariant n)
+  void setName(unistring n)
   {
-      name = n.toString();
+      name = n;
+      boost::algorithm::to_lower(name);
   }
 
-  void setAuthor(QVariant a)
+  void setAuthor(unistring a)
   {
-      author = a.toString();
+      author = a;
+      boost::algorithm::to_lower(author);
   }
-  void setBgTrack(QVariant a)
+  void setBgTrack(unistring a)
   {
-      bg_track = a.toString();
+      bg_track = a;
+      boost::algorithm::to_lower(bg_track);
   }
-  void setType(QVariant t)
+  void setType(unistring t)
   {
-      type = t.toString();
+      type = t;
+      boost::algorithm::to_lower(type);
   }
 
   void reset()
@@ -59,12 +63,12 @@ public:
     void clear();
 
     SceneInfo sinfo;
-    void addActor(AppConfig &conf, vec2 pos, QString model, QString parent);
-    void addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> trigger, QString name, QString type, QString texture, QString anim_idle);
+    void addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring parent);
+    void addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> trigger, unistring name, unistring type, unistring texture, unistring anim_idle);
 private:
     QMap<QString, Actor2d> m_objs;
-    QString name;
-    QString author;
+    unistring name;
+    unistring author;
     int objid;
 };
 
