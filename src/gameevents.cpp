@@ -92,11 +92,11 @@ Action GameEvents::processUIobject(Actor2d &obj)
         return Action(0, "");
     if(isMouseOver(obj.getRect()))
     {
-        if(ui_btns[obj.getName().c_str()] != "hovered")
+        if(ui_btns[obj.getName()] != "hovered")
         {
             res = vec2(obj.getRect().w+2, obj.getRect().h+2);
             trs = vec2(obj.getRect().x-1, obj.getRect().y-1);
-            ui_btns[obj.getName().c_str()] = "hovered";
+            ui_btns[obj.getName()] = "hovered";
             switch(obj.triggerAction("hover"))
             {
                 case SOUND_ACTION:
@@ -119,11 +119,11 @@ Action GameEvents::processUIobject(Actor2d &obj)
     }
     else
     {
-        if(ui_btns[obj.getName().c_str()] == "hovered")
+        if(ui_btns[obj.getName()] == "hovered")
         {
             res = vec2(obj.getRect().w-2, obj.getRect().h-2);
             trs = vec2(obj.getRect().x+1, obj.getRect().y+1);
-            ui_btns[obj.getName().c_str()] = "none";
+            ui_btns[obj.getName()] = "none";
             return Action(POS_RES_ACTION, "", res, trs);
         }
     }
@@ -156,7 +156,7 @@ Action GameEvents::processActor(Actor2d &obj)
         }
         if(isMouseClicked(SDL_BUTTON_RIGHT))
         {
-            if( selectionList.erase(obj.getName()) )
+            if( selectionList.count(obj.getName()) > 0 )
             {
                 trs = vec2( mousePos().x-obj.rect.w/2, mousePos().y-obj.rect.h+16 );
                 return Action(SND_MOV_ACTION, obj.taunt("MOVE"), res, trs);

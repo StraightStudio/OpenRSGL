@@ -150,8 +150,9 @@ public:
         if(trigger.count(event) > 0)
         {
             unistrlist parts;
-            split(parts, event, is_any_of(" "), token_compress_on);
-            Logger::log("Actor2d", "triggerAction='"+parts[0]+"'");
+            parts.resize(2, "");
+            split(parts, trigger.at(event), is_any_of(" "), token_compress_on);
+
             if(parts[0] == "snd")
                 return SOUND_ACTION;
             else if(parts[0] == "scn")
@@ -161,21 +162,22 @@ public:
             else if(parts[0] == "quit")
                 return QUIT_ACTION;
         }
-        else
-            return 0;
+        return -1;
     }
     unistring triggerArgument(unistring event)
     {
         if(trigger.count(event) > 0)
         {
             unistrlist parts;
-            split(parts, event, is_any_of(" "), token_compress_on);
-            Logger::log("Actor2d", "triggerArgument='"+parts[1]+"'");
+            parts.resize(2, "");
+            split(parts, trigger.at(event), is_any_of(" "), token_compress_on);
+
             if(parts.size() > 1)
                 return parts[1];
             else
                 return "";
         }
+        return "";
     }
 
     void setType(unistring t)
@@ -217,6 +219,7 @@ public:
             rt = random() % mov_taunts.size();
             return mov_taunts[rt];
         }
+        return "";
     }
 
     SDL_Rect &healthBar()

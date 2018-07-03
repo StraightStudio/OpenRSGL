@@ -23,7 +23,7 @@ all-64: $(OBJFILES)
 	@echo Compilation complete.
 
 clean:
-	@rm *.o
+	@rm -f *.o
 
 distclean: clean
-	@rm $(TARGET)
+	@rm -f $(TARGET)
