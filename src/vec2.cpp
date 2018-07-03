@@ -19,7 +19,7 @@ vec2 &vec2::operator-(vec2 a)
     return *this;
 }
 
-QString vec2::toString()
+unistring vec2::toString()
 {
-    return "("+QString::number(x)+","+QString::number(y)+")";
+    return "("+to_string(x)+","+to_string(y)+")";
 }

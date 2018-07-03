@@ -11,11 +11,6 @@ Actor2d::Actor2d()
     visible     = true;
 }
 
-void Actor2d::setTexs(QStringList texs, QList<SDL_Rect> frames)
-{
-
-}
-
 void Actor2d::moveTo(vec2 target)
 {
     frameIter=0;

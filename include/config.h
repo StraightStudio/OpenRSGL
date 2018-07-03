@@ -25,7 +25,7 @@ class Actor2d;
 
 struct Animation2d {
     int fps, frameCount;
-    QList<SDL_Rect> frames;
+    vector<SDL_Rect> frames;
 
     Animation2d(int afc, int afps)
     {
@@ -40,12 +40,17 @@ struct Animation2d {
 
     Animation2d(){}
 
-    void addFrame(SDL_Rect r)
+    SDL_Rect getFrame(size_t i)
     {
-        frames.append(r);
+        return frames[i];
     }
 
-    void setFrames(QList<SDL_Rect> fr)
+    void addFrame(SDL_Rect r)
+    {
+        frames.push_back(r);
+    }
+
+    void setFrames(vector<SDL_Rect> fr)
     {
         frames.clear();
         frames = fr;

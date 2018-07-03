@@ -13,17 +13,16 @@ public:
 
     const SDL_Rect &frame(unistring anim, int i) const; // i - id of frame.
 
-    int fcount(QString anim)
+    int fcount(unistring anim)
     {
         return a_animations[anim].frameCount;
     }
-    int fps(QString anim)
+    int fps(unistring anim)
     {
         return a_animations[anim].fps;
     }
-
 private:
-    QMap <QString, Animation2d> a_animations;
+    map<unistring, Animation2d> a_animations;
 };
 
 #endif // ANIMATIONMANAGER_H

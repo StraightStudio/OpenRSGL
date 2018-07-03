@@ -2,6 +2,7 @@
 #define ACTOR2D_H
 
 #include <include/depends.h>
+#include <include/logger.h>
 #include <include/vec2.h>
 
 enum DIRECTIONS {
@@ -34,7 +35,7 @@ public:
     int curFrame; int frameIter;
     unistring name;
     unistring type;
-    QMap<QString,QString> trigger;
+    map<unistring,unistring> trigger;
 
     // ========== G A M E   L O G I C   V A R I A B L E S ===========================
     unistring parent; // Player or PC or another player.
@@ -46,14 +47,14 @@ public:
     //
     int health_percentage;
     SDL_Rect health_rect;
-    QStringList sel_taunts;
-    QStringList mov_taunts;
+    unistrlist sel_taunts;
+    unistrlist mov_taunts;
 
     // Building variables
     vec2 so; // Spawn Offset
     bool structSelected;
     unistring structType;
-    QStringList punits; // Producing units.
+    unistrlist punits; // Producing units.
     // ==============================================================================
 
     unistring tex()
@@ -144,17 +145,20 @@ public:
         return rect;
     }
 
-    int triggerAction(QString event)
+    int triggerAction(unistring event)
     {
-        if(trigger.contains(event))
+        if(trigger.count(event) > 0)
         {
-            if(trigger[event].split(" ")[0] == "snd")
+            unistrlist parts;
+            split(parts, event, is_any_of(" "), token_compress_on);
+            Logger::log("Actor2d", "triggerAction='"+parts[0]+"'");
+            if(parts[0] == "snd")
                 return SOUND_ACTION;
-            else if(trigger[event].split(" ")[0] == "scn")
+            else if(parts[0] == "scn")
                 return SCENE_ACTION;
-            else if(trigger[event].split(" ")[0] == "spw")
+            else if(parts[0] == "spw")
                 return SPW_ACTION;
-            else if(trigger[event].split(" ")[0] == "quit")
+            else if(parts[0] == "quit")
                 return QUIT_ACTION;
         }
         else
@@ -162,8 +166,16 @@ public:
     }
     unistring triggerArgument(unistring event)
     {
-        if(trigger.contains(event.c_str()))
-            return trigger[event.c_str()].split(" ")[1].toStdString();
+        if(trigger.count(event) > 0)
+        {
+            unistrlist parts;
+            split(parts, event, is_any_of(" "), token_compress_on);
+            Logger::log("Actor2d", "triggerArgument='"+parts[1]+"'");
+            if(parts.size() > 1)
+                return parts[1];
+            else
+                return "";
+        }
     }
 
     void setType(unistring t)
@@ -190,19 +202,19 @@ public:
         }
     }
 
-    QString taunt(unistring t)
+    unistring taunt(unistring t)
     {
-        srand(time(0));
+        srand(time(nullptr));
         int rt=0;
         transform(t.begin(), t.end(), t.begin(), (int (*)(int))toupper);
         if(t == "SELECT")
         {
-            rt = random() % sel_taunts.length();
+            rt = random() % sel_taunts.size();
             return sel_taunts[rt];
         }
         else if(t == "MOVE")
         {
-            rt = random() % mov_taunts.length();
+            rt = random() % mov_taunts.size();
             return mov_taunts[rt];
         }
     }
@@ -215,8 +227,6 @@ public:
         health_rect.h = HEALTHBAR_HEIGHT;
         return health_rect;
     }
-
-    void setTexs(QStringList texs, QList<SDL_Rect> frames);
 
     void moveTo(vec2 target);
     void moveTo(int tx, int ty);

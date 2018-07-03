@@ -61,23 +61,25 @@ bool GameEvents::isMouseClicked(int mbtn)
 
 bool GameEvents::keyDown(int scancode)
 {
-    return SDL_GetKeyboardState(NULL)[scancode];
+    return SDL_GetKeyboardState(nullptr)[scancode];
 }
 
 bool GameEvents::isSelected(Actor2d &a)
 {
-    /*if(selectionList.contains(a.getName()))
-        return true;*/
+    if(selectionList.count(a.getName()) > 0)
+        return true;
     return false;
 }
 
-void GameEvents::addSelected(const QList<Actor2d> &objs, SDL_Rect &selrect)
+void GameEvents::addSelected(const map<unistring, Actor2d> &objs, SDL_Rect &selrect)
 {
-    for(Actor2d a : objs)
+    Actor2d a;
+    for(auto obj : objs)
     {
+        a = obj.second;
         if(rectOverlap(a.real_rect, selrect) && a.type == "actor")
         {
-            if(!selectionList.contains(a.getName().c_str()))
+            if(selectionList.count(a.getName()) == 0)
                 selectionList[a.getName().c_str()] = a;
         }
     }
@@ -99,7 +101,6 @@ Action GameEvents::processUIobject(Actor2d &obj)
             {
                 case SOUND_ACTION:
                     return Action(POS_RES_SND_ACTION, obj.triggerArgument("hover"), res, trs);
-                break;
             }
             return Action(POS_RES_ACTION, "", res, trs);
         }
@@ -109,13 +110,10 @@ Action GameEvents::processUIobject(Actor2d &obj)
             {
                 case SCENE_ACTION:
                     return Action(SCENE_ACTION, obj.triggerArgument("click"));
-                break;
                 case SPW_ACTION:
                     return Action(SPW_ACTION, obj.triggerArgument("click"));
-                break;
                 case QUIT_ACTION:
                     return Action(QUIT_ACTION, "true");
-                break;
             }
         }
     }
@@ -145,8 +143,8 @@ Action GameEvents::processActor(Actor2d &obj)
 
         if(isMouseClicked(SDL_BUTTON_LEFT))
         {
-            selectionList.insert(obj.getName().c_str(), obj);
-            return Action(SOUND_ACTION, obj.taunt("SELECT").toStdString());
+            selectionList[obj.getName()] = obj;
+            return Action(SOUND_ACTION, obj.taunt("SELECT"));
         }
     }
     else
@@ -154,14 +152,14 @@ Action GameEvents::processActor(Actor2d &obj)
         if(isMouseClicked(SDL_BUTTON_LEFT))
         {
             if(!keyDown(SDL_SCANCODE_LSHIFT))
-                selectionList.remove(obj.getName().c_str());
+                selectionList.erase(obj.getName());
         }
         if(isMouseClicked(SDL_BUTTON_RIGHT))
         {
-            if( selectionList.contains(obj.getName().c_str()) )
+            if( selectionList.erase(obj.getName()) )
             {
                 trs = vec2( mousePos().x-obj.rect.w/2, mousePos().y-obj.rect.h+16 );
-                return Action(SND_MOV_ACTION, obj.taunt("MOVE").toStdString(), res, trs);
+                return Action(SND_MOV_ACTION, obj.taunt("MOVE"), res, trs);
             }
         }
     }

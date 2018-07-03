@@ -12,11 +12,11 @@ void AnimationManager::loadAnimations(AppConfig &conf)
     {
         a_animations[anim.first.c_str()] = anim.second;
 
-        Logger::log("AnimationManager", "Added new animation: "+anim.first+", "+QString::number(anim.second.frameCount).toStdString()+" frames.");
+        Logger::log("AnimationManager", "Added new animation: "+anim.first+", "+to_string(anim.second.frameCount)+" frames.");
     }
 }
 
 const SDL_Rect &AnimationManager::frame(unistring anim, int i) const
 {
-    return a_animations[anim.c_str()].frames[i];
+    return a_animations.at(anim).frames.at(i);
 }

@@ -53,20 +53,20 @@ public:
     Scene2d();
     void start(AudioManager *mgr);
 
-    void draw(SDL_Renderer* rend=0);
-    void spawn(vec2 pos=vec2(0,0), vec2 dim=vec2(0,0), QString textureAlias="none", TexLoader *tl=0);
-    void spawn(vec2 pos=vec2(0,0), QString textureAlias="none", TexLoader *tl=0);
+    void draw(SDL_Renderer* rend=nullptr);
+    void spawn(vec2 pos=vec2(0,0), vec2 dim=vec2(0,0), unistring textureAlias="none", TexLoader *tl=nullptr);
+    void spawn(vec2 pos=vec2(0,0), unistring textureAlias="none", TexLoader *tl=nullptr);
 
-    SDL_Rect &getRect(QString name="");
-    QMap<QString, Actor2d> &objs();
+    SDL_Rect &getRect(unistring name="");
+    map<unistring, Actor2d> &objs();
 
     void clear();
 
     SceneInfo sinfo;
     void addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring parent);
-    void addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> trigger, unistring name, unistring type, unistring texture, unistring anim_idle);
+    void addActor(vec2 pos, vec2 dim, vec2 rdim, map<unistring, unistring> trigger, unistring name, unistring type, unistring texture, unistring anim_idle);
 private:
-    QMap<QString, Actor2d> m_objs;
+    map<unistring, Actor2d> m_objs;
     unistring name;
     unistring author;
     int objid;

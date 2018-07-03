@@ -7,11 +7,10 @@ TexLoader::TexLoader()
 
 TexLoader::~TexLoader()
 {
-    QList<QString> toDelete = texLib.keys();
-    for(int i=0; i < toDelete.size(); i++)
+    for(auto tid : texLib)
     {
-        SDL_DestroyTexture( texLib[toDelete.at(i)] );
-        texLib[toDelete.at(i)] = 0;
+        SDL_DestroyTexture( texLib[tid.first] );
+        texLib[tid.first] = nullptr;
     }
 }
 

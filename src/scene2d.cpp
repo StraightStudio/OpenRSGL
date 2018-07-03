@@ -16,7 +16,7 @@ void Scene2d::start(AudioManager *mgr)
     }
 }
 
-void Scene2d::addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> trigger, unistring name, unistring type, unistring texture, unistring anim_idle)
+void Scene2d::addActor(vec2 pos, vec2 dim, vec2 rdim, map<unistring, unistring> trigger, unistring name, unistring type, unistring texture, unistring anim_idle)
 {
     Actor2d actor;
 
@@ -31,7 +31,7 @@ void Scene2d::addActor(vec2 pos, vec2 dim, vec2 rdim, QMap<QString, QString> tri
     actor.idle_anim = anim_idle;
     actor.curAnim = actor.idle_anim;
 
-    m_objs[name.c_str()] = actor;
+    m_objs[name] = actor;
 }
 
 
@@ -45,21 +45,16 @@ void Scene2d::addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring 
     objid++;
     actor.setPos(pos);
 
-    if(actor.type == "button" || actor.type == "actor")
-        m_objs.insert(m_objs.constEnd() , actor.getName().c_str(), actor);
-    else if(actor.type == "building")
-    {
-        m_objs.insert(m_objs.constBegin() , actor.getName().c_str(), actor);
-    }
+    m_objs[actor.getName()] = actor;
     Logger::log("Scene2d", "Added model '"+model_id+"' on scene as '"+actor.getName()+"'.");
 }
 
-SDL_Rect &Scene2d::getRect(QString name)
+SDL_Rect &Scene2d::getRect(unistring name)
 {
     return m_objs[name].rect;
 }
 
-QMap<QString, Actor2d> &Scene2d::objs()
+map<unistring, Actor2d> &Scene2d::objs()
 {
     return m_objs;
 }

@@ -14,7 +14,7 @@ public:
     void addTex(unistring file, unistring texAlias, SDL_Renderer *rend);
 
     void loadTextures(SDL_Renderer *rend, AppConfig &conf);
-    QMap <QString, SDL_Texture*> texLib;
+    map<unistring, SDL_Texture*> texLib;
 };
 
 #endif // TEXLOADER_H

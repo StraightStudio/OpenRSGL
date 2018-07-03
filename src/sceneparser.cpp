@@ -50,7 +50,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
         target->sinfo.setType( doc["type"].GetString() ); // Get "type"
 
 
-    if(doc["type"].GetString() == "game")
+    if(unistring(doc["type"].GetString()) == "game")
     {
         if(!doc.HasMember("players"))
             Config::cfgerr("Unable to get 'players' OBJECT!");
@@ -59,7 +59,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
 
         for(auto& p : doc["players"].GetObject())
         {
-
+            Logger::log("SceneParser", "Player "+unistring(p.value.GetString())+" joined game.");
         }
     }
 

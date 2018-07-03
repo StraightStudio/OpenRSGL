@@ -1,7 +1,7 @@
 #ifndef VEC2_H
 #define VEC2_H
 
-#include <QString>
+#include <include/depends.h>
 
 class vec2
 {
@@ -14,7 +14,7 @@ public:
     vec2 &operator+(vec2 a);
     vec2 &operator-(vec2 a);
 
-    QString toString();
+    unistring toString();
 
     int X(){return x;}
     int Y(){return y;}

@@ -11,9 +11,6 @@
 #include <map>
 #include <boost/algorithm/string.hpp>
 
-#include <QString>
-#include <QMap>
-
 #include <include/SDL2/SDL.h>
 #include <include/SDL2/SDL_image.h>
 #include <include/SDL2/SDL_mixer.h>
@@ -28,6 +25,7 @@ typedef std::wstring unistring;
 typedef std::string unistring;
 #endif
 
+typedef std::vector<unistring> unistrlist;
 // ---------------------------------------------------------------------------------
 
 #define TARGET_FPS 60

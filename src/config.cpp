@@ -6,7 +6,7 @@ void Config::cfgerr(unistring errmsg)
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                              "Config load error!",
                              errmsg.c_str(),
-                             NULL);
+                             nullptr);
     exit(-1);
 }
 
@@ -53,7 +53,7 @@ void Config::loadCfg(AppConfig *conf)
 
     conf->setName( doc["app_name"].GetString() );
     conf->setAuthor( doc["app_author"].GetString() );
-    conf->setVersion( QByteArray::fromHex( doc["app_version"].GetString() ).data() );
+    conf->setVersion( doc["app_version"].GetString() );
     conf->setDimension( doc["width"].GetInt(), doc["height"].GetInt() );
     conf->is_full = doc["fullscreen"].GetBool();
     conf->setStartScene( doc["start_scene"].GetString() );
@@ -76,10 +76,10 @@ void Config::loadCfg(AppConfig *conf)
 
     ifstream mfile;
     unistring tex, type, anim, st, name;
-    QStringList sts, mts, punits;
+    unistrlist sts, mts, punits;
     int w,h, rw,rh;
     vec2 so;
-    QMap<QString, QString> trigger;
+    map<unistring, unistring> trigger;
     Document mds;
     Actor2d actor;
     for( auto& m : doc["models"].GetObject() )
@@ -134,7 +134,7 @@ void Config::loadCfg(AppConfig *conf)
 
                 if(!p.value["click"].IsString())
                     cfgerr("'click' event is not defmined!");
-                trigger["click"] = p.value["click"].GetString();
+                trigger["click"] = unistring(p.value["click"].GetString());
             }
             else if(type == "building")
             {
@@ -162,7 +162,7 @@ void Config::loadCfg(AppConfig *conf)
                     if(p.value["units"].IsArray())
                     {
                         for(auto& u : p.value["units"].GetArray())
-                            punits.append(u.GetString());
+                            punits.push_back(u.GetString());
                     }
                 }
 
@@ -178,14 +178,14 @@ void Config::loadCfg(AppConfig *conf)
                 if(!p.value["sel-taunts"].IsArray())
                     cfgerr("'sel-taunts' variable must be STRING ARRAY!");
                 for(auto& t : p.value["sel-taunts"].GetArray())
-                    sts.append(t.GetString());
+                    sts.push_back(t.GetString());
 
                 if(!p.value.HasMember("mov-taunts"))
                     cfgerr("'mov-taunts' variable must be defined in actor!");
                 if(!p.value["mov-taunts"].IsArray())
                     cfgerr("'mov-taunts' variable must be STRING ARRAY!");
                 for(auto& t : p.value["mov-taunts"].GetArray())
-                    mts.append(t.GetString());
+                    mts.push_back(t.GetString());
             }
             actor.setName(m.name.GetString());
             actor.setDim(w, h);
@@ -293,7 +293,7 @@ void Config::cfgwarn(unistring warnmsg)
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
                              "Warning in app!",
                              warnmsg.c_str(),
-                             NULL);
+                             nullptr);
 }
 
 vector<unistring> AppConfig::getSoundAliases()

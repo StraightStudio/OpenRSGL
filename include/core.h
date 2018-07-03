@@ -66,7 +66,7 @@ private:
     SDL_Rect m_consoletextrect;
     SDL_Texture* m_consoletext;
 
-    int m_citem;
+    ulong m_citem;
     vector<unistring> m_consoleHistory;
 
     // ================ L O G I C   V A R I A B L E S ================

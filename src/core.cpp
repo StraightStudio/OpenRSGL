@@ -1,6 +1,6 @@
 #include <include/core.h>
 
-Core::Core() : spawnid(0), m_console(false), m_cinput(""), m_consoletext(0), m_consolecolour({255, 255, 255, 0}), m_citem(0)
+Core::Core() : spawnid(0), m_console(false), m_cinput(""), m_consoletext(nullptr), m_consolecolour({255, 255, 255, 0}), m_citem(0)
 {
 }
 
@@ -9,7 +9,7 @@ void Core::cleanup()
     Logger::log("Core", "Started cleanup...");
 
     m_cinput.clear();
-    m_consoletext = 0;
+    m_consoletext = nullptr;
     m_consoleHistory.clear();
 
     SDL_DestroyWindow(m_window);
@@ -46,11 +46,11 @@ void Core::init()
 
     m_iout      = SDL_CreateRenderer(m_window, 0, SDL_RENDERER_ACCELERATED);
 
-    if(m_iout == 0)
+    if(m_iout == nullptr)
     {
         Config::cfgwarn("HW renderer failed to init.\nRunning in SW mode.");
         m_iout = SDL_CreateRenderer(m_window, 0, SDL_RENDERER_SOFTWARE);
-        if(m_iout == 0)
+        if(m_iout == nullptr)
         {
             Config::cfgwarn("SW renderer failed to init.\nExiting with error: "+unistring(SDL_GetError()));
             cleanup();
@@ -58,7 +58,7 @@ void Core::init()
         }
     }
 
-    if(m_window == 0)
+    if(m_window == nullptr)
     {
         Logger::err("Core", "SDL2 failed to create window.");
     }
@@ -151,7 +151,7 @@ int Core::exec()
                             m_consoleHistory.push_back(m_cinput);
                             //
                             m_cinput.clear();
-                            m_consoletext = 0;
+                            m_consoletext = nullptr;
 
                             m_citem = m_consoleHistory.size();
                         }
@@ -203,7 +203,7 @@ int Core::exec()
                     {
                         if( c >= 0x20 && c < 0x7E && c != 0x60) // 0x60 - `, 0x7E - ~
                         {
-                            m_cinput += c;
+                            m_cinput += (char)c;
                             updateConsole();
                         }
                     }
@@ -246,8 +246,10 @@ void Core::draw_objs()
         SDL_RenderFillRect(m_iout, &map_rect);
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
     }
-    for(Actor2d a : m_scene.objs().values())
+    Actor2d a;
+    for(auto obj : m_scene.objs())
     {
+        a = obj.second;
         if(m_scene.sinfo.type == "game")
         {
             if(a.type == "actor")
@@ -284,7 +286,7 @@ void Core::draw_objs()
             {
                 if( ( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) ) )
                 {
-                    m_processor.addSelected(m_scene.objs().values(), selection_rect);
+                    m_processor.addSelected(m_scene.objs(), selection_rect);
                 }
                 //
                 m_processor.oldmpos = vec2(0,0);
@@ -302,12 +304,12 @@ void Core::draw_objs()
     {
         SDL_SetRenderDrawColor(m_iout, 32, 32, 32, 0);
         SDL_RenderFillRect(m_iout, &m_consolerect);
-        SDL_RenderCopy(m_iout, m_consoletext, 0, &m_consoletextrect);
+        SDL_RenderCopy(m_iout, m_consoletext, nullptr, &m_consoletextrect);
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, 0);
     }
     //
     mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
-    SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), NULL, &mouse_rect);
+    SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), nullptr, &mouse_rect);
 }
 
 void Core::initialSpawn()
@@ -327,12 +329,16 @@ void Core::processEvents()
             SDL_RenderSetScale(m_iout, 1.0f, 1.0f);
     }
 
+    Actor2d a;
     Action act;
-    vector<unistring> info;
+    unistrlist info;
     info.resize(2, "");
     vec2 sp;
-    for(Actor2d obj : m_scene.objs().values())
+    Actor2d obj;
+    for(auto iter : m_scene.objs())
     {
+        obj = iter.second;
+
         if(m_scene.sinfo.type == "game" && pname != obj.parent)
             continue;
 
@@ -347,32 +353,32 @@ void Core::processEvents()
         switch(act.id)
         {
             case POS_ACTION:
-                m_scene.objs()[obj.getName().c_str()].setPos( act.vec2Data(1) );
+                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
             break;
             case POS_RES_ACTION:
-                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
-                m_scene.objs()[obj.getName().c_str()].setPos( act.vec2Data(1) );
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
             break;
             case RESIZE_ACTION:
-                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
             break;
             case RES_SND_ACTION:
                 m_audiomgr.playSound(act.data);
-                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
             break;
             case POS_RES_SND_ACTION:
                 m_audiomgr.playSound(act.data);
-                m_scene.objs()[obj.getName().c_str()].setDim( act.vec2Data(0) );
-                m_scene.objs()[obj.getName().c_str()].setPos( act.vec2Data(1) );
+                m_scene.objs()[obj.getName()].setDim( act.vec2Data(0) );
+                m_scene.objs()[obj.getName()].setPos( act.vec2Data(1) );
             break;
 
             case MOV_ACTION:
-                m_scene.objs()[obj.getName().c_str()].moveTo(act.vec2Data(1));
+                m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
             break;
 
             case SND_MOV_ACTION:
                 m_audiomgr.playSound(act.data);
-                m_scene.objs()[obj.getName().c_str()].moveTo(act.vec2Data(1));
+                m_scene.objs()[obj.getName()].moveTo(act.vec2Data(1));
             break;
 
             case SOUND_ACTION:
@@ -388,8 +394,9 @@ void Core::processEvents()
             split(info, act.data, is_any_of(":"), token_compress_on);
             if(info.size() != 2)
                 break;
-            for(Actor2d a : m_scene.objs().values())
+            for(auto obj : m_scene.objs())
             {
+                a = obj.second;
                 if(a.structType == info[0])
                 {
                     sp = a.getPos()+a.so;
@@ -400,7 +407,7 @@ void Core::processEvents()
             {
                 m_scene.addActor(m_appconf, sp, info[1].c_str(), pname);
                 //
-                srand(time(0));
+                srand(time(nullptr));
                 m_audiomgr.playSound( "ussr_soldier_spawn_"+ to_string(random()%3) );
             }
             break;

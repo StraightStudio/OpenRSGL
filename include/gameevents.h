@@ -11,10 +11,23 @@ struct Action {
     vec2 transform_data[2];
 
     Action() :
-        id(0), data(""), transform_data({vec2(0, 0), vec2(0, 0)}) {}
-    Action(int i, unistring d) : id(i), data(d) {}
+        id(0), data("")
+    {
+        transform_data[0] = vec2(0, 0);
+        transform_data[1] = vec2(0, 0);
+    }
+    Action(int i, unistring d) : id(i), data(d)
+    {
+        transform_data[0] = vec2(0, 0);
+        transform_data[1] = vec2(0, 0);
+    }
+
     Action(int i, unistring d, vec2 da, vec2 dd)
-        : id(i), data(d), transform_data({da, dd}) {}
+        : id(i), data(d)
+    {
+        transform_data[0] = da;
+        transform_data[1] = dd;
+    }
 
     ~Action()
     {
@@ -61,15 +74,15 @@ public:
     Action processUIobject(Actor2d &obj);
     Action processActor(Actor2d &obj);
     Action processBuilding(Actor2d &obj);
-    void addSelected(const QList<Actor2d> &objs, SDL_Rect &selrect);
+    void addSelected(const map<unistring, Actor2d> &objs, SDL_Rect &selrect);
 
-    QMap<QString, Actor2d> selectionList;
+    map<unistring, Actor2d> selectionList;
 
     unistring mouse_state;
     bool button_down[3];
     bool button_clicked[3];
 private:
-    QMap<QString, QString> ui_btns;
+    map<unistring, unistring> ui_btns;
     SDL_Event e;
 };
 
