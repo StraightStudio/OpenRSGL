@@ -33,7 +33,6 @@
 Stratwenty
 
 # QT grabage & other
-Makefile
-github*
+*.bkp
 *.user
 *.qmake
