@@ -1,3 +1,3 @@
 make distclean
-make -j`nproc` all-64
+make -j`nproc` all
 make clean

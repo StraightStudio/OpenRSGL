@@ -2,13 +2,7 @@
 
 Actor2d::Actor2d()
 {
-    frameIter   = 0;
-    curFrame    = 0;
-    idle_anim   = "idle";
-    curAnim     = idle_anim;
-
-    move_speed  = 1;
-    visible     = true;
+    reset();
 }
 
 void Actor2d::moveTo(vec2 target)
@@ -21,10 +15,7 @@ void Actor2d::moveTo(vec2 target)
 
 void Actor2d::moveTo(int tx, int ty)
 {
-    frameIter=0;
-    curFrame=0;
-
-    targetPos = vec2(tx, ty);
+    moveTo(vec2(tx, ty));
 }
 
 void Actor2d::updatePath()

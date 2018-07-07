@@ -4,7 +4,8 @@ Scene2d::Scene2d() :
     sinfo("", ""),
     objid(0)
 {
-
+    m_objs.clear();
+    toDelete.clear();
 }
 
 void Scene2d::start(AudioManager *mgr)
@@ -34,6 +35,19 @@ void Scene2d::addActor(vec2 pos, vec2 dim, vec2 rdim, map<unistring, unistring> 
     m_objs[name] = actor;
 }
 
+void Scene2d::addToQueue(unistring object)
+{
+    toDelete.push_back(object);
+}
+
+void Scene2d::doOperations()
+{
+    for(const auto &op : toDelete)
+    {
+        m_objs.erase(op);
+    }
+    toDelete.clear();
+}
 
 void Scene2d::addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring parent)
 {
@@ -45,7 +59,7 @@ void Scene2d::addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring 
     objid++;
     actor.setPos(pos);
 
-    m_objs[actor.getName()] = actor;
+    m_objs.insert( std::pair<unistring, Actor2d>( actor.getName(), actor ) );
     Logger::log("Scene2d", "Added model '"+model_id+"' on scene as '"+actor.getName()+"'.");
 }
 
@@ -54,13 +68,9 @@ SDL_Rect &Scene2d::getRect(unistring name)
     return m_objs[name].rect;
 }
 
-map<unistring, Actor2d> &Scene2d::objs()
-{
-    return m_objs;
-}
-
 void Scene2d::clear()
 {
+    for(const auto &it : m_objs)
+        addToQueue(it.first);
     objid = 0;
-    m_objs.clear();
 }

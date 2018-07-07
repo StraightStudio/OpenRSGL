@@ -5,8 +5,11 @@ SceneParser::SceneParser()
 
 }
 
-void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
+void SceneParser::readScene(AppConfig &conf, Scene2d &target, unistring file)
 {
+    target.sinfo.reset();
+    target.clear();
+
     ifstream sfile;
     sfile.open(SCENE_ROOT+file);
     if(!sfile.is_open())
@@ -29,7 +32,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
     if(!doc["name"].IsString()) // Check "name" type
         Config::cfgerr(CORRUPT_SCENE);
     else
-        target->sinfo.setName( doc["name"].GetString() ); // Get "name"
+        target.sinfo.setName( doc["name"].GetString() ); // Get "name"
 
 
     if(!doc.HasMember("author")) // If "author" exists.
@@ -38,7 +41,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
     if(!doc["author"].IsString()) // Check "author" type
         Config::cfgerr(CORRUPT_SCENE);
     else
-        target->sinfo.setAuthor( doc["author"].GetString() ); // Get "author"
+        target.sinfo.setAuthor( doc["author"].GetString() ); // Get "author"
 
 
     if(!doc.HasMember("type")) // If "type" exists.
@@ -47,7 +50,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
     if(!doc["type"].IsString()) // Check "type" type
         Config::cfgerr(CORRUPT_SCENE);
     else
-        target->sinfo.setType( doc["type"].GetString() ); // Get "type"
+        target.sinfo.setType( doc["type"].GetString() ); // Get "type"
 
 
     if(unistring(doc["type"].GetString()) == "game")
@@ -99,7 +102,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
                 Config::cfgerr("'parent' variable must be STRING!");
             parent = i.value["parent"].GetString();
         }
-        target->addActor(conf, vec2(x,y), model, parent);
+        target.addActor(conf, vec2(x,y), model, parent);
     }
 
     if(doc.HasMember("bg-track"))
@@ -107,25 +110,21 @@ void SceneParser::readScene(AppConfig &conf, Scene2d *target, unistring file)
         if(!doc["bg-track"].IsString())
             Config::cfgerr(CORRUPT_SCENE);
         else
-            target->sinfo.setBgTrack(doc["bg-track"].GetString());
+            target.sinfo.setBgTrack(doc["bg-track"].GetString());
     }
 
-    if(target->sinfo.name != "menu") // Not necessary to show game special scenes.
-        Logger::log(unistring("SceneParser"), "Loaded scene '"+target->sinfo.name+
-                                              "', made by '"+target->sinfo.author+"'" );
+    if(target.sinfo.name != "menu") // Not necessary to show game special scenes.
+        Logger::log(unistring("SceneParser"), "Loaded scene '"+target.sinfo.name+
+                                              "', made by '"+target.sinfo.author+"'" );
 
 }
 
-void SceneParser::loadScene(Scene2d *target, AppConfig &conf)
+void SceneParser::loadScene(Scene2d &target, AppConfig &conf)
 {
-    target->sinfo.reset();
-    target->clear();
     readScene(conf, target, conf.getStartScene());
 }
 
-void SceneParser::loadScene(Scene2d *target, unistring file, AppConfig &conf)
+void SceneParser::loadScene(Scene2d &target, unistring file, AppConfig &conf)
 {
-    target->sinfo.reset();
-    target->objs().clear();
     readScene(conf, target, file.c_str());
 }

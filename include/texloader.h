@@ -9,12 +9,16 @@ class TexLoader
 {
 public:
     TexLoader();
-    ~TexLoader();
     SDL_Texture *getTex(unistring texAlias);
     void addTex(unistring file, unistring texAlias, SDL_Renderer *rend);
 
+    void clear();
+
     void loadTextures(SDL_Renderer *rend, AppConfig &conf);
     map<unistring, SDL_Texture*> texLib;
+
+protected:
+    SDL_Surface* tmpsurf;
 };
 
 #endif // TEXLOADER_H

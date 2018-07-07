@@ -5,19 +5,6 @@ AudioManager::AudioManager()
 
 }
 
-AudioManager::~AudioManager()
-{
-    for(auto ch : a_sounds)
-        Mix_FreeChunk(ch.second);
-
-    for(auto ms : a_music)
-        Mix_FreeMusic(ms.second);
-
-
-    Mix_CloseAudio();
-    Mix_Quit();
-}
-
 void AudioManager::init()
 {
     if(Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
@@ -30,9 +17,27 @@ void AudioManager::init()
     }
 }
 
+void AudioManager::clear()
+{
+    for(auto &ch : a_sounds)
+    {
+        Mix_FreeChunk(ch.second);
+        ch.second = nullptr;
+    }
+
+    for(auto &ms : a_music)
+    {
+        Mix_FreeMusic(ms.second);
+        ms.second = nullptr;
+    }
+
+    Mix_CloseAudio();
+    Mix_Quit();
+}
+
 void AudioManager::loadSounds(AppConfig &conf)
 {
-    for(unistring s : conf.getSoundAliases())
+    for(unistring &s : conf.getSoundAliases())
     {
         if(!s.empty())
             a_sounds[s] = Mix_LoadWAV( unistring( AUDIO_ROOT "sounds/"+conf.sound_files[s] ).c_str() );
@@ -41,7 +46,7 @@ void AudioManager::loadSounds(AppConfig &conf)
 
 void AudioManager::loadMusic(AppConfig &conf)
 {
-    for(unistring m : conf.getMusicAliases())
+    for(unistring &m : conf.getMusicAliases())
     {
         if(!m.empty())
             a_music[m] = Mix_LoadMUS( unistring( AUDIO_ROOT "music/"+conf.music_files[m] ).c_str() );
@@ -58,16 +63,16 @@ void AudioManager::playMusic(unistring track, bool looped)
     if(Mix_PlayingMusic())
         stopMusic();
     if(looped)
-        Mix_PlayMusic(a_music[track.c_str()], -1);
+        Mix_PlayMusic(a_music[track], -1);
     else
-        Mix_PlayMusic(a_music[track.c_str()], 0);
+        Mix_PlayMusic(a_music[track], 0);
 }
 
 void AudioManager::playMusic(unistring track)
 {
     if(Mix_PlayingMusic())
         stopMusic();
-    Mix_PlayMusic(a_music[track.c_str()], 0);
+    Mix_PlayMusic(a_music[track], 0);
 }
 
 void AudioManager::stopMusic()

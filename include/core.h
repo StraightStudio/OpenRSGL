@@ -16,6 +16,7 @@ class Core
 {
 public:
     Core();
+    ~Core();
     void init();
     void cleanup();
     void spawn();
@@ -56,6 +57,8 @@ private:
     SDL_Rect menu_rect;
     SDL_Rect map_rect;
 
+    Actor2d obj; // TMP object
+
 
     bool m_console;
     unistring m_cinput;
@@ -70,15 +73,6 @@ private:
     vector<unistring> m_consoleHistory;
 
     // ================ L O G I C   V A R I A B L E S ================
-
-
-    float popularity; // 0.00 - 1.00 ( 0-100% )
-
-
-    int cash_balance;
-    int wood_balance;
-    int stone_balance;
-    int iron_balance;
     // etc...
     unistring pname;
     vec2 cam_pos; // Camera Position.

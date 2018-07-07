@@ -58,15 +58,20 @@ public:
     void spawn(vec2 pos=vec2(0,0), unistring textureAlias="none", TexLoader *tl=nullptr);
 
     SDL_Rect &getRect(unistring name="");
-    map<unistring, Actor2d> &objs();
 
     void clear();
 
     SceneInfo sinfo;
     void addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring parent);
+
     void addActor(vec2 pos, vec2 dim, vec2 rdim, map<unistring, unistring> trigger, unistring name, unistring type, unistring texture, unistring anim_idle);
-private:
+
+    void addToQueue(unistring object);
+    void doOperations(); // Add / delete actors.
+
     map<unistring, Actor2d> m_objs;
+    unistrlist toDelete;
+private:
     unistring name;
     unistring author;
     int objid;

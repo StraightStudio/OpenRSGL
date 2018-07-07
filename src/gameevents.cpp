@@ -3,6 +3,8 @@
 GameEvents::GameEvents()
 {
     mouse_state = "none";
+    oldmpos.x = 0;  oldmpos.y = 0;
+
     button_down[0] = false;
     button_down[1] = false;
     button_down[2] = false;
@@ -21,6 +23,9 @@ vec2 GameEvents::mousePos()
 
 bool GameEvents::rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2)
 {
+    if(SDL_RectEmpty(&rect_1) || SDL_RectEmpty(&rect_2))
+        return false;
+
     SDL_Rect res;
     if(SDL_IntersectRect(&rect_1, &rect_2, &res) == SDL_TRUE)
         return true;
@@ -80,7 +85,7 @@ void GameEvents::addSelected(const map<unistring, Actor2d> &objs, SDL_Rect &selr
         if(rectOverlap(a.real_rect, selrect) && a.type == "actor")
         {
             if(selectionList.count(a.getName()) == 0)
-                selectionList[a.getName().c_str()] = a;
+                selectionList[a.getName()] = a;
         }
     }
 }

@@ -7,7 +7,8 @@
 	"height"			: 720,
 	"fullscreen"		: false,
 	"playername"		: "Dennis",
-	
+	"language"			: "russian",
+		
 	"start_scene"		: "menu.json",
 
 	"textures"			:
@@ -54,5 +55,6 @@
 	"music"						:
 	{
 		"menu_music"			: "Podington_Bear_-_05_-_1-800-Podbear.ogg"
-	}
+	},
+	"resources"					: ["default.json"]
 }

@@ -74,6 +74,7 @@ struct AppConfig
     map<unistring, Actor2d> app_models;
     map<unistring, unistring> sound_files;
     map<unistring, unistring> music_files;
+    unistrlist resource_files;
 
     AppConfig(){}
 
@@ -99,7 +100,7 @@ class Config
 {
 public:
     static void cfgerr(unistring errmsg);
-    static void loadCfg(AppConfig *conf);
+    static void loadCfg(AppConfig &conf);
     static void cfgwarn(unistring warnmsg);
 };
 #endif // CONFIG_H

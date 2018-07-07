@@ -231,6 +231,43 @@ public:
         return health_rect;
     }
 
+    void reset()
+    {
+        name.clear();
+        type.clear();
+
+
+        frameIter   = 0;
+        curFrame    = 0;
+        idle_anim   = "idle";
+        curAnim     = idle_anim;
+        texture.clear();
+
+
+        rect.x      = 0; rect.y = 0;
+        rect.w      = 0; rect.h = 0;
+
+        real_rect.x = 0; real_rect.y = 0;
+        real_rect.w = 0; real_rect.h = 0;
+
+
+        sel_taunts.clear();
+        mov_taunts.clear();
+
+
+        move_direction = IDLE;
+        move_speed  = 1;
+        visible     = true;
+
+
+        so.x = 0; so.y = 0;
+        structType.clear();
+        punits.clear();
+
+        animations.clear();
+        trigger.clear();
+    }
+
     void moveTo(vec2 target);
     void moveTo(int tx, int ty);
     void updatePath();

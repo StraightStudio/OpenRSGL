@@ -10,7 +10,7 @@ void Config::cfgerr(unistring errmsg)
     exit(-1);
 }
 
-void Config::loadCfg(AppConfig *conf)
+void Config::loadCfg(AppConfig &conf)
 {
     ifstream cfg;
     cfg.open(RES_ROOT "config.json");
@@ -42,21 +42,21 @@ void Config::loadCfg(AppConfig *conf)
     }
 
     if(!doc.HasMember("playername"))
-        conf->playername = "Guest";
+        conf.playername = "Guest";
     else
     {
         if(!doc["playername"].IsString())
             cfgerr("'playername' parameter must be STRING!");
-        conf->playername = doc["playername"].GetString();
+        conf.playername = doc["playername"].GetString();
     }
 
 
-    conf->setName( doc["app_name"].GetString() );
-    conf->setAuthor( doc["app_author"].GetString() );
-    conf->setVersion( doc["app_version"].GetString() );
-    conf->setDimension( doc["width"].GetInt(), doc["height"].GetInt() );
-    conf->is_full = doc["fullscreen"].GetBool();
-    conf->setStartScene( doc["start_scene"].GetString() );
+    conf.setName( doc["app_name"].GetString() );
+    conf.setAuthor( doc["app_author"].GetString() );
+    conf.setVersion( doc["app_version"].GetString() );
+    conf.setDimension( doc["width"].GetInt(), doc["height"].GetInt() );
+    conf.is_full = doc["fullscreen"].GetBool();
+    conf.setStartScene( doc["start_scene"].GetString() );
 
 
     if(!doc.HasMember("textures"))
@@ -73,6 +73,9 @@ void Config::loadCfg(AppConfig *conf)
 
     if(!doc.HasMember("music"))
         cfgerr("Can't find 'music' list!");
+
+    if(!doc.HasMember("resources"))
+        cfgerr("Can't find 'resources' list!");
 
     ifstream mfile;
     unistring tex, type, anim, st, name;
@@ -197,7 +200,7 @@ void Config::loadCfg(AppConfig *conf)
             actor.curAnim = anim;
             actor.sel_taunts = sts;
             actor.mov_taunts = mts;
-            conf->app_models[name] = actor;
+            conf.app_models[name] = actor;
             Logger::log("Config", "Loaded model '"+name+"'.");
         }
     }
@@ -206,7 +209,7 @@ void Config::loadCfg(AppConfig *conf)
     {
         if(!t.value.IsString())
             cfgerr("Error while 'textures' parsing!");
-        conf->app_textures[t.name.GetString()] = t.value.GetString();
+        conf.app_textures[t.name.GetString()] = t.value.GetString();
     }
 
     unistring an;
@@ -260,11 +263,11 @@ void Config::loadCfg(AppConfig *conf)
                 cfgerr("'frame-count' must be INT!");
             afc = anims.value["frame-count"].GetInt();
 
-            conf->app_animations[an] = Animation2d(afc, afps);
+            conf.app_animations.insert(std::pair<unistring, Animation2d>(an, Animation2d(afc, afps) ) );
             for(int i=asf; i < afc+asf; i++)
             {
                 tmprect.x = i*tmprect.w;
-                conf->app_animations[an].addFrame(tmprect);
+                conf.app_animations[an].addFrame(tmprect);
             }
             Logger::log("Config", "Loaded "+to_string(afc)+" frame(-s) of '"+an+"' animation with fps="+to_string(afps));
         }
@@ -275,14 +278,19 @@ void Config::loadCfg(AppConfig *conf)
     {
         if(!s.name.IsString())
             cfgerr("Corrupt 'textures' list!");
-        conf->sound_files[s.name.GetString()] = s.value.GetString();
+        conf.sound_files.insert(std::pair<unistring, unistring>(s.name.GetString(), s.value.GetString()));
     }
 
     for( auto& m : doc["music"].GetObject() )
     {
         if(!m.name.IsString())
             cfgerr("Corrupt 'textures' list!");
-        conf->music_files[m.name.GetString()] = m.value.GetString();
+        conf.music_files.insert(std::pair<unistring, unistring>(m.name.GetString(), m.value.GetString()));
+    }
+
+    for(auto& r : doc["resources"].GetArray())
+    {
+        conf.resource_files.push_back(r.GetString());
     }
 
     Logger::log("Config", "Loaded 'config.json'.");

@@ -1,0 +1,12 @@
+{
+	"wood" :
+	{
+		"name"	: "tr{WOOD}",
+		"id"	: 261
+	},
+	"stone"	:
+	{
+		"name"	: "tr{STONE}",
+		"id"	: 360
+	}
+} 

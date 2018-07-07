@@ -10,9 +10,10 @@ class AudioManager
 {
 public:
     AudioManager();
-    ~AudioManager();
 
     void init();
+
+    void clear();
 
     void loadSounds(AppConfig &conf);
     void loadMusic(AppConfig &conf);
