@@ -79,7 +79,7 @@ bool GameEvents::isSelected(Actor2d &a)
 void GameEvents::addSelected(const map<unistring, Actor2d> &objs, SDL_Rect &selrect)
 {
     Actor2d a;
-    for(auto obj : objs)
+    for(const auto &obj : objs)
     {
         a = obj.second;
         if(rectOverlap(a.real_rect, selrect) && a.type == "actor")

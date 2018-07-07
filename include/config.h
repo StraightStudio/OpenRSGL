@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 // -----------=
-#define DEBUG
+#define DEBUG_NO
 // -----------=
 
 #define CONSOLE_KEY SDL_SCANCODE_GRAVE

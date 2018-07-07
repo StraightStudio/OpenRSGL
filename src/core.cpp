@@ -2,6 +2,11 @@
 
 Core::Core() : spawnid(0), m_console(false), m_consolecolour({255, 255, 255, 0}), m_citem(0)
 {
+    selection_rect.x = 0;
+    selection_rect.y = 0;
+
+    selection_rect.w = 0;
+    selection_rect.h = 0;
 }
 
 Core::~Core()
@@ -42,6 +47,10 @@ void Core::init()
 {
     Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
+
+    m_camrect.x = 0; m_camrect.y = 0;
+    m_camrect.w = m_appconf.app_width;
+    m_camrect.h = m_appconf.app_height;
 
     if(TTF_Init() < 0)
     {
@@ -279,28 +288,41 @@ void Core::draw_objs()
                     SDL_SetRenderDrawColor(m_iout, 255, 0, 0, SDL_ALPHA_OPAQUE);
                     SDL_RenderDrawRect(m_iout, &obj.real_rect);
         #endif
+                    SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
                 }
             }
-            if(m_processor.isMouseDown(1))
-            {
-                if(m_processor.oldmpos.x == 0 && m_processor.oldmpos.y == 0)
-                {
-                    m_processor.oldmpos = m_processor.mousePos();
-                    selection_rect.x = m_processor.oldmpos.x;
-                    selection_rect.y = m_processor.oldmpos.y;
-                    selection_rect.w = m_processor.mousePos().x-m_processor.oldmpos.x;
-                    selection_rect.h = m_processor.mousePos().y-m_processor.oldmpos.y;
+        }
+        if(obj.visible)
+        {
+            SDL_RenderCopy(m_iout, m_texloader.getTex( obj.tex() ), &m_animator.frame(obj.curAnim, obj.curFrame), &obj.rect);
+            m_scene.m_objs[obj.getName()].nextFrame( m_animator.fcount(obj.curAnim), m_animator.fps(obj.curAnim) );
+        }
+    }
 
-                    if( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) )
-                    {
-                        SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-                        SDL_RenderDrawRect(m_iout, &selection_rect);
-                        SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
-                    }
-                }
+
+    if(m_scene.sinfo.type == "game")
+    {
+        if(m_processor.isMouseDown(1))
+        {
+            if(m_processor.oldmpos.x == 0 && m_processor.oldmpos.y == 0)
+            {
+                m_processor.oldmpos = m_processor.mousePos();
+                selection_rect.x = m_processor.oldmpos.x;
+                selection_rect.y = m_processor.oldmpos.y;
             }
-            /*
-            else
+            selection_rect.w = m_processor.mousePos().x-m_processor.oldmpos.x;
+            selection_rect.h = m_processor.mousePos().y-m_processor.oldmpos.y;
+
+            if(!SDL_RectEmpty(&selection_rect))
+            {
+                SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                SDL_RenderDrawRect(m_iout, &selection_rect);
+                SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
+            }
+        }
+        else
+        {
+            if(m_processor.oldmpos.x != 0 && m_processor.oldmpos.y != 0)
             {
                 if( ( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) ) )
                 {
@@ -309,15 +331,10 @@ void Core::draw_objs()
                 //
                 m_processor.oldmpos = vec2(0,0);
             }
-            */
-        }
-        SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
-        if(obj.visible)
-        {
-            SDL_RenderCopy(m_iout, m_texloader.getTex( obj.tex() ), &m_animator.frame(obj.curAnim, obj.curFrame), &obj.rect);
-            m_scene.m_objs[obj.getName()].nextFrame( m_animator.fcount(obj.curAnim), m_animator.fps(obj.curAnim) );
         }
     }
+
+
     m_scene.doOperations();
     obj.reset();
     //
@@ -325,12 +342,12 @@ void Core::draw_objs()
     {
         SDL_SetRenderDrawColor(m_iout, 32, 32, 32, 0);
         SDL_RenderFillRect(m_iout, &m_consolerect);
-        SDL_RenderCopy(m_iout, m_consoletext, nullptr, &m_consoletextrect);
+        SDL_RenderCopy(m_iout, m_consoletext, &m_camrect, &m_consoletextrect);
         SDL_SetRenderDrawColor(m_iout, 0, 0, 0, 0);
     }
     //
     mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
-    SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), nullptr, &mouse_rect);
+    SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), &m_camrect, &mouse_rect);
 }
 
 void Core::initialSpawn()

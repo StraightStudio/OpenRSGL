@@ -75,7 +75,7 @@ private:
     // ================ L O G I C   V A R I A B L E S ================
     // etc...
     unistring pname;
-    vec2 cam_pos; // Camera Position.
+    SDL_Rect m_camrect;
 };
 
 #endif // CORE_H
