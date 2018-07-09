@@ -26,8 +26,9 @@ void TexLoader::clear()
 {
     for(auto &tid : texLib)
     {
-        SDL_DestroyTexture( tid.second );
-        tid.second = nullptr;
+        SDL_DestroyTexture( texLib[tid.first] );
+        if(texLib[tid.first] != nullptr)
+            texLib[tid.first] = nullptr;
     }
 }
 

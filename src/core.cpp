@@ -18,10 +18,16 @@ void Core::cleanup()
 {
     Logger::log("Core", "Started cleanup...");
 
+
+    m_scene.clear();
+    m_scene.doOperations();
+
+    m_animator.clear();
     m_audiomgr.clear();
     m_texloader.clear();
 
-    //
+
+
     if(m_consoletext != nullptr)
         SDL_DestroyTexture(m_consoletext);
 
@@ -41,6 +47,8 @@ void Core::cleanup()
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
+
+    exit(0);
 }
 
 void Core::init()
@@ -121,8 +129,7 @@ void Core::init()
     mouse_rect.w = 32;
     mouse_rect.h = 32;
 
-
-    m_consoletext = SDL_CreateTextureFromSurface(m_iout, TTF_RenderText_Solid(m_consolefont, m_cinput.c_str(), m_consolecolour) );
+    updateConsole();
 }
 
 void Core::updateConsole()
@@ -168,7 +175,7 @@ int Core::exec()
                             else
                             {
                                 if(m_cinput == "exit")
-                                    m_console = false;
+                                    cleanup();
                             }
 
                             m_consoleHistory.push_back(m_cinput);

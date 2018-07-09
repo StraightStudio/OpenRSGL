@@ -3,9 +3,9 @@
 	"app_author"		: "Dennis Softman",
 	"app_version"		: "0.1 beta",
 
-	"width"				: 1280,
-	"height"			: 720,
-	"fullscreen"		: false,
+	"width"				: 1920,
+	"height"			: 1200,
+	"fullscreen"		: true,
 	"playername"		: "Dennis",
 	"language"			: "russian",
 		

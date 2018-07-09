@@ -5,6 +5,11 @@ AnimationManager::AnimationManager()
 
 }
 
+void AnimationManager::clear()
+{
+    a_animations.clear();
+}
+
 void AnimationManager::loadAnimations(AppConfig &conf)
 {
     a_animations.clear();

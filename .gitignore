@@ -36,3 +36,5 @@ Stratwenty
 *.bkp
 *.user
 *.qmake
+Stratwenty.pro
+*qmake*

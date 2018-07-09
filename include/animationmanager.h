@@ -9,6 +9,8 @@ class AnimationManager
 {
 public:
     AnimationManager();
+    void clear();
+
     void loadAnimations(AppConfig &conf);
 
     const SDL_Rect &frame(unistring anim, int i) const; // i - id of frame.
