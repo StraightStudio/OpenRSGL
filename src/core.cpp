@@ -181,8 +181,7 @@ int Core::exec()
                             m_consoleHistory.push_back(m_cinput);
                             //
                             m_cinput.clear();
-                            SDL_DestroyTexture(m_consoletext);
-
+                            updateConsole();
                             m_citem = m_consoleHistory.size();
                         }
                         else if(m_event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
