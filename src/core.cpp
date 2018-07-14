@@ -93,7 +93,7 @@ void Core::init()
     Logger::log("Core", "Window & renderer created.");
     SDL_SetWindowSize(m_window, m_appconf.app_width, m_appconf.app_height);
     Logger::log("Core", "Window size set.");
-    SDL_SetWindowTitle(m_window, unistring(m_appconf.app_name+" "+m_appconf.app_version).c_str() );
+    SDL_SetWindowTitle(m_window, unistring(m_appconf.app_name+" " DW_VERSION).c_str() );
     Logger::log("Core", "Window title set.");
 
     map_rect.w = 164;

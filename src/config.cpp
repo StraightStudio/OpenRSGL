@@ -32,8 +32,6 @@ void Config::loadCfg(AppConfig &conf)
         cfgerr(CORRUPT_CONFIG);
     if(!doc.HasMember("app_author") || !doc["app_author"].IsString())
         cfgerr(CORRUPT_CONFIG);
-    if(!doc.HasMember("app_version") || !doc["app_version"].IsString())
-        cfgerr(CORRUPT_CONFIG);
 
     if(!doc.HasMember("width") || !doc["width"].IsInt() ||
        !doc.HasMember("height") || !doc["height"].IsInt() )
@@ -53,7 +51,6 @@ void Config::loadCfg(AppConfig &conf)
 
     conf.setName( doc["app_name"].GetString() );
     conf.setAuthor( doc["app_author"].GetString() );
-    conf.setVersion( doc["app_version"].GetString() );
     conf.setDimension( doc["width"].GetInt(), doc["height"].GetInt() );
     conf.is_full = doc["fullscreen"].GetBool();
     conf.setStartScene( doc["start_scene"].GetString() );

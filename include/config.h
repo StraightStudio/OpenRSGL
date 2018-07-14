@@ -9,7 +9,7 @@
 
 #define DW_WIDTH 1280
 #define DW_HEIGHT 720
-#define DW_VERSION "0.1b"
+#define DW_VERSION "14072018 prerelease"
 
 #include <include/depends.h>
 #include <include/logger.h>
@@ -61,7 +61,6 @@ struct AppConfig
 {
     unistring app_name;
     unistring app_author;
-    unistring app_version;
     int app_width;
     int app_height;
     bool is_full;
@@ -80,13 +79,11 @@ struct AppConfig
 
     void setName(unistring n){ app_name = n;}
     void setAuthor(unistring a){ app_author = a;}
-    void setVersion(unistring v){ app_version = v;}
     void setDimension(int w, int h){ app_width = w; app_height = h;}
     void setStartScene(unistring scene) {start_scene = scene;}
 
     unistring name() { return app_name; }
     unistring author() { return app_author; }
-    unistring version() { return app_version; }
 
     unistring getStartScene() { return start_scene; }
 
