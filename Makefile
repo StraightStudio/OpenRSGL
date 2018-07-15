@@ -13,7 +13,15 @@ SRCDIR=src
 
 LIB_PATH=bin/lib64
 
-LD_LIBS=-L/usr/lib64/ -lm -lpthread $(LIB_PATH)/lib64SDL2-2.0.so.0.8.0 $(LIB_PATH)/libSDL2_image-2.0.so.0 $(LIB_PATH)/libSDL2_mixer-2.0.so.0 $(LIB_PATH)/libSDL2_ttf-2.0.so.0 $(LIB_PATH)/libSDL2_net-2.0.so.0
+LD_LIBS=-L/usr/lib64/	\
+		-L$(LIB_PATH)	\
+		-lm -lpthread	\
+		-lSDL2			\
+		-lSDL2_image	\
+		-lSDL2_mixer	\
+		-lSDL2_ttf		\
+		-lSDL2_net
+
 INCLUDE=-I/usr/include/ -I./
 
 CXXFLAGS=-Wall -O2 -fstrict-aliasing $(INCLUDE) $(DEBUG) -fPIC -std=c++17

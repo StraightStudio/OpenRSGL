@@ -9,7 +9,7 @@
 
 #define DW_WIDTH 1280
 #define DW_HEIGHT 720
-#define DW_VERSION "14072018 prerelease"
+#define DW_VERSION "15072018 prerelease"
 
 #include <include/depends.h>
 #include <include/logger.h>
