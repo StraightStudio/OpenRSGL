@@ -32,7 +32,6 @@ void Core::cleanup()
     m_texloader.clear();
 
 
-
     if(m_consoletext != nullptr)
         SDL_DestroyTexture(m_consoletext);
 
@@ -49,6 +48,7 @@ void Core::cleanup()
         SDL_DestroyWindow(m_window);
     SDL_ShowCursor(SDL_ENABLE);
 
+    SteamAPI_Shutdown();
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
@@ -57,6 +57,14 @@ void Core::cleanup()
 
 void Core::init()
 {
+    //
+#ifdef TESTING
+    if(!SteamAPI_Init())
+        Logger::warn("Core", "SteamAPI init error!");
+
+    Logger::info("SteamAPI info", "Hello, "+unistring( SteamFriends()->GetPersonaName() )+" :D !" );
+#endif
+    //
     Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
 

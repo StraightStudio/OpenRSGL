@@ -1,6 +1,9 @@
 #ifndef DEPENDS_H
 #define DEPENDS_H
 
+#define TESTING
+
+
 #include <algorithm>
 #include <fstream>
 #include <cstdio>
@@ -11,6 +14,16 @@
 #include <map>
 #include <boost/algorithm/string.hpp>
 #include <random>
+
+
+#ifdef TESTING
+#ifdef _WIN64
+#include <steam/steam_api.h>
+#else
+#include <include/steam/steam_api.h>
+#endif
+#endif
+
 
 #ifdef _WIN64
 #include <SDL2/SDL.h>

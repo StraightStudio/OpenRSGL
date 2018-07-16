@@ -14,6 +14,8 @@ public:
     static void err(unistring module, unistring msg);
 
     static void warn(unistring module, unistring msg);
+
+    static void info(unistring module, unistring msg);
 private:
     Logger(){}
 };

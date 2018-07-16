@@ -89,6 +89,9 @@ private:
     // etc...
     unistring pname;
     SDL_Rect m_camrect;
+
+    // S T E A M   A P I
+
 };
 
 #endif // CORE_H

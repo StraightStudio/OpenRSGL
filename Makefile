@@ -13,14 +13,18 @@ SRCDIR=src
 
 LIB_PATH=bin/lib64
 
-LD_LIBS=-L/usr/lib64/	\
-		-L$(LIB_PATH)	\
-		-lm -lpthread	\
-		-lSDL2			\
-		-lSDL2_image	\
-		-lSDL2_mixer	\
-		-lSDL2_ttf		\
-		-lSDL2_net
+LD_LIBS=-L/usr/lib64/				\
+		-L$(LIB_PATH)			\
+		-lm -lpthread			\
+		-lSDL2				\
+		-lSDL2_image			\
+		-lSDL2_mixer			\
+		-lSDL2_ttf			\
+		-lSDL2_net			\
+		-lsteam_api			\
+		-ldl				\
+		-L$(LIB_PATH)/libsteam.a	\
+		-L$(LIB_PATH)/steamclient.a
 
 INCLUDE=-I/usr/include/ -I./
 
