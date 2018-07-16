@@ -1,5 +1,5 @@
 /*
- *          Copyright Andrey Semashev 2007 - 2013.
+ *          Copyright Andrey Semashev 2007 - 2015.
  * Distributed under the Boost Software License, Version 1.0.
  *    (See accompanying file LICENSE_1_0.txt or copy at
  *          http://www.boost.org/LICENSE_1_0.txt)
@@ -19,8 +19,8 @@
 #include <boost/move/core.hpp>
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <boost/smart_ptr/intrusive_ref_counter.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
 #include <boost/log/detail/config.hpp>
-#include <boost/utility/explicit_operator_bool.hpp>
 #include <boost/log/detail/header.hpp>
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
@@ -137,7 +137,7 @@ public:
     /*!
      * Verifies that the factory is not in empty state
      */
-    BOOST_EXPLICIT_OPERATOR_BOOL()
+    BOOST_EXPLICIT_OPERATOR_BOOL_NOEXCEPT()
 
     /*!
      * Verifies that the factory is in empty state

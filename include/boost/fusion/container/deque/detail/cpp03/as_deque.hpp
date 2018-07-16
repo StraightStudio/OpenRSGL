@@ -23,8 +23,16 @@
 
 namespace boost { namespace fusion { namespace detail
 {
+BOOST_FUSION_BARRIER_BEGIN
+
     template <int size>
-    struct as_deque;
+    struct as_deque
+    {
+        BOOST_STATIC_ASSERT_MSG(
+            size <= FUSION_MAX_DEQUE_SIZE
+          , "FUSION_MAX_DEQUE_SIZE limit is too low"
+        );
+    };
 
     template <>
     struct as_deque<0>
@@ -36,12 +44,15 @@ namespace boost { namespace fusion { namespace detail
         };
 
         template <typename Iterator>
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         static typename apply<Iterator>::type
         call(Iterator)
         {
             return deque<>();
         }
     };
+
+BOOST_FUSION_BARRIER_END
 }}}
 
 #if !defined(BOOST_FUSION_DONT_USE_PREPROCESSED_FILES)
@@ -66,6 +77,8 @@ namespace boost { namespace fusion { namespace detail
 
 namespace boost { namespace fusion { namespace detail
 {
+BOOST_FUSION_BARRIER_BEGIN
+
 #define BOOST_FUSION_NEXT_ITERATOR(z, n, data)                                  \
     typedef typename fusion::result_of::next<BOOST_PP_CAT(I, n)>::type          \
         BOOST_PP_CAT(I, BOOST_PP_INC(n));
@@ -86,6 +99,7 @@ namespace boost { namespace fusion { namespace detail
 #undef BOOST_FUSION_NEXT_CALL_ITERATOR
 #undef BOOST_FUSION_VALUE_OF_ITERATOR
 
+BOOST_FUSION_BARRIER_END
 }}}
 
 #if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
@@ -116,6 +130,7 @@ namespace boost { namespace fusion { namespace detail
         };
 
         template <typename Iterator>
+        BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         static typename apply<Iterator>::type
         call(Iterator const& i0)
         {

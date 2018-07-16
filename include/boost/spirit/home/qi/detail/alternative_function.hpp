@@ -23,7 +23,7 @@ namespace boost { namespace spirit { namespace qi { namespace detail
     template <typename Variant, typename Expected>
     struct find_substitute
     {
-        // Get the typr from the variant that can be a substitute for Expected.
+        // Get the type from the variant that can be a substitute for Expected.
         // If none is found, just return Expected
 
         typedef Variant variant_type;
@@ -192,7 +192,7 @@ namespace boost { namespace spirit { namespace qi { namespace detail
         }
 
         template <typename Component>
-        bool operator()(Component const& component)
+        bool operator()(Component const& component) const
         {
             // return true if the parser succeeds
             return component.parse(first, last, context, skipper,

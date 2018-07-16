@@ -5,7 +5,7 @@
  * Subject to the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
  * Author: Jeff Garland, Bart Garst
- * $Date: 2013-09-21 13:17:00 -0700 (Sat, 21 Sep 2013) $
+ * $Date$
  */
 
 #include "boost/date_time/time_zone_base.hpp"
@@ -154,7 +154,6 @@ namespace local_time {
     }
   private:
     time_zone_names zone_names_;
-    bool has_dst_;
     time_duration_type base_utc_offset_;
     dst_adjustment_offsets dst_offsets_;
     boost::shared_ptr<dst_calc_rule> dst_calc_rules_;
