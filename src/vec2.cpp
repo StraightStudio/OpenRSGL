@@ -1,4 +1,9 @@
+
+#ifdef _WIN64
+#include <vec2.h>
+#else 
 #include <include/vec2.h>
+#endif
 
 vec2::vec2()
 {

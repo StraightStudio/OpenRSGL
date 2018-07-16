@@ -1,9 +1,13 @@
 #ifndef ANIMATIONMANAGER_H
 #define ANIMATIONMANAGER_H
 
-
+#ifdef _WIN64
+#include <depends.h>
+#include <config.h>
+#else
 #include <include/depends.h>
 #include <include/config.h>
+#endif
 
 class AnimationManager
 {

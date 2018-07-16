@@ -1,11 +1,19 @@
 #ifndef SCENE2D_H
 #define SCENE2D_H
 
+#ifdef _WIN64
+#include <depends.h>
+#include <actor2d.h>
+#include <texloader.h>
+#include <audiomanager.h>
+#include <config.h>
+#else
 #include <include/depends.h>
 #include <include/actor2d.h>
 #include <include/texloader.h>
 #include <include/audiomanager.h>
 #include <include/config.h>
+#endif
 
 struct SceneInfo
 {

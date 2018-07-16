@@ -1,4 +1,9 @@
+
+#ifdef _WIN64
+#include <animationmanager.h>
+#else 
 #include <include/animationmanager.h>
+#endif
 
 AnimationManager::AnimationManager()
 {

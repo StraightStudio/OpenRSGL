@@ -1,4 +1,9 @@
+
+#ifdef _WIN64
+#include <audiomanager.h>
+#else 
 #include <include/audiomanager.h>
+#endif
 
 AudioManager::AudioManager()
 {
