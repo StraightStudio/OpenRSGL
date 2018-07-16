@@ -22,6 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{C48F9C53-AF94-415E-BF14-2A84F6BBCC42}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -107,8 +108,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\Visual\Stratwenty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Visual\Stratwenty\win_lib;D:\Visual\Stratwenty\include\boost;D:\Visual\Stratwenty\include;D:\Visual\Stratwenty\include\rapidjson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <Link>
+      <OutputFile>$(TargetName)$(TargetExt)</OutputFile>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>win_lib\SDL2.lib;win_lib\SDL2main.lib;win_lib\SDL2_image.lib;win_lib\SDL2_mixer.lib;win_lib\SDL2_ttf.lib;win_lib\SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

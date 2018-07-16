@@ -10,6 +10,7 @@
 #include <locale>
 #include <map>
 #include <boost/algorithm/string.hpp>
+#include <random>
 
 #ifdef _WIN64
 #include <SDL2/SDL.h>
@@ -18,6 +19,7 @@
 #include <SDL2/SDL_net.h>
 #include <SDL2/SDL_ttf.h>
 #include <rapidjson/document.h>
+#undef main
 #else 
 #include <include/SDL2/SDL.h>
 #include <include/SDL2/SDL_image.h>
@@ -28,11 +30,7 @@
 #include <rapidjson/document.h>
 #endif
 
-#ifdef _WIN32
-typedef std::wstring unistring;
-#else
 typedef std::string unistring;
-#endif
 
 typedef std::vector<unistring> unistrlist;
 // ---------------------------------------------------------------------------------

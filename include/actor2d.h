@@ -217,12 +217,12 @@ public:
         transform(t.begin(), t.end(), t.begin(), (int (*)(int))toupper);
         if(t == "SELECT")
         {
-            rt = random() % sel_taunts.size();
+            rt = rand() % sel_taunts.size();
             return sel_taunts[rt];
         }
         else if(t == "MOVE")
         {
-            rt = random() % mov_taunts.size();
+            rt = rand() % mov_taunts.size();
             return mov_taunts[rt];
         }
         return "";

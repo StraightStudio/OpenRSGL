@@ -53,7 +53,6 @@ void Core::cleanup()
     IMG_Quit();
     SDL_Quit();
 
-    exit(0);
 }
 
 void Core::init()
@@ -179,8 +178,10 @@ int Core::exec()
                             }
                             else
                             {
-                                if(m_cinput == "exit")
-                                    cleanup();
+								if (m_cinput == "exit") {
+									cleanup();
+									exit (0);
+								}
                             }
 
                             m_consoleHistory.push_back(m_cinput);
@@ -457,7 +458,7 @@ void Core::processEvents()
                 m_scene.addActor(m_appconf, sp, info[1].c_str(), pname);
                 //
                 srand(time(nullptr));
-                m_audiomgr.playSound( "ussr_soldier_spawn_"+ to_string(random()%3) );
+                m_audiomgr.playSound( "ussr_soldier_spawn_"+ to_string(rand()%3) );
             }
             break;
             case SELECTED_BUILDING_ACTION:

@@ -39,6 +39,9 @@
 #	endif
 #elif defined(SWIG) /* https://sourceforge.net/p/swig/bugs/799/ */
 #	include <x86_64-pc-linux-gnu/SDL2/SDL_config.h>
+#elif defined(_WIN64) 
+#include <SDL2/WIN/SDL_config.h>
+
 #else
 #	error "No ABI matched, please report a bug to bugs.gentoo.org"
 #endif
