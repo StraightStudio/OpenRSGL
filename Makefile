@@ -1,6 +1,6 @@
 PDIR=../Stratwenty/
 
-VERSION=$(shell date +%d%m%Y) prerelease
+VERSION=$(shell date +%m%Y) prerelease
 
 TARGET=Stratwenty
 ARCH=elf_x86_64
