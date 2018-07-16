@@ -10,7 +10,7 @@
 
 #define DW_WIDTH 1280
 #define DW_HEIGHT 720
-#define DW_VERSION "14072018 prerelease"
+#define DW_VERSION "072018 prerelease"
 
 #ifdef _WIN64
 #include <depends.h>
