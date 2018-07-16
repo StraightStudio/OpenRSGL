@@ -1,9 +1,15 @@
 #ifndef GAMEEVENTS_H
 #define GAMEEVENTS_H
 
+#ifdef _WIN64
+#include <depends.h>
+#include <config.h>
+#include <actor2d.h>
+#else
 #include <include/depends.h>
 #include <include/config.h>
 #include <include/actor2d.h>
+#endif
 
 struct Action {
     int id;

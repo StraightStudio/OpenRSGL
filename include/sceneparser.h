@@ -1,8 +1,13 @@
 #ifndef SCENEPARSER_H
 #define SCENEPARSER_H
 
+#ifdef _WIN64
+#include <depends.h>
+#include <scene2d.h>
+#else
 #include <include/depends.h>
 #include <include/scene2d.h>
+#endif
 
 class SceneParser
 {

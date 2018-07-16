@@ -1,4 +1,9 @@
+
+#ifdef _WIN64
+#include <actor2d.h>
+#else 
 #include <include/actor2d.h>
+#endif
 
 Actor2d::Actor2d()
 {

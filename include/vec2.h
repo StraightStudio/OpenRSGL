@@ -1,7 +1,11 @@
 #ifndef VEC2_H
 #define VEC2_H
 
+#ifdef _WIN64
+#include <depends.h>
+#else
 #include <include/depends.h>
+#endif
 
 class vec2
 {

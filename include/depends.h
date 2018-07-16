@@ -11,6 +11,14 @@
 #include <map>
 #include <boost/algorithm/string.hpp>
 
+#ifdef _WIN64
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_net.h>
+#include <SDL2/SDL_ttf.h>
+#include <rapidjson/document.h>
+#else 
 #include <include/SDL2/SDL.h>
 #include <include/SDL2/SDL_image.h>
 #include <include/SDL2/SDL_mixer.h>
@@ -18,6 +26,7 @@
 #include <include/SDL2/SDL_ttf.h>
 
 #include <rapidjson/document.h>
+#endif
 
 #ifdef _WIN32
 typedef std::wstring unistring;

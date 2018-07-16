@@ -1,4 +1,9 @@
+
+#ifdef _WIN64
+#include <sceneparser.h>
+#else 
 #include <include/sceneparser.h>
+#endif
 
 SceneParser::SceneParser()
 {
