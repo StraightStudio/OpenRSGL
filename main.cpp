@@ -1,9 +1,4 @@
-
-#ifdef _WIN64
 #include <core.h>
-#else 
-#include <include/core.h>
-#endif
 
 int main()
 {

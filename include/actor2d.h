@@ -1,15 +1,9 @@
 ﻿#ifndef ACTOR2D_H
 #define ACTOR2D_H
 
-#ifdef _WIN64
 #include <depends.h>
 #include <logger.h>
 #include <vec2.h>
-#else
-#include <include/depends.h>
-#include <include/logger.h>
-#include <include/vec2.h>
-#endif
 
 enum DIRECTIONS {
     UP_DIR=0,

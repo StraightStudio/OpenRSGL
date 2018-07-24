@@ -1,9 +1,4 @@
-
-#ifdef _WIN64
 #include <scene2d.h>
-#else 
-#include <include/scene2d.h>
-#endif
 
 Scene2d::Scene2d() :
     sinfo("", ""),

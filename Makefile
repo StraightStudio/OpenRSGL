@@ -1,5 +1,3 @@
-PDIR=../Stratwenty/
-
 VERSION=$(shell date +%m%Y) prerelease
 
 TARGET=Stratwenty
@@ -26,7 +24,7 @@ LD_LIBS=-L/usr/lib64/				\
 		-L$(LIB_PATH)/libsteam.a	\
 		-L$(LIB_PATH)/steamclient.a
 
-INCLUDE=-I/usr/include/ -I./
+INCLUDE=-I/usr/include/ -Iinclude/
 
 CXXFLAGS=-Wall -O2 -fstrict-aliasing $(INCLUDE) $(DEBUG) -fPIC -std=c++17
 
@@ -43,7 +41,7 @@ all: $(OBJFILES)
 	@echo Compilation complete.
 
 shipment:
-	@tar -cvpf Stratwenty_release.tar.gz $(PDIR)Stratwenty $(PDIR)start.sh $(PDIR)bin/ $(PDIR)data/config.json $(PDIR)data/audio/music/*.ogg $(PDIR)data/audio/sounds/*.wav $(PDIR)data/fonts/ $(PDIR)data/res/ $(PDIR)data/scenes/ $(PDIR)data/models/ $(PDIR)data/img/*.png $(PDIR)data/img/*.json
+	@tar -cvpf Stratwenty_release.tar.gz ../$(TARGET)/$(TARGET) ../$(TARGET)/$(TARGET).exe ../$(TARGET)/start.sh ../$(TARGET)/bin/ ../$(TARGET)/data/datapkg ../$(TARGET)/data/config.json ../$(TARGET)/steam_appid.txt ../$(TARGET)/start.bat
 
 clean:
 	@rm -f *.o

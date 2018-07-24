@@ -17,31 +17,20 @@
 
 
 #ifdef TESTING
-#ifdef _WIN64
+
 #include <steam/steam_api.h>
-#else
-#include <include/steam/steam_api.h>
-#endif
+
 #endif
 
-
-#ifdef _WIN64
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
 #include <SDL2/SDL_ttf.h>
 #include <rapidjson/document.h>
-#undef main
-#else 
-#include <include/SDL2/SDL.h>
-#include <include/SDL2/SDL_image.h>
-#include <include/SDL2/SDL_mixer.h>
-#include <include/SDL2/SDL_net.h>
-#include <include/SDL2/SDL_ttf.h>
 
-#include <rapidjson/document.h>
-#endif
+#undef main // SDL Windows Fix
+
 
 typedef std::string unistring;
 

@@ -1,9 +1,4 @@
-
-#ifdef _WIN64
 #include <locales.h>
-#else 
-#include <include/locales.h>
-#endif
 
 
 Locales::Locales()

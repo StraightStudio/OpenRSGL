@@ -1,9 +1,4 @@
-
-#ifdef _WIN64
 #include <config.h>
-#else 
-#include <include/config.h>
-#endif
 
 
 void Config::cfgerr(unistring errmsg)

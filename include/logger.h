@@ -1,11 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#ifdef _WIN64
 #include <depends.h>
-#else
-#include <include/depends.h>
-#endif
 
 class Logger {
 public:

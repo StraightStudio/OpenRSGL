@@ -1,9 +1,4 @@
-
-#ifdef _WIN64
 #include <core.h>
-#else 
-#include <include/core.h>
-#endif
 
 Core::Core() : spawnid(0), m_console(false), m_consolecolour({255, 255, 255, 0}), m_citem(0)
 {

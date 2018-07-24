@@ -1,15 +1,9 @@
 #ifndef TEXLOADER_H
 #define TEXLOADER_H
 
-#ifdef _WIN64
 #include <depends.h>
 #include <config.h>
 #include <logger.h>
-#else
-#include <include/depends.h>
-#include <include/config.h>
-#include <include/logger.h>
-#endif
 
 class TexLoader
 {

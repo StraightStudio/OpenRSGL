@@ -2,7 +2,7 @@ ARCH=`uname -m`
 X64="x86_64"
 
 cd data/
-unzip data
+unzip datapkg
 cd ../
 
 if [[ $ARCH = $X64 ]]; then

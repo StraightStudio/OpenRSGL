@@ -12,15 +12,9 @@
 #define DW_HEIGHT 720
 #define DW_VERSION "072018 prerelease"
 
-#ifdef _WIN64
 #include <depends.h>
 #include <logger.h>
 #include <actor2d.h>
-#else
-#include <include/depends.h>
-#include <include/logger.h>
-#include <include/actor2d.h>
-#endif
 
 #define RES_ROOT "data/"
 #define IMG_ROOT RES_ROOT"img/"

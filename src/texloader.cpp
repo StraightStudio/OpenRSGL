@@ -1,9 +1,4 @@
-
-#ifdef _WIN64
 #include <texloader.h>
-#else 
-#include <include/texloader.h>
-#endif
 
 TexLoader::TexLoader()
 {

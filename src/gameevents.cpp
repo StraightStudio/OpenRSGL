@@ -1,9 +1,4 @@
-
-#ifdef _WIN64
 #include <gameevents.h>
-#else 
-#include <include/gameevents.h>
-#endif
 
 GameEvents::GameEvents()
 {

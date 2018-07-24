@@ -1,11 +1,7 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
-#ifdef _WIN64
 #include <depends.h>
-#else
-#include <include/depends.h>
-#endif
 
 class Resource
 {

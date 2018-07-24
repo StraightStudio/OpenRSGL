@@ -1,5 +1,5 @@
 CD data\
-unzip data
+unzip datapkg
 CD ..\
 
 Stratwenty.exe

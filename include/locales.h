@@ -1,11 +1,7 @@
 #ifndef LOCALES_H
 #define LOCALES_H
 
-#ifdef _WIN64
 #include <depends.h>
-#else
-#include <include/depends.h>
-#endif
 
 struct Translation
 {
