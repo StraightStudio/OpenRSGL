@@ -22,11 +22,8 @@ namespace boost { namespace polygon{
     typedef point_data<Unit> Point;
     typedef std::pair<Point, Point> half_edge;
 
-    class less_point {
+    class less_point : public std::binary_function<Point, Point, bool> {
     public:
-      typedef Point first_argument_type;
-      typedef Point second_argument_type;
-      typedef bool result_type;
       inline less_point() {}
       inline bool operator () (const Point& pt1, const Point& pt2) const {
         if(pt1.get(HORIZONTAL) < pt2.get(HORIZONTAL)) return true;
@@ -267,15 +264,12 @@ namespace boost { namespace polygon{
     }
 
     //scanline comparator functor
-    class less_half_edge {
+    class less_half_edge : public std::binary_function<half_edge, half_edge, bool> {
     private:
       Unit *x_; //x value at which to apply comparison
       int *justBefore_;
       evalAtXforYPack * pack_;
     public:
-      typedef half_edge first_argument_type;
-      typedef half_edge second_argument_type;
-      typedef bool result_type;
       inline less_half_edge() : x_(0), justBefore_(0), pack_(0) {}
       inline less_half_edge(Unit *x, int *justBefore, evalAtXforYPack * packIn) : x_(x), justBefore_(justBefore), pack_(packIn) {}
       inline less_half_edge(const less_half_edge& that) : x_(that.x_), justBefore_(that.justBefore_),
@@ -767,14 +761,11 @@ namespace boost { namespace polygon{
     };
 
     //when scanning Vertex45 for polygon formation we need a scanline comparator functor
-    class less_vertex_half_edge {
+    class less_vertex_half_edge : public std::binary_function<vertex_half_edge, vertex_half_edge, bool> {
     private:
       Unit *x_; //x value at which to apply comparison
       int *justBefore_;
     public:
-      typedef vertex_half_edge first_argument_type;
-      typedef vertex_half_edge second_argument_type;
-      typedef bool result_type;
       inline less_vertex_half_edge() : x_(0), justBefore_(0) {}
       inline less_vertex_half_edge(Unit *x, int *justBefore) : x_(x), justBefore_(justBefore) {}
       inline less_vertex_half_edge(const less_vertex_half_edge& that) : x_(that.x_), justBefore_(that.justBefore_) {}
@@ -1204,13 +1195,10 @@ namespace boost { namespace polygon{
 
     typedef std::vector<std::pair<Point, int> > vertex_arbitrary_count;
 
-    class less_half_edge_count {
+    class less_half_edge_count : public std::binary_function<vertex_half_edge, vertex_half_edge, bool> {
     private:
       Point pt_;
     public:
-      typedef vertex_half_edge first_argument_type;
-      typedef vertex_half_edge second_argument_type;
-      typedef bool result_type;
       inline less_half_edge_count() : pt_() {}
       inline less_half_edge_count(Point point) : pt_(point) {}
       inline bool operator () (const std::pair<Point, int>& elm1, const std::pair<Point, int>& elm2) const {
@@ -1225,13 +1213,11 @@ namespace boost { namespace polygon{
 
     typedef std::vector<std::pair<std::pair<std::pair<Point, Point>, int>, active_tail_arbitrary*> > incoming_count;
 
-    class less_incoming_count {
+    class less_incoming_count : public std::binary_function<std::pair<std::pair<std::pair<Point, Point>, int>, active_tail_arbitrary*>,
+                                                            std::pair<std::pair<std::pair<Point, Point>, int>, active_tail_arbitrary*>, bool> {
     private:
       Point pt_;
     public:
-      typedef std::pair<std::pair<std::pair<Point, Point>, int>, active_tail_arbitrary*> first_argument_type;
-      typedef std::pair<std::pair<std::pair<Point, Point>, int>, active_tail_arbitrary*> second_argument_type;
-      typedef bool result_type;
       inline less_incoming_count() : pt_() {}
       inline less_incoming_count(Point point) : pt_(point) {}
       inline bool operator () (const std::pair<std::pair<std::pair<Point, Point>, int>, active_tail_arbitrary*>& elm1,

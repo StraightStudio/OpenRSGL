@@ -173,12 +173,6 @@ relaxed_get(
 }
 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
-#if defined(BOOST_MSVC) && (_MSC_VER < 1900) // MSVC-2014 has fixed the incorrect diagnostics.
-#   pragma warning(push)
-#   pragma warning(disable: 4172) // returning address of local variable or temporary
-#endif
-
 template <typename U, BOOST_VARIANT_ENUM_PARAMS(typename T) >
 inline
     U&&
@@ -194,11 +188,6 @@ relaxed_get(
         boost::throw_exception(bad_get());
     return static_cast<U&&>(*result);
 }
-
-#if defined(BOOST_MSVC) && (_MSC_VER < 1900)
-#   pragma warning(pop)
-#endif
-
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

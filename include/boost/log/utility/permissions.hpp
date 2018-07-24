@@ -33,8 +33,10 @@ struct _SECURITY_ATTRIBUTES;
 namespace boost {
 
 #ifdef BOOST_WINDOWS
+namespace detail {
 namespace winapi {
 struct BOOST_LOG_MAY_ALIAS _SECURITY_ATTRIBUTES;
+}
 }
 #endif
 
@@ -106,7 +108,7 @@ public:
     }
 
 #ifdef BOOST_WINDOWS
-    permissions(boost::winapi::_SECURITY_ATTRIBUTES* perms) BOOST_NOEXCEPT : m_perms(reinterpret_cast< native_type >(perms))
+    permissions(boost::detail::winapi::_SECURITY_ATTRIBUTES* perms) BOOST_NOEXCEPT : m_perms(reinterpret_cast< native_type >(perms))
     {
     }
 #endif

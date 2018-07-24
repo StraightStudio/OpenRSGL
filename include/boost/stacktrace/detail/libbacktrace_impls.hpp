@@ -13,7 +13,6 @@
 #endif
 
 #include <boost/stacktrace/detail/to_hex_array.hpp>
-#include <boost/stacktrace/detail/location_from_symbol.hpp>
 #include <boost/core/demangle.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -45,11 +44,9 @@ inline void libbacktrace_error_callback(void* /*data*/, const char* /*msg*/, int
 }
 
 
-inline ::backtrace_state* construct_state(const program_location& prog_location) BOOST_NOEXCEPT {
-    // Currently `backtrace_create_state` can not detect file name on Windows https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82543
-    // That's why we provide a `prog_location` here.
+extern inline ::backtrace_state* construct_state() BOOST_NOEXCEPT {
     return ::backtrace_create_state(
-        prog_location.name(), 0 /*thread-safe*/, boost::stacktrace::detail::libbacktrace_error_callback, 0
+        0, 0 /*thread-safe*/, boost::stacktrace::detail::libbacktrace_error_callback, 0
     );
 
     // TODO: this does not seem to work well when this function is in .so:
@@ -72,7 +69,6 @@ inline ::backtrace_state* construct_state(const program_location& prog_location)
 
 struct to_string_using_backtrace {
     std::string res;
-    boost::stacktrace::detail::program_location prog_location;
     ::backtrace_state* state;
     std::string filename;
     std::size_t line;
@@ -104,7 +100,7 @@ struct to_string_using_backtrace {
     }
 
     to_string_using_backtrace() BOOST_NOEXCEPT {
-        state = boost::stacktrace::detail::construct_state(prog_location);
+        state = boost::stacktrace::detail::construct_state();
     }
 };
 
@@ -114,8 +110,7 @@ typedef to_string_impl_base<to_string_using_backtrace> to_string_impl;
 inline std::string name_impl(const void* addr) {
     std::string res;
 
-    boost::stacktrace::detail::program_location prog_location;
-    ::backtrace_state* state = boost::stacktrace::detail::construct_state(prog_location);
+    ::backtrace_state* state = boost::stacktrace::detail::construct_state();
 
     boost::stacktrace::detail::pc_data data = {&res, 0, 0};
     if (state) {
@@ -139,8 +134,7 @@ inline std::string name_impl(const void* addr) {
 std::string frame::source_file() const {
     std::string res;
 
-    boost::stacktrace::detail::program_location prog_location;
-    ::backtrace_state* state = boost::stacktrace::detail::construct_state(prog_location);
+    ::backtrace_state* state = boost::stacktrace::detail::construct_state();
 
     boost::stacktrace::detail::pc_data data = {0, &res, 0};
     if (state) {
@@ -157,8 +151,7 @@ std::string frame::source_file() const {
 }
 
 std::size_t frame::source_line() const {
-    boost::stacktrace::detail::program_location prog_location;
-    ::backtrace_state* state = boost::stacktrace::detail::construct_state(prog_location);
+    ::backtrace_state* state = boost::stacktrace::detail::construct_state();
 
     boost::stacktrace::detail::pc_data data = {0, 0, 0};
     if (state) {

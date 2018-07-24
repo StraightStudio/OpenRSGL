@@ -16,7 +16,6 @@
 #ifndef BOOST_ATOMIC_DETAIL_OPS_GCC_X86_HPP_INCLUDED_
 #define BOOST_ATOMIC_DETAIL_OPS_GCC_X86_HPP_INCLUDED_
 
-#include <cstddef>
 #include <boost/memory_order.hpp>
 #include <boost/atomic/detail/config.hpp>
 #include <boost/atomic/detail/storage_type.hpp>
@@ -31,33 +30,38 @@
 #pragma once
 #endif
 
+#if defined(__x86_64__)
+#define BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER "rdx"
+#else
+#define BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER "edx"
+#endif
+
 namespace boost {
 namespace atomics {
 namespace detail {
 
 struct gcc_x86_operations_base
 {
-    static BOOST_CONSTEXPR_OR_CONST bool full_cas_based = false;
     static BOOST_CONSTEXPR_OR_CONST bool is_always_lock_free = true;
 
     static BOOST_FORCEINLINE void fence_before(memory_order order) BOOST_NOEXCEPT
     {
-        if ((static_cast< unsigned int >(order) & static_cast< unsigned int >(memory_order_release)) != 0u)
+        if ((order & memory_order_release) != 0)
             __asm__ __volatile__ ("" ::: "memory");
     }
 
     static BOOST_FORCEINLINE void fence_after(memory_order order) BOOST_NOEXCEPT
     {
-        if ((static_cast< unsigned int >(order) & (static_cast< unsigned int >(memory_order_consume) | static_cast< unsigned int >(memory_order_acquire))) != 0u)
+        if ((order & memory_order_acquire) != 0)
             __asm__ __volatile__ ("" ::: "memory");
     }
 };
 
-template< std::size_t Size, bool Signed, typename Derived >
+template< typename T, typename Derived >
 struct gcc_x86_operations :
     public gcc_x86_operations_base
 {
-    typedef typename make_storage_type< Size >::type storage_type;
+    typedef T storage_type;
 
     static BOOST_FORCEINLINE void store(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
@@ -104,15 +108,11 @@ struct gcc_x86_operations :
 
 template< bool Signed >
 struct operations< 1u, Signed > :
-    public gcc_x86_operations< 1u, Signed, operations< 1u, Signed > >
+    public gcc_x86_operations< typename make_storage_type< 1u, Signed >::type, operations< 1u, Signed > >
 {
-    typedef gcc_x86_operations< 1u, Signed, operations< 1u, Signed > > base_type;
+    typedef gcc_x86_operations< typename make_storage_type< 1u, Signed >::type, operations< 1u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
-    typedef typename make_storage_type< 1u >::aligned aligned_storage_type;
-    typedef typename make_storage_type< 4u >::type temp_storage_type;
-
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 1u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
+    typedef typename make_storage_type< 1u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -143,15 +143,6 @@ struct operations< 1u, Signed > :
     {
         storage_type previous = expected;
         bool success;
-#if defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
-        __asm__ __volatile__
-        (
-            "lock; cmpxchgb %3, %1"
-            : "+a" (previous), "+m" (storage), "=@ccz" (success)
-            : "q" (desired)
-            : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
-        );
-#else // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         __asm__ __volatile__
         (
             "lock; cmpxchgb %3, %1\n\t"
@@ -160,23 +151,22 @@ struct operations< 1u, Signed > :
             : "q" (desired)
             : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
         );
-#endif // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         expected = previous;
         return success;
     }
 
 #define BOOST_ATOMIC_DETAIL_CAS_LOOP(op, argument, result)\
-    temp_storage_type new_val;\
     __asm__ __volatile__\
     (\
+        "xor %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER ", %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER "\n\t"\
         ".align 16\n\t"\
-        "1: mov %[arg], %2\n\t"\
-        op " %%al, %b2\n\t"\
-        "lock; cmpxchgb %b2, %[storage]\n\t"\
+        "1: movb %[arg], %%dl\n\t"\
+        op " %%al, %%dl\n\t"\
+        "lock; cmpxchgb %%dl, %[storage]\n\t"\
         "jne 1b"\
-        : [res] "+a" (result), [storage] "+m" (storage), "=&q" (new_val)\
-        : [arg] "ir" ((temp_storage_type)argument)\
-        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"\
+        : [res] "+a" (result), [storage] "+m" (storage)\
+        : [arg] "q" (argument)\
+        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER, "memory"\
     )
 
     static BOOST_FORCEINLINE storage_type fetch_and(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
@@ -205,15 +195,11 @@ struct operations< 1u, Signed > :
 
 template< bool Signed >
 struct operations< 2u, Signed > :
-    public gcc_x86_operations< 2u, Signed, operations< 2u, Signed > >
+    public gcc_x86_operations< typename make_storage_type< 2u, Signed >::type, operations< 2u, Signed > >
 {
-    typedef gcc_x86_operations< 2u, Signed, operations< 2u, Signed > > base_type;
+    typedef gcc_x86_operations< typename make_storage_type< 2u, Signed >::type, operations< 2u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
-    typedef typename make_storage_type< 2u >::aligned aligned_storage_type;
-    typedef typename make_storage_type< 4u >::type temp_storage_type;
-
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 2u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
+    typedef typename make_storage_type< 2u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -244,15 +230,6 @@ struct operations< 2u, Signed > :
     {
         storage_type previous = expected;
         bool success;
-#if defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
-        __asm__ __volatile__
-        (
-            "lock; cmpxchgw %3, %1"
-            : "+a" (previous), "+m" (storage), "=@ccz" (success)
-            : "q" (desired)
-            : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
-        );
-#else // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         __asm__ __volatile__
         (
             "lock; cmpxchgw %3, %1\n\t"
@@ -261,23 +238,22 @@ struct operations< 2u, Signed > :
             : "q" (desired)
             : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
         );
-#endif // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         expected = previous;
         return success;
     }
 
 #define BOOST_ATOMIC_DETAIL_CAS_LOOP(op, argument, result)\
-    temp_storage_type new_val;\
     __asm__ __volatile__\
     (\
+        "xor %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER ", %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER "\n\t"\
         ".align 16\n\t"\
-        "1: mov %[arg], %2\n\t"\
-        op " %%ax, %w2\n\t"\
-        "lock; cmpxchgw %w2, %[storage]\n\t"\
+        "1: movw %[arg], %%dx\n\t"\
+        op " %%ax, %%dx\n\t"\
+        "lock; cmpxchgw %%dx, %[storage]\n\t"\
         "jne 1b"\
-        : [res] "+a" (result), [storage] "+m" (storage), "=&q" (new_val)\
-        : [arg] "ir" ((temp_storage_type)argument)\
-        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"\
+        : [res] "+a" (result), [storage] "+m" (storage)\
+        : [arg] "q" (argument)\
+        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER, "memory"\
     )
 
     static BOOST_FORCEINLINE storage_type fetch_and(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
@@ -306,14 +282,11 @@ struct operations< 2u, Signed > :
 
 template< bool Signed >
 struct operations< 4u, Signed > :
-    public gcc_x86_operations< 4u, Signed, operations< 4u, Signed > >
+    public gcc_x86_operations< typename make_storage_type< 4u, Signed >::type, operations< 4u, Signed > >
 {
-    typedef gcc_x86_operations< 4u, Signed, operations< 4u, Signed > > base_type;
+    typedef gcc_x86_operations< typename make_storage_type< 4u, Signed >::type, operations< 4u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
-    typedef typename make_storage_type< 4u >::aligned aligned_storage_type;
-
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 4u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
+    typedef typename make_storage_type< 4u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -344,15 +317,6 @@ struct operations< 4u, Signed > :
     {
         storage_type previous = expected;
         bool success;
-#if defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
-        __asm__ __volatile__
-        (
-            "lock; cmpxchgl %3, %1"
-            : "+a" (previous), "+m" (storage), "=@ccz" (success)
-            : "r" (desired)
-            : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
-        );
-#else // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         __asm__ __volatile__
         (
             "lock; cmpxchgl %3, %1\n\t"
@@ -361,23 +325,22 @@ struct operations< 4u, Signed > :
             : "r" (desired)
             : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
         );
-#endif // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         expected = previous;
         return success;
     }
 
 #define BOOST_ATOMIC_DETAIL_CAS_LOOP(op, argument, result)\
-    storage_type new_val;\
     __asm__ __volatile__\
     (\
+        "xor %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER ", %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER "\n\t"\
         ".align 16\n\t"\
-        "1: mov %[arg], %[new_val]\n\t"\
-        op " %%eax, %[new_val]\n\t"\
-        "lock; cmpxchgl %[new_val], %[storage]\n\t"\
+        "1: movl %[arg], %%edx\n\t"\
+        op " %%eax, %%edx\n\t"\
+        "lock; cmpxchgl %%edx, %[storage]\n\t"\
         "jne 1b"\
-        : [res] "+a" (result), [storage] "+m" (storage), [new_val] "=&r" (new_val)\
-        : [arg] "ir" (argument)\
-        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"\
+        : [res] "+a" (result), [storage] "+m" (storage)\
+        : [arg] "r" (argument)\
+        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER, "memory"\
     )
 
     static BOOST_FORCEINLINE storage_type fetch_and(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
@@ -410,22 +373,17 @@ template< bool Signed >
 struct operations< 8u, Signed > :
     public cas_based_operations< gcc_dcas_x86< Signed > >
 {
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 8u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
 };
 
 #elif defined(__x86_64__)
 
 template< bool Signed >
 struct operations< 8u, Signed > :
-    public gcc_x86_operations< 8u, Signed, operations< 8u, Signed > >
+    public gcc_x86_operations< typename make_storage_type< 8u, Signed >::type, operations< 8u, Signed > >
 {
-    typedef gcc_x86_operations< 8u, Signed, operations< 8u, Signed > > base_type;
+    typedef gcc_x86_operations< typename make_storage_type< 8u, Signed >::type, operations< 8u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
-    typedef typename make_storage_type< 8u >::aligned aligned_storage_type;
-
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 8u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
+    typedef typename make_storage_type< 8u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -456,15 +414,6 @@ struct operations< 8u, Signed > :
     {
         storage_type previous = expected;
         bool success;
-#if defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
-        __asm__ __volatile__
-        (
-            "lock; cmpxchgq %3, %1"
-            : "+a" (previous), "+m" (storage), "=@ccz" (success)
-            : "r" (desired)
-            : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
-        );
-#else // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         __asm__ __volatile__
         (
             "lock; cmpxchgq %3, %1\n\t"
@@ -473,23 +422,22 @@ struct operations< 8u, Signed > :
             : "r" (desired)
             : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"
         );
-#endif // defined(BOOST_ATOMIC_DETAIL_ASM_HAS_FLAG_OUTPUTS)
         expected = previous;
         return success;
     }
 
 #define BOOST_ATOMIC_DETAIL_CAS_LOOP(op, argument, result)\
-    storage_type new_val;\
     __asm__ __volatile__\
     (\
+        "xor %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER ", %%" BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER "\n\t"\
         ".align 16\n\t"\
-        "1: movq %[arg], %[new_val]\n\t"\
-        op " %%rax, %[new_val]\n\t"\
-        "lock; cmpxchgq %[new_val], %[storage]\n\t"\
+        "1: movq %[arg], %%rdx\n\t"\
+        op " %%rax, %%rdx\n\t"\
+        "lock; cmpxchgq %%rdx, %[storage]\n\t"\
         "jne 1b"\
-        : [res] "+a" (result), [storage] "+m" (storage), [new_val] "=&r" (new_val)\
+        : [res] "+a" (result), [storage] "+m" (storage)\
         : [arg] "r" (argument)\
-        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA "memory"\
+        : BOOST_ATOMIC_DETAIL_ASM_CLOBBER_CC_COMMA BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER, "memory"\
     )
 
     static BOOST_FORCEINLINE storage_type fetch_and(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
@@ -524,8 +472,6 @@ template< bool Signed >
 struct operations< 16u, Signed > :
     public cas_based_operations< gcc_dcas_x86_64< Signed > >
 {
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 16u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
 };
 
 #endif // defined(BOOST_ATOMIC_DETAIL_X86_HAS_CMPXCHG16B)
@@ -544,7 +490,7 @@ BOOST_FORCEINLINE void thread_fence(memory_order order) BOOST_NOEXCEPT
             ::: "memory"
         );
     }
-    else if ((static_cast< unsigned int >(order) & (static_cast< unsigned int >(memory_order_acquire) | static_cast< unsigned int >(memory_order_release))) != 0u)
+    else if ((order & (memory_order_acquire | memory_order_release)) != 0)
     {
         __asm__ __volatile__ ("" ::: "memory");
     }
@@ -559,5 +505,7 @@ BOOST_FORCEINLINE void signal_fence(memory_order order) BOOST_NOEXCEPT
 } // namespace detail
 } // namespace atomics
 } // namespace boost
+
+#undef BOOST_ATOMIC_DETAIL_TEMP_CAS_REGISTER
 
 #endif // BOOST_ATOMIC_DETAIL_OPS_GCC_X86_HPP_INCLUDED_

@@ -16,7 +16,6 @@
 #include <string>
 #include <locale>
 #include <memory>
-#include <boost/locale/hold_ptr.hpp>
 
 namespace boost {
 
@@ -221,7 +220,7 @@ namespace boost {
             void operator=(generator const &);
 
             struct data;
-            hold_ptr<data> d;
+            std::auto_ptr<data> d;
         };
 
     }

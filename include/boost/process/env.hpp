@@ -353,10 +353,10 @@ struct initializer_builder<env_tag<wchar_t>>
 The `env` property provides a functional way to modify the environment used by
 the child process. If none is passed the environment is inherited from the father
 process. Appending means that the environment will be interpreted as a ';' or ':'
-separated list as used in `PATH`.
+seperated list as used in `PATH`.
 
 On both `posix` and `windows` the environment variables can be lists of strings,
-separated by ';'. This is typically used for the `PATH` variable.
+seperated by ';'. This is typically used for the `PATH` variable.
 
 By default the environment will be inherited from the launching process,
 which is also true if environment are modified with this initializer.

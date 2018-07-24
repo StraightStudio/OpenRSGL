@@ -50,9 +50,8 @@ namespace default_ops{
 
 #ifdef BOOST_MSVC
 // warning C4127: conditional expression is constant
-// warning C4146: unary minus operator applied to unsigned type, result still unsigned
 #pragma warning(push)
-#pragma warning(disable:4127 4146)
+#pragma warning(disable:4127)
 #endif
 //
 // Default versions of mixed arithmetic, these just construct a temporary
@@ -890,42 +889,29 @@ struct calculate_next_larger_type
 };
 
 template <class R, class T>
-inline typename boost::enable_if_c<boost::is_integral<R>::value, bool>::type check_in_range(const T& t)
+inline bool check_in_range(const T& t)
 {
    // Can t fit in an R?
-   if((t > 0) && std::numeric_limits<R>::is_specialized && std::numeric_limits<R>::is_bounded && (t > (std::numeric_limits<R>::max)()))
+   if(std::numeric_limits<R>::is_specialized && std::numeric_limits<R>::is_bounded && (t > (std::numeric_limits<R>::max)()))
       return true;
-   else
+   return false;
+}
+
+template <class R, class T>
+inline bool check_in_range(const terminal<T>&)
+{
    return false;
 }
 
 template <class R, class B>
-inline typename boost::enable_if_c<boost::is_integral<R>::value>::type eval_convert_to(R* result, const B& backend)
+inline void eval_convert_to(R* result, const B& backend)
 {
    typedef typename calculate_next_larger_type<R, B>::type next_type;
    next_type n;
    eval_convert_to(&n, backend);
-   if(std::numeric_limits<R>::is_specialized && std::numeric_limits<R>::is_bounded && (n > (next_type)(std::numeric_limits<R>::max)()))
+   if(check_in_range<R>(n))
    {
       *result = (std::numeric_limits<R>::max)();
-   }
-   else if (std::numeric_limits<R>::is_specialized && std::numeric_limits<R>::is_bounded && (n < (next_type)(std::numeric_limits<R>::min)()))
-   {
-      *result = (std::numeric_limits<R>::min)();
-   }
-   else
-      *result = static_cast<R>(n);
-}
-
-template <class R, class B>
-inline typename boost::disable_if_c<boost::is_integral<R>::value>::type eval_convert_to(R* result, const B& backend)
-{
-   typedef typename calculate_next_larger_type<R, B>::type next_type;
-   next_type n;
-   eval_convert_to(&n, backend);
-   if(std::numeric_limits<R>::is_specialized && std::numeric_limits<R>::is_bounded && ((n > (next_type)(std::numeric_limits<R>::max)() || (n < (next_type)-(std::numeric_limits<R>::max)()) )))
-   {
-      *result = n > 0 ? (std::numeric_limits<R>::max)() : -(std::numeric_limits<R>::max)();
    }
    else
       *result = static_cast<R>(n);
@@ -938,21 +924,7 @@ inline void eval_convert_to(terminal<R>* result, const B& backend)
    // We ran out of types to try for the conversion, try
    // a lexical_cast and hope for the best:
    //
-   if (std::numeric_limits<R>::is_integer && !std::numeric_limits<R>::is_signed && (eval_get_sign(backend) < 0))
-      BOOST_THROW_EXCEPTION(std::range_error("Attempt to convert negative value to an unsigned integer results in undefined behaviour"));
-   try 
-   {
-      result->value = boost::lexical_cast<R>(backend.str(0, std::ios_base::fmtflags(0)));
-   }
-   catch (const bad_lexical_cast&)
-   {
-      if (eval_get_sign(backend) < 0)
-      {
-         *result = std::numeric_limits<R>::is_integer && std::numeric_limits<R>::is_signed ? (std::numeric_limits<R>::min)() : -(std::numeric_limits<R>::max)();
-      }
-      else
-         *result = (std::numeric_limits<R>::max)();
-   }
+   result->value = boost::lexical_cast<R>(backend.str(0, std::ios_base::fmtflags(0)));
 }
 
 template <class B1, class B2, expression_template_option et>

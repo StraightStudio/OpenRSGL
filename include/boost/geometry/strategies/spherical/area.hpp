@@ -1,8 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland.
-
-// Copyright (c) 2016-2018 Oracle and/or its affiliates.
+// Copyright (c) 2016-2017 Oracle and/or its affiliates.
 // Contributed and/or modified by Vissarion Fisikopoulos, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -15,9 +13,9 @@
 
 
 #include <boost/geometry/formulas/area_formulas.hpp>
-#include <boost/geometry/srs/sphere.hpp>
+#include <boost/geometry/core/radius.hpp>
+#include <boost/geometry/core/srs.hpp>
 #include <boost/geometry/strategies/area.hpp>
-#include <boost/geometry/strategies/spherical/get_radius.hpp>
 
 
 namespace boost { namespace geometry
@@ -26,12 +24,11 @@ namespace boost { namespace geometry
 namespace strategy { namespace area
 {
 
-
 /*!
 \brief Spherical area calculation
 \ingroup strategies
 \details Calculates area on the surface of a sphere using the trapezoidal rule
-\tparam RadiusTypeOrSphere \tparam_radius_or_sphere
+\tparam PointOfSegment \tparam_segment_point
 \tparam CalculationType \tparam_calculation
 
 \qbk{
@@ -41,7 +38,7 @@ namespace strategy { namespace area
 */
 template
 <
-    typename RadiusTypeOrSphere = double,
+    typename PointOfSegment,
     typename CalculationType = void
 >
 class spherical
@@ -49,35 +46,34 @@ class spherical
     // Enables special handling of long segments
     static const bool LongSegment = false;
 
-public:
-    template <typename Geometry>
-    struct result_type
-        : strategy::area::detail::result_type
+typedef typename boost::mpl::if_c
+    <
+        boost::is_void<CalculationType>::type::value,
+        typename select_most_precise
             <
-                Geometry,
-                CalculationType
-            >
-    {};
+                typename coordinate_type<PointOfSegment>::type,
+                double
+            >::type,
+        CalculationType
+    >::type CT;
 
-    template <typename Geometry>
-    class state
+protected :
+    struct excess_sum
     {
-        friend class spherical;
+        CT m_sum;
 
-        typedef typename result_type<Geometry>::type return_type;
+        // Keep track if encircles some pole
+        size_t m_crosses_prime_meridian;
 
-    public:
-        inline state()
+        inline excess_sum()
             : m_sum(0)
             , m_crosses_prime_meridian(0)
         {}
-
-    private:
-        template <typename RadiusType>
-        inline return_type area(RadiusType const& r) const
+        template <typename SphereType>
+        inline CT area(SphereType sphere) const
         {
-            return_type result;
-            return_type radius = r;
+            CT result;
+            CT radius = geometry::get_radius<0>(sphere);
 
             // Encircles pole
             if(m_crosses_prime_meridian % 2 == 1)
@@ -85,12 +81,12 @@ public:
                 size_t times_crosses_prime_meridian
                         = 1 + (m_crosses_prime_meridian / 2);
 
-                result = return_type(2)
-                         * geometry::math::pi<return_type>()
+                result = CT(2)
+                         * geometry::math::pi<CT>()
                          * times_crosses_prime_meridian
                          - geometry::math::abs(m_sum);
 
-                if(geometry::math::sign<return_type>(m_sum) == 1)
+                if(geometry::math::sign<CT>(m_sum) == 1)
                 {
                     result = - result;
                 }
@@ -103,62 +99,53 @@ public:
 
             return result;
         }
-
-        return_type m_sum;
-
-        // Keep track if encircles some pole
-        size_t m_crosses_prime_meridian;
     };
 
 public :
+    typedef CT return_type;
+    typedef PointOfSegment segment_point_type;
+    typedef excess_sum state_type;
+    typedef geometry::srs::sphere<CT> sphere_type;
 
     // For backward compatibility reasons the radius is set to 1
     inline spherical()
-        : m_radius(1.0)
+        : m_sphere(1.0)
     {}
 
-    template <typename RadiusOrSphere>
-    explicit inline spherical(RadiusOrSphere const& radius_or_sphere)
-        : m_radius(strategy_detail::get_radius
-                    <
-                        RadiusOrSphere
-                    >::apply(radius_or_sphere))
+    template <typename T>
+    explicit inline spherical(geometry::srs::sphere<T> const& sphere)
+        : m_sphere(geometry::get_radius<0>(sphere))
     {}
 
-    template <typename PointOfSegment, typename Geometry>
+    explicit inline spherical(CT const& radius)
+        : m_sphere(radius)
+    {}
+
     inline void apply(PointOfSegment const& p1,
                       PointOfSegment const& p2,
-                      state<Geometry>& st) const
+                      excess_sum& state) const
     {
         if (! geometry::math::equals(get<0>(p1), get<0>(p2)))
         {
-            typedef geometry::formula::area_formulas
-                <
-                    typename result_type<Geometry>::type
-                > area_formulas;
 
-            st.m_sum += area_formulas::template spherical<LongSegment>(p1, p2);
+            state.m_sum += geometry::formula::area_formulas
+                             <CT>::template spherical<LongSegment>(p1, p2);
 
             // Keep track whenever a segment crosses the prime meridian
-            if (area_formulas::crosses_prime_meridian(p1, p2))
-            {
-                st.m_crosses_prime_meridian++;
-            }
+            geometry::formula::area_formulas
+                         <CT>::crosses_prime_meridian(p1, p2, state);
+
         }
     }
 
-    template <typename Geometry>
-    inline typename result_type<Geometry>::type
-        result(state<Geometry> const& st) const
+    inline return_type result(excess_sum const& state) const
     {
-        return st.area(m_radius);
+        return state.area(m_sphere);
     }
 
 private :
-    typename strategy_detail::get_radius
-        <
-            RadiusTypeOrSphere
-        >::type m_radius;
+    /// srs Sphere
+    sphere_type m_sphere;
 };
 
 #ifndef DOXYGEN_NO_STRATEGY_SPECIALIZATIONS
@@ -167,17 +154,17 @@ namespace services
 {
 
 
-template <>
-struct default_strategy<spherical_equatorial_tag>
+template <typename Point>
+struct default_strategy<spherical_equatorial_tag, Point>
 {
-    typedef strategy::area::spherical<> type;
+    typedef strategy::area::spherical<Point> type;
 };
 
 // Note: spherical polar coordinate system requires "get_as_radian_equatorial"
-template <>
-struct default_strategy<spherical_polar_tag>
+template <typename Point>
+struct default_strategy<spherical_polar_tag, Point>
 {
-    typedef strategy::area::spherical<> type;
+    typedef strategy::area::spherical<Point> type;
 };
 
 } // namespace services

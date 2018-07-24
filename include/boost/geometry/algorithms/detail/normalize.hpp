@@ -1,9 +1,8 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2015-2017, Oracle and/or its affiliates.
+// Copyright (c) 2015, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Licensed under the Boost Software License version 1.0.
 // http://www.boost.org/users/license.html
@@ -121,7 +120,7 @@ struct assign_loop<1, DimensionCount>
 };
 
 
-template <typename PointIn, typename PointOut, bool IsEquatorial = true>
+template <typename PointIn, typename PointOut>
 struct normalize_point
 {
     static inline void apply(PointIn const& point_in, PointOut& point_out)
@@ -134,7 +133,6 @@ struct normalize_point
         math::normalize_spheroidal_coordinates
             <
                 typename coordinate_system<PointIn>::type::units,
-                IsEquatorial,
                 in_coordinate_type
             >(longitude, latitude);
 
@@ -146,7 +144,7 @@ struct normalize_point
 };
 
 
-template <typename BoxIn, typename BoxOut, bool IsEquatorial = true>
+template <typename BoxIn, typename BoxOut>
 class normalize_box
 {
     template <typename UnitsIn, typename UnitsOut, typename CoordinateInType>
@@ -195,7 +193,6 @@ public:
         math::normalize_spheroidal_box_coordinates
             <
                 typename coordinate_system<BoxIn>::type::units,
-                IsEquatorial,
                 in_coordinate_type
             >(lon_min, lat_min, lon_max, lat_max);
 
@@ -240,15 +237,6 @@ struct normalize
 template <typename PointIn, typename PointOut>
 struct normalize
     <
-        PointIn, PointOut, point_tag, point_tag,
-        spherical_polar_tag, spherical_polar_tag
-    > : detail::normalization::normalize_point<PointIn, PointOut, false>
-{};
-
-
-template <typename PointIn, typename PointOut>
-struct normalize
-    <
         PointIn, PointOut, point_tag, point_tag, geographic_tag, geographic_tag
     > : detail::normalization::normalize_point<PointIn, PointOut>
 {};
@@ -260,15 +248,6 @@ struct normalize
         BoxIn, BoxOut, box_tag, box_tag,
         spherical_equatorial_tag, spherical_equatorial_tag
     > : detail::normalization::normalize_box<BoxIn, BoxOut>
-{};
-
-
-template <typename BoxIn, typename BoxOut>
-struct normalize
-    <
-        BoxIn, BoxOut, box_tag, box_tag,
-        spherical_polar_tag, spherical_polar_tag
-    > : detail::normalization::normalize_box<BoxIn, BoxOut, false>
 {};
 
 

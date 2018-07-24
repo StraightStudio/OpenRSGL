@@ -171,7 +171,7 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 #if BOOST_MUTEX_HELPER == BOOST_MUTEX_HELPER_NONE
    class null_mutex
@@ -268,7 +268,7 @@ class scoped_lock
    Mutex &m_;
 };
 
-} // namespace dtl
+} // namespace container_detail
 } // namespace container
 } // namespace boost
 

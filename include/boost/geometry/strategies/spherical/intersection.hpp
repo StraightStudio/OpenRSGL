@@ -1,7 +1,5 @@
 // Boost.Geometry
 
-// Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland.
-
 // Copyright (c) 2016-2017, Oracle and/or its affiliates.
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -35,6 +33,7 @@
 
 #include <boost/geometry/policies/robustness/segment_ratio.hpp>
 
+#include <boost/geometry/strategies/agnostic/point_in_poly_winding.hpp>
 #include <boost/geometry/strategies/covered_by.hpp>
 #include <boost/geometry/strategies/intersection.hpp>
 #include <boost/geometry/strategies/intersection_result.hpp>
@@ -43,7 +42,6 @@
 #include <boost/geometry/strategies/spherical/area.hpp>
 #include <boost/geometry/strategies/spherical/distance_haversine.hpp>
 #include <boost/geometry/strategies/spherical/envelope_segment.hpp>
-#include <boost/geometry/strategies/spherical/point_in_poly_winding.hpp>
 #include <boost/geometry/strategies/spherical/ssf.hpp>
 #include <boost/geometry/strategies/within.hpp>
 
@@ -96,10 +94,11 @@ struct ecef_segments
     template <typename Geometry1, typename Geometry2>
     struct point_in_geometry_strategy
     {
-        typedef strategy::within::spherical_winding
+        typedef strategy::within::winding
             <
                 typename point_type<Geometry1>::type,
                 typename point_type<Geometry2>::type,
+                side_strategy_type,
                 CalculationType
             > type;
     };
@@ -120,7 +119,7 @@ struct ecef_segments
     {
         typedef area::spherical
             <
-                typename coordinate_type<Geometry>::type,
+                typename point_type<Geometry>::type,
                 CalculationType
             > type;
     };
@@ -163,12 +162,38 @@ struct ecef_segments
     template <typename CoordinateType, typename SegmentRatio, typename Vector3d>
     struct segment_intersection_info
     {
+        typedef typename select_most_precise
+            <
+                CoordinateType, double
+            >::type promoted_type;
+
         segment_intersection_info(CalcPolicy const& calc)
             : calc_policy(calc)
         {}
 
+        promoted_type comparable_length_a() const
+        {
+            return robust_ra.denominator();
+        }
+
+        promoted_type comparable_length_b() const
+        {
+            return robust_rb.denominator();
+        }
+
         template <typename Point, typename Segment1, typename Segment2>
-        void calculate(Point& point, Segment1 const& a, Segment2 const& b) const
+        void assign_a(Point& point, Segment1 const& a, Segment2 const& b) const
+        {
+            assign(point, a, b);
+        }
+        template <typename Point, typename Segment1, typename Segment2>
+        void assign_b(Point& point, Segment1 const& a, Segment2 const& b) const
+        {
+            assign(point, a, b);
+        }
+
+        template <typename Point, typename Segment1, typename Segment2>
+        void assign(Point& point, Segment1 const& a, Segment2 const& b) const
         {
             if (ip_flag == ipi_inters)
             {

@@ -1,12 +1,11 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2014-2017, Oracle and/or its affiliates.
-
-// Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
+// Copyright (c) 2014-2015, Oracle and/or its affiliates.
 
 // Licensed under the Boost Software License version 1.0.
 // http://www.boost.org/users/license.html
+
+// Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
 
 
 #ifndef BOOST_GEOMETRY_ALGORITHMS_DETAIL_OVERLAY_POINTLIKE_POINTLIKE_HPP
@@ -25,10 +24,9 @@
 #include <boost/geometry/algorithms/convert.hpp>
 #include <boost/geometry/algorithms/not_implemented.hpp>
 
+#include <boost/geometry/algorithms/detail/relate/less.hpp>
 #include <boost/geometry/algorithms/detail/equals/point_point.hpp>
 #include <boost/geometry/algorithms/detail/overlay/overlay_type.hpp>
-
-#include <boost/geometry/policies/compare.hpp>
 
 
 namespace boost { namespace geometry
@@ -266,20 +264,17 @@ struct multipoint_multipoint_point
                 >::apply(multipoint2, multipoint1, robust_policy, oit, strategy);
         }
 
-        typedef typename boost::range_value<MultiPoint2>::type point2_type;
+        std::vector<typename boost::range_value<MultiPoint2>::type>
+            points2(boost::begin(multipoint2), boost::end(multipoint2));
 
-        std::vector<point2_type> points2(boost::begin(multipoint2),
-                                         boost::end(multipoint2));
-
-        geometry::less<> const less = geometry::less<>();
-        std::sort(points2.begin(), points2.end(), less);
+        std::sort(points2.begin(), points2.end(), detail::relate::less());
 
         for (typename boost::range_iterator<MultiPoint1 const>::type
                  it1 = boost::begin(multipoint1);
              it1 != boost::end(multipoint1); ++it1)
         {
             bool found = std::binary_search(points2.begin(), points2.end(),
-                                            *it1, less);
+                                            *it1, detail::relate::less());
 
             action_selector_pl_pl
                 <

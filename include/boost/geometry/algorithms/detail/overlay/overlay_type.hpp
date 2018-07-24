@@ -42,17 +42,6 @@ enum operation_type
 template <overlay_type OverlayType>
 struct operation_from_overlay
 {
-};
-
-template <>
-struct operation_from_overlay<overlay_union>
-{
-    static const operation_type value = operation_union;
-};
-
-template <>
-struct operation_from_overlay<overlay_buffer>
-{
     static const operation_type value = operation_union;
 };
 
@@ -67,13 +56,6 @@ struct operation_from_overlay<overlay_difference>
 {
     static const operation_type value = operation_intersection;
 };
-
-template <>
-struct operation_from_overlay<overlay_dissolve>
-{
-    static const operation_type value = operation_union;
-};
-
 
 }} // namespace detail::overlay
 #endif //DOXYGEN_NO_DETAIL

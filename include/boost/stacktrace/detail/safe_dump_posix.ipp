@@ -16,7 +16,6 @@
 
 #include <unistd.h>     // ::write
 #include <fcntl.h>      // ::open
-#include <sys/stat.h>   // S_IWUSR and friends
 
 
 namespace boost { namespace stacktrace { namespace detail {

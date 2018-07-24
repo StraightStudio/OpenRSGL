@@ -60,14 +60,12 @@ public:
 
     void add_ref() BOOST_SP_NOEXCEPT
     {
-#if !defined(__NVCC__)
 #if defined( __has_builtin )
 # if __has_builtin( __builtin_assume )
 
         __builtin_assume( local_use_count_ >= 1 );
 
 # endif
-#endif
 #endif
 
         local_use_count_ = static_cast<count_type>( local_use_count_ + 1 );

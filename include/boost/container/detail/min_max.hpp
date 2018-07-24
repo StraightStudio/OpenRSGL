@@ -20,7 +20,7 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 template<class T>
 const T &max_value(const T &a, const T &b)
@@ -30,7 +30,7 @@ template<class T>
 const T &min_value(const T &a, const T &b)
 {  return a < b ? a : b;   }
 
-}  //namespace dtl {
+}  //namespace container_detail {
 }  //namespace container {
 }  //namespace boost {
 

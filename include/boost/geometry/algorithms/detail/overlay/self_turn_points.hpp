@@ -77,23 +77,20 @@ struct self_section_visitor
     RobustPolicy const& m_rescale_policy;
     Turns& m_turns;
     InterruptPolicy& m_interrupt_policy;
-    int m_source_index;
-    bool m_skip_adjacent;
+    std::size_t m_source_index;
 
     inline self_section_visitor(Geometry const& g,
                                 IntersectionStrategy const& is,
                                 RobustPolicy const& rp,
                                 Turns& turns,
                                 InterruptPolicy& ip,
-                                int source_index,
-                                bool skip_adjacent)
+                                std::size_t source_index)
         : m_geometry(g)
         , m_intersection_strategy(is)
         , m_rescale_policy(rp)
         , m_turns(turns)
         , m_interrupt_policy(ip)
         , m_source_index(source_index)
-        , m_skip_adjacent(skip_adjacent)
     {}
 
     template <typename Section>
@@ -112,7 +109,7 @@ struct self_section_visitor
                         TurnPolicy
                     >::apply(m_source_index, m_geometry, sec1,
                              m_source_index, m_geometry, sec2,
-                             false, m_skip_adjacent,
+                             false,
                              m_intersection_strategy,
                              m_rescale_policy,
                              m_turns, m_interrupt_policy);
@@ -135,7 +132,7 @@ struct get_turns
             RobustPolicy const& robust_policy,
             Turns& turns,
             InterruptPolicy& interrupt_policy,
-            int source_index, bool skip_adjacent)
+            std::size_t source_index)
     {
         typedef model::box
             <
@@ -146,11 +143,9 @@ struct get_turns
                 >::type
             > box_type;
 
-        // sectionalize in two dimensions to detect
-        // all potential spikes correctly
-        typedef geometry::sections<box_type, 2> sections_type;
+        typedef geometry::sections<box_type, 1> sections_type;
 
-        typedef boost::mpl::vector_c<std::size_t, 0, 1> dimensions;
+        typedef boost::mpl::vector_c<std::size_t, 0> dimensions;
 
         sections_type sec;
         geometry::sectionalize<Reverse, dimensions>(geometry, robust_policy, sec,
@@ -160,7 +155,7 @@ struct get_turns
             <
                 Reverse, Geometry,
                 Turns, TurnPolicy, IntersectionStrategy, RobustPolicy, InterruptPolicy
-            > visitor(geometry, intersection_strategy, robust_policy, turns, interrupt_policy, source_index, skip_adjacent);
+            > visitor(geometry, intersection_strategy, robust_policy, turns, interrupt_policy, source_index);
 
         // false if interrupted
         geometry::partition
@@ -229,8 +224,7 @@ struct self_get_turn_points
             RobustPolicy const& ,
             Turns& ,
             InterruptPolicy& ,
-            int /*source_index*/,
-            bool /*skip_adjacent*/)
+            std::size_t)
     {
         return true;
     }
@@ -292,8 +286,7 @@ inline void self_turns(Geometry const& geometry,
                        RobustPolicy const& robust_policy,
                        Turns& turns,
                        InterruptPolicy& interrupt_policy,
-                       int source_index = 0,
-                       bool skip_adjacent = false)
+                       std::size_t source_index = 0)
 {
     concepts::check<Geometry const>();
 
@@ -305,8 +298,7 @@ inline void self_turns(Geometry const& geometry,
                 typename tag<Geometry>::type,
                 Geometry,
                 turn_policy
-            >::apply(geometry, strategy, robust_policy, turns, interrupt_policy,
-                     source_index, skip_adjacent);
+            >::apply(geometry, strategy, robust_policy, turns, interrupt_policy, source_index);
 }
 
 }} // namespace detail::self_get_turn_points
@@ -339,8 +331,7 @@ inline void self_turns(Geometry const& geometry,
                        RobustPolicy const& robust_policy,
                        Turns& turns,
                        InterruptPolicy& interrupt_policy,
-                       int source_index = 0,
-                       bool skip_adjacent = false)
+                       std::size_t source_index = 0)
 {
     concepts::check<Geometry const>();
 
@@ -353,8 +344,7 @@ inline void self_turns(Geometry const& geometry,
             <
                 reverse,
                 AssignPolicy
-            >(geometry, strategy, robust_policy, turns, interrupt_policy,
-              source_index, skip_adjacent);
+            >(geometry, strategy, robust_policy, turns, interrupt_policy, source_index);
 }
 
 

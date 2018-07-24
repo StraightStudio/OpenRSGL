@@ -52,10 +52,6 @@
 //  Wind River Diab C++
 #   define BOOST_COMPILER_CONFIG "boost/config/compiler/diab.hpp"
 
-#elif defined(__PGI)
-//  Portland Group Inc.
-#   define BOOST_COMPILER_CONFIG "boost/config/compiler/pgi.hpp"
-
 # elif defined(__GNUC__) && !defined(__ibmxl__)
 //  GNU C++:
 #   define BOOST_COMPILER_CONFIG "boost/config/compiler/gcc.hpp"
@@ -111,6 +107,10 @@
 #elif defined(__IBMCPP__)
 //  IBM Visual Age or IBM XL C/C++ for Linux (Big Endian)
 #   define BOOST_COMPILER_CONFIG "boost/config/compiler/vacpp.hpp"
+
+#elif defined(__PGI)
+//  Portland Group Inc.
+#   define BOOST_COMPILER_CONFIG "boost/config/compiler/pgi.hpp"
 
 #elif defined _MSC_VER
 //  Microsoft Visual C++

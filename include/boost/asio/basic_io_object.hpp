@@ -2,7 +2,7 @@
 // basic_io_object.hpp
 // ~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,7 +16,7 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
 
@@ -68,43 +68,17 @@ public:
   /// The underlying implementation type of I/O object.
   typedef typename service_type::implementation_type implementation_type;
 
-#if !defined(BOOST_ASIO_NO_DEPRECATED)
-  /// (Deprecated: Use get_executor().) Get the io_context associated with the
-  /// object.
+  /// Get the io_service associated with the object.
   /**
-   * This function may be used to obtain the io_context object that the I/O
+   * This function may be used to obtain the io_service object that the I/O
    * object uses to dispatch handlers for asynchronous operations.
    *
-   * @return A reference to the io_context object that the I/O object will use
+   * @return A reference to the io_service object that the I/O object will use
    * to dispatch handlers. Ownership is not transferred to the caller.
    */
-  boost::asio::io_context& get_io_context()
+  boost::asio::io_service& get_io_service()
   {
-    return service_.get_io_context();
-  }
-
-  /// (Deprecated: Use get_executor().) Get the io_context associated with the
-  /// object.
-  /**
-   * This function may be used to obtain the io_context object that the I/O
-   * object uses to dispatch handlers for asynchronous operations.
-   *
-   * @return A reference to the io_context object that the I/O object will use
-   * to dispatch handlers. Ownership is not transferred to the caller.
-   */
-  boost::asio::io_context& get_io_service()
-  {
-    return service_.get_io_context();
-  }
-#endif // !defined(BOOST_ASIO_NO_DEPRECATED)
-
-  /// The type of the executor associated with the object.
-  typedef boost::asio::io_context::executor_type executor_type;
-
-  /// Get the executor associated with the object.
-  executor_type get_executor() BOOST_ASIO_NOEXCEPT
-  {
-    return service_.get_io_context().get_executor();
+    return service.get_io_service();
   }
 
 protected:
@@ -113,10 +87,10 @@ protected:
    * Performs:
    * @code get_service().construct(get_implementation()); @endcode
    */
-  explicit basic_io_object(boost::asio::io_context& io_context)
-    : service_(boost::asio::use_service<IoObjectService>(io_context))
+  explicit basic_io_object(boost::asio::io_service& io_service)
+    : service(boost::asio::use_service<IoObjectService>(io_service))
   {
-    service_.construct(implementation_);
+    service.construct(implementation);
   }
 
 #if defined(GENERATING_DOCUMENTATION)
@@ -153,42 +127,47 @@ protected:
    */
   ~basic_io_object()
   {
-    service_.destroy(implementation_);
+    service.destroy(implementation);
   }
 
   /// Get the service associated with the I/O object.
   service_type& get_service()
   {
-    return service_;
+    return service;
   }
 
   /// Get the service associated with the I/O object.
   const service_type& get_service() const
   {
-    return service_;
+    return service;
   }
+
+  /// (Deprecated: Use get_service().) The service associated with the I/O
+  /// object.
+  /**
+   * @note Available only for services that do not support movability.
+   */
+  service_type& service;
 
   /// Get the underlying implementation of the I/O object.
   implementation_type& get_implementation()
   {
-    return implementation_;
+    return implementation;
   }
 
   /// Get the underlying implementation of the I/O object.
   const implementation_type& get_implementation() const
   {
-    return implementation_;
+    return implementation;
   }
+
+  /// (Deprecated: Use get_implementation().) The underlying implementation of
+  /// the I/O object.
+  implementation_type implementation;
 
 private:
   basic_io_object(const basic_io_object&);
   basic_io_object& operator=(const basic_io_object&);
-
-  // The service associated with the I/O object.
-  service_type& service_;
-
-  /// The underlying implementation of the I/O object.
-  implementation_type implementation_;
 };
 
 #if defined(BOOST_ASIO_HAS_MOVE)
@@ -200,57 +179,43 @@ public:
   typedef IoObjectService service_type;
   typedef typename service_type::implementation_type implementation_type;
 
-#if !defined(BOOST_ASIO_NO_DEPRECATED)
-  boost::asio::io_context& get_io_context()
+  boost::asio::io_service& get_io_service()
   {
-    return service_->get_io_context();
-  }
-
-  boost::asio::io_context& get_io_service()
-  {
-    return service_->get_io_context();
-  }
-#endif // !defined(BOOST_ASIO_NO_DEPRECATED)
-
-  typedef boost::asio::io_context::executor_type executor_type;
-
-  executor_type get_executor() BOOST_ASIO_NOEXCEPT
-  {
-    return service_->get_io_context().get_executor();
+    return service_->get_io_service();
   }
 
 protected:
-  explicit basic_io_object(boost::asio::io_context& io_context)
-    : service_(&boost::asio::use_service<IoObjectService>(io_context))
+  explicit basic_io_object(boost::asio::io_service& io_service)
+    : service_(&boost::asio::use_service<IoObjectService>(io_service))
   {
-    service_->construct(implementation_);
+    service_->construct(implementation);
   }
 
   basic_io_object(basic_io_object&& other)
     : service_(&other.get_service())
   {
-    service_->move_construct(implementation_, other.implementation_);
+    service_->move_construct(implementation, other.implementation);
   }
 
   template <typename IoObjectService1>
   basic_io_object(IoObjectService1& other_service,
       typename IoObjectService1::implementation_type& other_implementation)
     : service_(&boost::asio::use_service<IoObjectService>(
-          other_service.get_io_context()))
+          other_service.get_io_service()))
   {
-    service_->converting_move_construct(implementation_,
+    service_->converting_move_construct(implementation,
         other_service, other_implementation);
   }
 
   ~basic_io_object()
   {
-    service_->destroy(implementation_);
+    service_->destroy(implementation);
   }
 
   basic_io_object& operator=(basic_io_object&& other)
   {
-    service_->move_assign(implementation_,
-        *other.service_, other.implementation_);
+    service_->move_assign(implementation,
+        *other.service_, other.implementation);
     service_ = other.service_;
     return *this;
   }
@@ -267,20 +232,21 @@ protected:
 
   implementation_type& get_implementation()
   {
-    return implementation_;
+    return implementation;
   }
 
   const implementation_type& get_implementation() const
   {
-    return implementation_;
+    return implementation;
   }
+
+  implementation_type implementation;
 
 private:
   basic_io_object(const basic_io_object&);
   void operator=(const basic_io_object&);
 
   IoObjectService* service_;
-  implementation_type implementation_;
 };
 #endif // defined(BOOST_ASIO_HAS_MOVE)
 

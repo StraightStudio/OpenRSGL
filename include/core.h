@@ -24,6 +24,9 @@ public:
     void loadTextures();
     void draw_objs();
 
+    void draw_objs3D();
+    void initGL();
+
     void initialSpawn();
 
     void processEvents();
@@ -76,6 +79,14 @@ private:
     // etc...
     unistring pname;
     SDL_Rect m_camrect;
+
+    SDL_GLContext m_glcontext;
+    GLuint m_shaderprogram;
+    GLuint m_VAO; // Vertex Arrays Object
+    GLuint m_VBO; // Vertex Buffer Object
+    GLuint m_vsh; // VertexShader (Model)
+    GLuint m_fsh; // FragmentShader (Texture, Color)
+    float m_fov;
 
     // S T E A M   A P I
 

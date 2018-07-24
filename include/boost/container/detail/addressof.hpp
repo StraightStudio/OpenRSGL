@@ -22,7 +22,7 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 template <typename T>
 BOOST_CONTAINER_FORCEINLINE T* addressof(T& obj)
@@ -34,7 +34,7 @@ BOOST_CONTAINER_FORCEINLINE T* addressof(T& obj)
    )));
 }
 
-}  //namespace dtl {
+}  //namespace container_detail {
 }  //namespace container {
 }  //namespace boost {
 

@@ -36,10 +36,9 @@
 #include <boost/geometry/algorithms/detail/disjoint/point_box.hpp>
 #include <boost/geometry/algorithms/detail/disjoint/point_point.hpp>
 #include <boost/geometry/algorithms/detail/disjoint/point_geometry.hpp>
+#include <boost/geometry/algorithms/detail/relate/less.hpp>
 
 #include <boost/geometry/algorithms/dispatch/disjoint.hpp>
-
-#include <boost/geometry/policies/compare.hpp>
 
 
 namespace boost { namespace geometry
@@ -57,10 +56,10 @@ class multipoint_multipoint
 private:
     template <typename Iterator>
     class unary_disjoint_predicate
-        : geometry::less<>
+        : detail::relate::less
     {
     private:
-        typedef geometry::less<> base_type;
+        typedef detail::relate::less base_type;
 
     public:
         unary_disjoint_predicate(Iterator first, Iterator last)
@@ -91,7 +90,7 @@ public:
         std::vector<point1_type> points1(boost::begin(multipoint1),
                                          boost::end(multipoint1));
 
-        std::sort(points1.begin(), points1.end(), geometry::less<>());
+        std::sort(points1.begin(), points1.end(), detail::relate::less());
 
         typedef unary_disjoint_predicate
             <

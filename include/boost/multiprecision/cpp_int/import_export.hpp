@@ -61,7 +61,8 @@ namespace boost {
                // Check for overflow bits:
                //
                bit_location = sizeof(local_limb_type) * CHAR_BIT - bit_location;
-               if((bit_location < sizeof(bits)*CHAR_BIT) && (bits >>= bit_location))
+               bits >>= bit_location;
+               if(bits)
                   val.resize(2, 2); // May throw!
             }
          }

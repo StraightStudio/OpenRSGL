@@ -373,14 +373,9 @@ erase(Range & rng,
 
 template <class Container>
 class back_insert_iterator
+    : public std::iterator<std::output_iterator_tag, void, void, void, void>
 {
 public:
-    typedef std::output_iterator_tag iterator_category;
-    typedef void value_type;
-    typedef void difference_type;
-    typedef void pointer;
-    typedef void reference;
-
     typedef Container container_type;
 
     explicit back_insert_iterator(Container & c)

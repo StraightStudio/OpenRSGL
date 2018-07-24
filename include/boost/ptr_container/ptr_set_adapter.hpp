@@ -19,13 +19,7 @@
 #include <boost/ptr_container/detail/associative_ptr_container.hpp>
 #include <boost/ptr_container/detail/meta_functions.hpp>
 #include <boost/ptr_container/detail/void_ptr_iterator.hpp>
-#include <boost/ptr_container/detail/ptr_container_disable_deprecated.hpp>
 #include <boost/range/iterator_range.hpp>
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 
 namespace boost
 {
@@ -188,18 +182,10 @@ namespace ptr_container_detail
           : base_type( r )
         { }
                 
-#ifndef BOOST_NO_AUTO_PTR
         template< class PtrContainer >
         explicit ptr_set_adapter_base( std::auto_ptr<PtrContainer> clone )
          : base_type( clone )
         { }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class PtrContainer >
-        explicit ptr_set_adapter_base( std::unique_ptr<PtrContainer> clone )
-         : base_type( std::move( clone ) )
-        { }
-#endif
         
         ptr_set_adapter_base& operator=( ptr_set_adapter_base r ) 
         {
@@ -207,22 +193,12 @@ namespace ptr_container_detail
             return *this;
         }
         
-#ifndef BOOST_NO_AUTO_PTR
         template< typename PtrContainer >
-        ptr_set_adapter_base& operator=( std::auto_ptr<PtrContainer> clone )
+        ptr_set_adapter_base& operator=( std::auto_ptr<PtrContainer> clone )    
         {
             base_type::operator=( clone );
             return *this;
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< typename PtrContainer >
-        ptr_set_adapter_base& operator=( std::unique_ptr<PtrContainer> clone )
-        {
-            base_type::operator=( std::move( clone ) );
-            return *this;
-        }
-#endif
 
         using base_type::erase;
         
@@ -347,7 +323,7 @@ namespace ptr_container_detail
             while( first != last )                                            
             {           
                 if( this->find( *first ) == this->end() )
-                    insert( this->null_policy_allocate_clone_from_iterator( first ) ); // strong, commit
+                    insert( CloneAllocator::allocate_clone( *first ) ); // strong, commit
                 ++first;                                                      
             }                                                                 
         }                         
@@ -370,14 +346,6 @@ namespace ptr_container_detail
             BOOST_ASSERT( this->empty() ); 
         }
 
-        template< class SizeType, class Hash, class Pred, class Allocator >
-        ptr_set_adapter( SizeType n,
-                         const Hash& hash,
-                         const Pred& pred,
-                         const Allocator& a )
-         : base_type( n, hash, pred, a )
-        { }
-        
         template< class Hash, class Pred, class Allocator >
         ptr_set_adapter( const Hash& hash,
                          const Pred& pred,
@@ -417,18 +385,10 @@ namespace ptr_container_detail
           : base_type( r )
         { }
         
-#ifndef BOOST_NO_AUTO_PTR
         template< class PtrContainer >
         explicit ptr_set_adapter( std::auto_ptr<PtrContainer> clone )
          : base_type( clone )
         { }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class PtrContainer >
-        explicit ptr_set_adapter( std::unique_ptr<PtrContainer> clone )
-         : base_type( std::move( clone ) )
-        { }
-#endif
 
         template< class U, class Set, class CA, bool b >
         ptr_set_adapter& operator=( const ptr_set_adapter<U,Set,CA,b>& r ) 
@@ -437,26 +397,17 @@ namespace ptr_container_detail
             return *this;
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class T >
-        void operator=( std::auto_ptr<T> r )
+        void operator=( std::auto_ptr<T> r ) 
         {
             base_type::operator=( r );
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class T >
-        void operator=( std::unique_ptr<T> r )
-        {
-            base_type::operator=( std::move( r ) );
-        }
-#endif
 
         std::pair<iterator,bool> insert( key_type* x ) // strong                      
         {       
             this->enforce_null_policy( x, "Null pointer in 'ptr_set::insert()'" );
             
-            auto_type ptr( x, *this );                                
+            auto_type ptr( x );                                
             std::pair<BOOST_DEDUCED_TYPENAME base_type::ptr_iterator,bool>
                  res = this->base().insert( x );       
             if( res.second )                                                 
@@ -464,27 +415,18 @@ namespace ptr_container_detail
             return std::make_pair( iterator( res.first ), res.second );     
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         std::pair<iterator,bool> insert( std::auto_ptr<U> x )
         {
             return insert( x.release() );
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        std::pair<iterator,bool> insert( std::unique_ptr<U> x )
-        {
-            return insert( x.release() );
-        }
-#endif
 
         
         iterator insert( iterator where, key_type* x ) // strong
         {
             this->enforce_null_policy( x, "Null pointer in 'ptr_set::insert()'" );
 
-            auto_type ptr( x, *this );                                
+            auto_type ptr( x );                                
             BOOST_DEDUCED_TYPENAME base_type::ptr_iterator 
                 res = this->base().insert( where.base(), x );
             if( *res == x )                                                 
@@ -492,20 +434,11 @@ namespace ptr_container_detail
             return iterator( res);
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         iterator insert( iterator where, std::auto_ptr<U> x )
         {
             return insert( where, x.release() );
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        iterator insert( iterator where, std::unique_ptr<U> x )
-        {
-            return insert( where, x.release() );
-        }
-#endif
         
         template< typename InputIterator >
         void insert( InputIterator first, InputIterator last ) // basic
@@ -597,7 +530,7 @@ namespace ptr_container_detail
         {               
             while( first != last )                                            
             {           
-                insert( this->null_policy_allocate_clone_from_iterator( first ) ); // strong, commit                              
+                insert( CloneAllocator::allocate_clone( *first ) ); // strong, commit                              
                 ++first;                                                     
             }                                                                 
         }                         
@@ -652,18 +585,10 @@ namespace ptr_container_detail
           : base_type( r )
         { }
         
-#ifndef BOOST_NO_AUTO_PTR
         template< class PtrContainer >
         explicit ptr_multiset_adapter( std::auto_ptr<PtrContainer> clone )
          : base_type( clone )
         { }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class PtrContainer >
-        explicit ptr_multiset_adapter( std::unique_ptr<PtrContainer> clone )
-         : base_type( std::move( clone ) )
-        { }
-#endif
 
         template< class U, class Set, class CA, bool b >
         ptr_multiset_adapter& operator=( const ptr_multiset_adapter<U,Set,CA,b>& r ) 
@@ -672,66 +597,39 @@ namespace ptr_container_detail
             return *this;
         }
         
-#ifndef BOOST_NO_AUTO_PTR
         template< class T >
         void operator=( std::auto_ptr<T> r ) 
         {
             base_type::operator=( r ); 
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class T >
-        void operator=( std::unique_ptr<T> r ) 
-        {
-            base_type::operator=( std::move( r ) ); 
-        }
-#endif
 
         iterator insert( iterator before, key_type* x ) // strong  
         {
             return base_type::insert( before, x ); 
         } 
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         iterator insert( iterator before, std::auto_ptr<U> x )
         {
             return insert( before, x.release() );
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        iterator insert( iterator before, std::unique_ptr<U> x )
-        {
-            return insert( before, x.release() );
-        }
-#endif
     
         iterator insert( key_type* x ) // strong                                      
         {   
             this->enforce_null_policy( x, "Null pointer in 'ptr_multiset::insert()'" );
     
-            auto_type ptr( x, *this );                                
+            auto_type ptr( x );                                
             BOOST_DEDUCED_TYPENAME base_type::ptr_iterator
                  res = this->base().insert( x );                         
             ptr.release();                                                      
             return iterator( res );                                             
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         iterator insert( std::auto_ptr<U> x )
         {
             return insert( x.release() );
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        iterator insert( std::unique_ptr<U> x )
-        {
-            return insert( x.release() );
-        }
-#endif
     
         template< typename InputIterator >
         void insert( InputIterator first, InputIterator last ) // basic
@@ -790,9 +688,5 @@ namespace ptr_container_detail
     };
 
 } // namespace 'boost'  
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic pop
-#endif
 
 #endif

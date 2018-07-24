@@ -180,7 +180,7 @@ public:
          break;
       default:
          typename cpp_bin_float<D, B, A, E, MinE, MaxE>::rep_type b(f.bits());
-         this->exponent() = f.exponent() + (E)bit_count - (E)cpp_bin_float<D, B, A, E, MinE, MaxE>::bit_count;
+         this->exponent() = f.exponent() + (int)bit_count - (int)cpp_bin_float<D, B, A, E, MinE, MaxE>::bit_count;
          this->sign() = f.sign();
          copy_and_round(*this, b);
       }
@@ -910,7 +910,7 @@ inline void eval_multiply(cpp_bin_float<Digits, DigitBase, Allocator, Exponent, 
 
    typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::double_rep_type dt;
    eval_multiply(dt, a.bits(), b.bits());
-   res.exponent() = a.exponent() + b.exponent() - (Exponent)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count + 1;
+   res.exponent() = a.exponent() + b.exponent() - cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count + 1;
    copy_and_round(res, dt);
    res.check_invariants();
    res.sign() = a.sign() != b.sign();
@@ -1323,11 +1323,10 @@ inline void eval_convert_to(boost::long_long_type *res, const cpp_bin_float<Digi
          *res = -*res;
       return;
    }
-   typedef typename mpl::if_c < sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type > ::type shift_type;
    typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::rep_type man(arg.bits());
-   shift_type shift 
-      = (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1 - arg.exponent();
-   if(shift > (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1)
+   typename mpl::if_c<sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type>::type shift 
+      = (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1 - arg.exponent();
+   if(shift > (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1)
    {
       *res = 0;
       return;
@@ -1342,26 +1341,8 @@ inline void eval_convert_to(boost::long_long_type *res, const cpp_bin_float<Digi
       *res = (std::numeric_limits<boost::long_long_type>::max)();
       return;
    }
-
-   if (shift < 0)
-   {
-      if (cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - shift <= std::numeric_limits<boost::long_long_type>::digits)
-      {
-         // We have more bits in long_long_type than the float, so it's OK to left shift:
-         eval_convert_to(res, man);
-         *res <<= -shift;
-      }
-      else
-      {
-         *res = (std::numeric_limits<boost::long_long_type>::max)();
-         return;
-      }
-   }
-   else
-   {
-      eval_right_shift(man, shift);
-      eval_convert_to(res, man);
-   }
+   eval_right_shift(man, shift);
+   eval_convert_to(res, man);
    if(arg.sign())
    {
       *res = -*res;
@@ -1383,24 +1364,17 @@ inline void eval_convert_to(boost::ulong_long_type *res, const cpp_bin_float<Dig
       return;
    }
    typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::rep_type man(arg.bits());
-   typedef typename mpl::if_c < sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type > ::type shift_type;
-   shift_type shift 
-      = (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1 - arg.exponent();
-   if(shift > (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1)
+   typename mpl::if_c<sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type>::type shift 
+      = (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1 - arg.exponent();
+   if(shift > (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1)
    {
       *res = 0;
       return;
    }
    else if(shift < 0)
    {
-      if (cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - shift <= std::numeric_limits<boost::ulong_long_type>::digits)
-      {
-         // We have more bits in ulong_long_type than the float, so it's OK to left shift:
-         eval_convert_to(res, man);
-         *res <<= -shift;
-         return;
-      }
-      *res = (std::numeric_limits<boost::ulong_long_type>::max)();
+      // TODO: what if we have fewer cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count than a boost::long_long_type?
+      *res = (std::numeric_limits<boost::long_long_type>::max)();
       return;
    }
    eval_right_shift(man, shift);
@@ -1662,21 +1636,20 @@ inline void eval_floor(cpp_bin_float<Digits, DigitBase, Allocator, Exponent, Min
       res = arg;
       return;
    }
-   typedef typename mpl::if_c < sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type > ::type shift_type;
-   shift_type shift = 
-      (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - arg.exponent() - 1;
-   if((arg.exponent() > (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::max_exponent) || (shift <= 0))
+   typename mpl::if_c<sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type>::type shift = 
+      (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - arg.exponent() - 1;
+   if((arg.exponent() > (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::max_exponent) || (shift <= 0))
    {
       // Either arg is already an integer, or a special value:
       res = arg;
       return;
    }
-   if(shift >= (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count)
+   if(shift >= (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count)
    {
       res = static_cast<signed_limb_type>(arg.sign() ? -1 : 0);
       return;
    }
-   bool fractional = (shift_type)eval_lsb(arg.bits()) < shift;
+   bool fractional = (int)eval_lsb(arg.bits()) < shift;
    res = arg;
    eval_right_shift(res.bits(), shift);
    if(fractional && res.sign())
@@ -1706,22 +1679,21 @@ inline void eval_ceil(cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE
       res = arg;
       return;
    }
-   typedef typename mpl::if_c < sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type > ::type shift_type;
-   shift_type shift = (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - arg.exponent() - 1;
-   if((arg.exponent() > (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::max_exponent) || (shift <= 0))
+   typename mpl::if_c<sizeof(typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type) < sizeof(int), int, typename cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::exponent_type>::type shift = (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - arg.exponent() - 1;
+   if((arg.exponent() > (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::max_exponent) || (shift <= 0))
    {
       // Either arg is already an integer, or a special value:
       res = arg;
       return;
    }
-   if(shift >= (shift_type)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count)
+   if(shift >= (int)cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count)
    {
       bool s = arg.sign(); // takes care of signed zeros
       res = static_cast<signed_limb_type>(arg.sign() ? 0 : 1);
       res.sign() = s;
       return;
    }
-   bool fractional = (shift_type)eval_lsb(arg.bits()) < shift;
+   bool fractional = (int)eval_lsb(arg.bits()) < shift;
    res = arg;
    eval_right_shift(res.bits(), shift);
    if(fractional && !res.sign())
@@ -1831,8 +1803,7 @@ public:
       if(!value.first)
       {
          value.first = true;
-         typedef typename boost::mpl::front<typename number_type::backend_type::unsigned_types>::type ui_type;
-         value.second.backend() = ui_type(1u);
+         value.second = 1u;
          value.second.backend().exponent() = boost::multiprecision::cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::min_exponent;
       }
       return value.second;
@@ -1844,25 +1815,7 @@ public:
       if(!value.first)
       {
          value.first = true;
-         if(boost::is_void<Allocator>::value)
-            eval_complement(value.second.backend().bits(), value.second.backend().bits());
-         else
-         {
-            // We jump through hoops here using the backend type directly just to keep VC12 happy 
-            // (ie compiler workaround, for very strange compiler bug):
-            using boost::multiprecision::default_ops::eval_add;
-            using boost::multiprecision::default_ops::eval_decrement;
-            using boost::multiprecision::default_ops::eval_left_shift;
-            typedef typename number_type::backend_type::rep_type int_backend_type;
-            typedef typename boost::mpl::front<typename int_backend_type::unsigned_types>::type ui_type;
-            int_backend_type i;
-            i = ui_type(1u);
-            eval_left_shift(i, boost::multiprecision::cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::bit_count - 1);
-            int_backend_type j(i);
-            eval_decrement(i);
-            eval_add(j, i);
-            value.second.backend().bits() = j;
-         }
+         eval_complement(value.second.backend().bits(), value.second.backend().bits());
          value.second.backend().exponent() = boost::multiprecision::cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinE, MaxE>::max_exponent;
       }
       return value.second;
@@ -1885,10 +1838,8 @@ public:
       static std::pair<bool, number_type> value;
       if(!value.first)
       {
-         // We jump through hoops here just to keep VC12 happy (ie compiler workaround, for very strange compiler bug):
-         typedef typename boost::mpl::front<typename number_type::backend_type::unsigned_types>::type ui_type;
          value.first = true;
-         value.second.backend() = ui_type(1u);
+         value.second = 1;
          value.second = ldexp(value.second, 1 - (int)digits);
       }
       return value.second;
@@ -1902,9 +1853,7 @@ public:
       if(!value.first)
       {
          value.first = true;
-         // We jump through hoops here just to keep VC12 happy (ie compiler workaround, for very strange compiler bug):
-         typedef typename boost::mpl::front<typename number_type::backend_type::unsigned_types>::type ui_type;
-         value.second.backend() = ui_type(1u);
+         value.second = 1;
          value.second = ldexp(value.second, -1);
       }
       return value.second;

@@ -20,6 +20,8 @@
 
 #include <steam/steam_api.h>
 
+#include <GL/glew.h>
+
 #endif
 
 #include <SDL2/SDL.h>

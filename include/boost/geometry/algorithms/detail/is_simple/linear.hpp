@@ -217,7 +217,6 @@ inline bool has_self_intersections(Linear const& linear, Strategy const& strateg
             is_acceptable_turn<Linear>
         > interrupt_policy(predicate);
 
-    // TODO: skip_adjacent should be set to false
     detail::self_get_turn_points::get_turns
         <
             false, turn_policy
@@ -225,7 +224,7 @@ inline bool has_self_intersections(Linear const& linear, Strategy const& strateg
                  strategy,
                  detail::no_rescale_policy(),
                  turns,
-                 interrupt_policy, 0, true);
+                 interrupt_policy, 0);
 
     detail::is_valid::debug_print_turns(turns.begin(), turns.end());
     debug_print_boundary_points(linear);

@@ -33,7 +33,7 @@ const unsigned long lex_escapes = c_escapes << 1;
 namespace impl {
 
     //////////////////////////////////
-#if defined(BOOST_MSVC)
+#if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
 #pragma warning(push)
 #pragma warning(disable:4127)
 #endif

@@ -33,10 +33,9 @@ template< typename Fn, typename Allocator, typename R, typename ... Args >
 class task_object : public task_base< R, Args ... > {
 private:
     typedef task_base< R, Args ... >    base_type;
-    typedef std::allocator_traits< Allocator >  allocator_traits;
 
 public:
-    typedef typename allocator_traits::template rebind_alloc<
+    typedef typename std::allocator_traits< Allocator >::template rebind_alloc< 
         task_object
     >                                           allocator_type;
 
@@ -73,7 +72,7 @@ public:
         typedef pointer_traits< typename traity_type::pointer> ptrait_type;
 
         typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
-        typename ptrait_type::element_type* p = boost::to_address(ptr);
+        typename ptrait_type::element_type* p = ptrait_type::to_address(ptr);
         try {
             traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
@@ -94,9 +93,8 @@ private:
 
     static void destroy_( allocator_type const& alloc, task_object * p) noexcept {
         allocator_type a{ alloc };
-        typedef std::allocator_traits< allocator_type >    traity_type;
-        traity_type::destroy( a, p);
-        traity_type::deallocate( a, p, 1);
+        a.destroy( p);
+        a.deallocate( p, 1);
     }
 };
 
@@ -104,12 +102,11 @@ template< typename Fn, typename Allocator, typename ... Args >
 class task_object< Fn, Allocator, void, Args ... > : public task_base< void, Args ... > {
 private:
     typedef task_base< void, Args ... >    base_type;
-    typedef std::allocator_traits< Allocator >    allocator_traits;
 
 public:
-    typedef typename allocator_traits::template rebind_alloc<
+    typedef typename Allocator::template rebind<
         task_object< Fn, Allocator, void, Args ... >
-    >                                             allocator_type;
+    >::other                                      allocator_type;
 
     task_object( allocator_type const& alloc, Fn const& fn) :
         base_type{},
@@ -143,7 +140,7 @@ public:
         typedef pointer_traits< typename traity_type::pointer> ptrait_type;
 
         typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
-        typename ptrait_type::element_type* p = boost::to_address(ptr);
+        typename ptrait_type::element_type* p = ptrait_type::to_address(ptr);
         try {
             traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
@@ -164,9 +161,8 @@ private:
 
     static void destroy_( allocator_type const& alloc, task_object * p) noexcept {
         allocator_type a{ alloc };
-        typedef std::allocator_traits< allocator_type >    traity_type;
-        traity_type::destroy( a, p);
-        traity_type::deallocate( a, p, 1);
+        a.destroy( p);
+        a.deallocate( p, 1);
     }
 };
 

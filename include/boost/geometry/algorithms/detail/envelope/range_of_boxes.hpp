@@ -1,10 +1,9 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2015-2017, Oracle and/or its affiliates.
+// Copyright (c) 2015-2016, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Vissarion Fysikopoulos, on behalf of Oracle
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
@@ -195,6 +194,8 @@ struct envelope_range_of_boxes_by_expansion
         {
             detail::expand::indexed_loop
                 <
+                    strategy::compare::default_strategy,
+                    strategy::compare::default_strategy,
                     min_corner,
                     Dimension,
                     DimensionCount
@@ -202,6 +203,8 @@ struct envelope_range_of_boxes_by_expansion
 
             detail::expand::indexed_loop
                 <
+                    strategy::compare::default_strategy,
+                    strategy::compare::default_strategy,
                     max_corner,
                     Dimension,
                     DimensionCount
@@ -240,15 +243,9 @@ struct envelope_range_of_boxes
                 RangeOfBoxes const
             >::type iterator_type;
 
-        static const bool is_equatorial = ! boost::is_same
-                                            <
-                                                typename cs_tag<box_type>::type,
-                                                spherical_polar_tag
-                                            >::value;
-
         typedef math::detail::constants_on_spheroid
             <
-                coordinate_type, units_type, is_equatorial
+                coordinate_type, units_type
             > constants;
 
         typedef longitude_interval<coordinate_type> interval_type;

@@ -2,7 +2,7 @@
 // socket_acceptor_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,13 +16,10 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
-
-#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
-
 #include <boost/asio/basic_socket.hpp>
 #include <boost/asio/detail/type_traits.hpp>
 #include <boost/asio/error.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 
 #if defined(BOOST_ASIO_WINDOWS_RUNTIME)
 # include <boost/asio/detail/null_socket_service.hpp>
@@ -41,7 +38,7 @@ namespace asio {
 template <typename Protocol>
 class socket_acceptor_service
 #if defined(GENERATING_DOCUMENTATION)
-  : public boost::asio::io_context::service
+  : public boost::asio::io_service::service
 #else
   : public boost::asio::detail::service_base<socket_acceptor_service<Protocol> >
 #endif
@@ -49,7 +46,7 @@ class socket_acceptor_service
 public:
 #if defined(GENERATING_DOCUMENTATION)
   /// The unique service identifier.
-  static boost::asio::io_context::id id;
+  static boost::asio::io_service::id id;
 #endif
 
   /// The protocol type.
@@ -76,6 +73,13 @@ public:
   typedef typename service_impl_type::implementation_type implementation_type;
 #endif
 
+  /// (Deprecated: Use native_handle_type.) The native acceptor type.
+#if defined(GENERATING_DOCUMENTATION)
+  typedef implementation_defined native_type;
+#else
+  typedef typename service_impl_type::native_handle_type native_type;
+#endif
+
   /// The native acceptor type.
 #if defined(GENERATING_DOCUMENTATION)
   typedef implementation_defined native_handle_type;
@@ -83,11 +87,11 @@ public:
   typedef typename service_impl_type::native_handle_type native_handle_type;
 #endif
 
-  /// Construct a new socket acceptor service for the specified io_context.
-  explicit socket_acceptor_service(boost::asio::io_context& io_context)
+  /// Construct a new socket acceptor service for the specified io_service.
+  explicit socket_acceptor_service(boost::asio::io_service& io_service)
     : boost::asio::detail::service_base<
-        socket_acceptor_service<Protocol> >(io_context),
-      service_impl_(io_context)
+        socket_acceptor_service<Protocol> >(io_service),
+      service_impl_(io_service)
   {
   }
 
@@ -138,20 +142,18 @@ public:
   }
 
   /// Open a new socket acceptor implementation.
-  BOOST_ASIO_SYNC_OP_VOID open(implementation_type& impl,
+  boost::system::error_code open(implementation_type& impl,
       const protocol_type& protocol, boost::system::error_code& ec)
   {
-    service_impl_.open(impl, protocol, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.open(impl, protocol, ec);
   }
 
   /// Assign an existing native acceptor to a socket acceptor.
-  BOOST_ASIO_SYNC_OP_VOID assign(implementation_type& impl,
+  boost::system::error_code assign(implementation_type& impl,
       const protocol_type& protocol, const native_handle_type& native_acceptor,
       boost::system::error_code& ec)
   {
-    service_impl_.assign(impl, protocol, native_acceptor, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.assign(impl, protocol, native_acceptor, ec);
   }
 
   /// Determine whether the acceptor is open.
@@ -161,43 +163,38 @@ public:
   }
 
   /// Cancel all asynchronous operations associated with the acceptor.
-  BOOST_ASIO_SYNC_OP_VOID cancel(implementation_type& impl,
+  boost::system::error_code cancel(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.cancel(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.cancel(impl, ec);
   }
 
   /// Bind the socket acceptor to the specified local endpoint.
-  BOOST_ASIO_SYNC_OP_VOID bind(implementation_type& impl,
+  boost::system::error_code bind(implementation_type& impl,
       const endpoint_type& endpoint, boost::system::error_code& ec)
   {
-    service_impl_.bind(impl, endpoint, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.bind(impl, endpoint, ec);
   }
 
   /// Place the socket acceptor into the state where it will listen for new
   /// connections.
-  BOOST_ASIO_SYNC_OP_VOID listen(implementation_type& impl, int backlog,
+  boost::system::error_code listen(implementation_type& impl, int backlog,
       boost::system::error_code& ec)
   {
-    service_impl_.listen(impl, backlog, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.listen(impl, backlog, ec);
   }
 
   /// Close a socket acceptor implementation.
-  BOOST_ASIO_SYNC_OP_VOID close(implementation_type& impl,
+  boost::system::error_code close(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.close(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.close(impl, ec);
   }
 
-  /// Release ownership of the underlying acceptor.
-  native_handle_type release(implementation_type& impl,
-      boost::system::error_code& ec)
+  /// (Deprecated: Use native_handle().) Get the native acceptor implementation.
+  native_type native(implementation_type& impl)
   {
-    return service_impl_.release(impl, ec);
+    return service_impl_.native_handle(impl);
   }
 
   /// Get the native acceptor implementation.
@@ -208,29 +205,26 @@ public:
 
   /// Set a socket option.
   template <typename SettableSocketOption>
-  BOOST_ASIO_SYNC_OP_VOID set_option(implementation_type& impl,
+  boost::system::error_code set_option(implementation_type& impl,
       const SettableSocketOption& option, boost::system::error_code& ec)
   {
-    service_impl_.set_option(impl, option, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.set_option(impl, option, ec);
   }
 
   /// Get a socket option.
   template <typename GettableSocketOption>
-  BOOST_ASIO_SYNC_OP_VOID get_option(const implementation_type& impl,
+  boost::system::error_code get_option(const implementation_type& impl,
       GettableSocketOption& option, boost::system::error_code& ec) const
   {
-    service_impl_.get_option(impl, option, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.get_option(impl, option, ec);
   }
 
   /// Perform an IO control command on the socket.
   template <typename IoControlCommand>
-  BOOST_ASIO_SYNC_OP_VOID io_control(implementation_type& impl,
+  boost::system::error_code io_control(implementation_type& impl,
       IoControlCommand& command, boost::system::error_code& ec)
   {
-    service_impl_.io_control(impl, command, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.io_control(impl, command, ec);
   }
 
   /// Gets the non-blocking mode of the acceptor.
@@ -240,11 +234,10 @@ public:
   }
 
   /// Sets the non-blocking mode of the acceptor.
-  BOOST_ASIO_SYNC_OP_VOID non_blocking(implementation_type& impl,
+  boost::system::error_code non_blocking(implementation_type& impl,
       bool mode, boost::system::error_code& ec)
   {
-    service_impl_.non_blocking(impl, mode, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.non_blocking(impl, mode, ec);
   }
 
   /// Gets the non-blocking mode of the native acceptor implementation.
@@ -254,11 +247,10 @@ public:
   }
 
   /// Sets the non-blocking mode of the native acceptor implementation.
-  BOOST_ASIO_SYNC_OP_VOID native_non_blocking(implementation_type& impl,
+  boost::system::error_code native_non_blocking(implementation_type& impl,
       bool mode, boost::system::error_code& ec)
   {
-    service_impl_.native_non_blocking(impl, mode, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.native_non_blocking(impl, mode, ec);
   }
 
   /// Get the local endpoint.
@@ -268,51 +260,15 @@ public:
     return service_impl_.local_endpoint(impl, ec);
   }
 
-  /// Wait for the acceptor to become ready to read, ready to write, or to have
-  /// pending error conditions.
-  BOOST_ASIO_SYNC_OP_VOID wait(implementation_type& impl,
-      socket_base::wait_type w, boost::system::error_code& ec)
-  {
-    service_impl_.wait(impl, w, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
-  }
-
-  /// Asynchronously wait for the acceptor to become ready to read, ready to
-  /// write, or to have pending error conditions.
-  template <typename WaitHandler>
-  BOOST_ASIO_INITFN_RESULT_TYPE(WaitHandler,
-      void (boost::system::error_code))
-  async_wait(implementation_type& impl, socket_base::wait_type w,
-      BOOST_ASIO_MOVE_ARG(WaitHandler) handler)
-  {
-    async_completion<WaitHandler,
-      void (boost::system::error_code)> init(handler);
-
-    service_impl_.async_wait(impl, w, init.completion_handler);
-
-    return init.result.get();
-  }
-
   /// Accept a new connection.
   template <typename Protocol1, typename SocketService>
-  BOOST_ASIO_SYNC_OP_VOID accept(implementation_type& impl,
+  boost::system::error_code accept(implementation_type& impl,
       basic_socket<Protocol1, SocketService>& peer,
       endpoint_type* peer_endpoint, boost::system::error_code& ec,
       typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
   {
-    service_impl_.accept(impl, peer, peer_endpoint, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.accept(impl, peer, peer_endpoint, ec);
   }
-
-#if defined(BOOST_ASIO_HAS_MOVE)
-  /// Accept a new connection.
-  typename Protocol::socket accept(implementation_type& impl,
-      io_context* peer_io_context, endpoint_type* peer_endpoint,
-      boost::system::error_code& ec)
-  {
-    return service_impl_.accept(impl, peer_io_context, peer_endpoint, ec);
-  }
-#endif // defined(BOOST_ASIO_HAS_MOVE)
 
   /// Start an asynchronous accept.
   template <typename Protocol1, typename SocketService, typename AcceptHandler>
@@ -324,40 +280,20 @@ public:
       BOOST_ASIO_MOVE_ARG(AcceptHandler) handler,
       typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
   {
-    async_completion<AcceptHandler,
-      void (boost::system::error_code)> init(handler);
+    detail::async_result_init<
+      AcceptHandler, void (boost::system::error_code)> init(
+        BOOST_ASIO_MOVE_CAST(AcceptHandler)(handler));
 
-    service_impl_.async_accept(impl,
-        peer, peer_endpoint, init.completion_handler);
-
-    return init.result.get();
-  }
-
-#if defined(BOOST_ASIO_HAS_MOVE)
-  /// Start an asynchronous accept.
-  template <typename MoveAcceptHandler>
-  BOOST_ASIO_INITFN_RESULT_TYPE(MoveAcceptHandler,
-      void (boost::system::error_code, typename Protocol::socket))
-  async_accept(implementation_type& impl,
-      boost::asio::io_context* peer_io_context, endpoint_type* peer_endpoint,
-      BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler)
-  {
-    async_completion<MoveAcceptHandler,
-      void (boost::system::error_code,
-        typename Protocol::socket)> init(handler);
-
-    service_impl_.async_accept(impl,
-        peer_io_context, peer_endpoint, init.completion_handler);
+    service_impl_.async_accept(impl, peer, peer_endpoint, init.handler);
 
     return init.result.get();
   }
-#endif // defined(BOOST_ASIO_HAS_MOVE)
 
 private:
   // Destroy all user-defined handler objects owned by the service.
-  void shutdown()
+  void shutdown_service()
   {
-    service_impl_.shutdown();
+    service_impl_.shutdown_service();
   }
 
   // The platform-specific implementation.
@@ -368,7 +304,5 @@ private:
 } // namespace boost
 
 #include <boost/asio/detail/pop_options.hpp>
-
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
 
 #endif // BOOST_ASIO_SOCKET_ACCEPTOR_SERVICE_HPP

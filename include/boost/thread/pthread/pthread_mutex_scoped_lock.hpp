@@ -30,7 +30,7 @@ namespace boost
                 BOOST_VERIFY(!pthread_mutex_unlock(m));
                 locked=false;
             }
-            void unlock_if_locked() BOOST_NOEXCEPT
+            void check() BOOST_NOEXCEPT
             {
               if(locked)
               {

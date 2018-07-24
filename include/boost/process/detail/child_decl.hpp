@@ -65,8 +65,7 @@ public:
     child(child && lhs) noexcept
         : _child_handle(std::move(lhs._child_handle)),
           _exit_status(std::move(lhs._exit_status)),
-          _attached (lhs._attached),
-          _terminated (lhs._terminated)
+          _attached (lhs._attached)
     {
         lhs._attached = false;
     }
@@ -80,7 +79,6 @@ public:
         _child_handle= std::move(lhs._child_handle);
         _exit_status = std::move(lhs._exit_status);
         _attached    = lhs._attached;
-        _terminated  = lhs._terminated;
         lhs._attached = false;
         return *this;
     };
@@ -103,52 +101,72 @@ public:
 
     bool running()
     {
-        std::error_code ec;
-        bool b = running(ec);
-        boost::process::detail::throw_error(ec, "running error");
-        return b;
+        if (valid() && !_exited())
+        {
+            int code; 
+            auto res = boost::process::detail::api::is_running(_child_handle, code);
+            if (!res && !_exited())
+                _exit_status->store(code);
+
+            return res;
+        }
+        return false;
     }
 
     void terminate()
     {
-        std::error_code ec;
-        terminate(ec);
-        boost::process::detail::throw_error(ec, "terminate error");
+        if (valid() && running())
+            boost::process::detail::api::terminate(_child_handle);
+
+        _terminated = true;
     }
 
     void wait()
     {
-        std::error_code ec;
-        wait(ec);
-        boost::process::detail::throw_error(ec, "wait error");
+        if (!_exited() && valid())
+        {
+            int exit_code = 0;
+            boost::process::detail::api::wait(_child_handle, exit_code);
+            _exit_status->store(exit_code);
+        }
     }
 
     template< class Rep, class Period >
-    bool wait_for (const std::chrono::duration<Rep, Period>& rel_time)
+    bool wait_for  (const std::chrono::duration<Rep, Period>& rel_time)
     {
-        std::error_code ec;
-        bool b = wait_for(rel_time, ec);
-        boost::process::detail::throw_error(ec, "wait_for error");
-        return b;
+        if (!_exited())
+        {
+            int exit_code = 0;
+            auto b = boost::process::detail::api::wait_for(_child_handle, exit_code, rel_time);
+            if (!b)
+                return false;
+            _exit_status->store(exit_code);
+        }
+        return true;
     }
 
     template< class Clock, class Duration >
     bool wait_until(const std::chrono::time_point<Clock, Duration>& timeout_time )
     {
-        std::error_code ec;
-        bool b = wait_until(timeout_time, ec);
-        boost::process::detail::throw_error(ec, "wait_until error");
-        return b;
+        if (!_exited())
+        {
+            int exit_code = 0;
+            auto b = boost::process::detail::api::wait_until(_child_handle, exit_code, timeout_time);
+            if (!b)
+                return false;
+            _exit_status->store(exit_code);
+        }
+        return true;
     }
 
     bool running(std::error_code & ec) noexcept
     {
         if (valid() && !_exited())
         {
-            int exit_code = 0;
-            auto res = boost::process::detail::api::is_running(_child_handle, exit_code, ec);
+            int code;
+            auto res = boost::process::detail::api::is_running(_child_handle, code, ec);
             if (!res && !_exited())
-                _exit_status->store(exit_code);
+                _exit_status->store(code);
 
             return res;
         }
@@ -174,9 +192,17 @@ public:
     }
 
     template< class Rep, class Period >
-    bool wait_for (const std::chrono::duration<Rep, Period>& rel_time, std::error_code & ec) noexcept
+    bool wait_for  (const std::chrono::duration<Rep, Period>& rel_time, std::error_code & ec) noexcept
     {
-        return wait_until(std::chrono::steady_clock::now() + rel_time, ec);
+        if (!_exited())
+        {
+            int exit_code = 0;
+            auto b = boost::process::detail::api::wait_for(_child_handle, exit_code, rel_time, ec);
+            if (!b)
+                return false;
+            _exit_status->store(exit_code);
+        }
+        return true;
     }
 
     template< class Clock, class Duration >

@@ -13,6 +13,8 @@
 
 #include <boost/call_traits.hpp>
 #include <boost/detail/iterator.hpp>
+#include <boost/foreach.hpp>
+#include <boost/assert.hpp>
 
 namespace boost { namespace spirit { namespace qi { namespace detail
 {

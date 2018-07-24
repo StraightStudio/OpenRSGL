@@ -68,7 +68,7 @@ public :
         return negative() ? -1 : 1;
     }
 
-    //! Returns true if distance is negative (aka deflate)
+    //! Returns true if distance is negative
     inline bool negative() const
     {
         return m_distance < 0;

@@ -178,7 +178,7 @@ namespace boost { namespace spirit { namespace x3
                 if (prev != '\r') ++line;
                 break;
             case '\r':
-                ++line;
+                if (prev != '\n') ++line;
                 break;
             default:
                 break;

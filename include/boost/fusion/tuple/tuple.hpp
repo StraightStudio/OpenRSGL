@@ -34,19 +34,13 @@
 namespace boost { namespace fusion
 {
     template <typename ...T>
-    struct tuple
-        : vector_detail::vector_data<
-              typename detail::make_index_sequence<sizeof...(T)>::type
-            , T...
-          >
+    struct tuple : vector<T...>
     {
-        typedef vector_detail::vector_data<
-            typename detail::make_index_sequence<sizeof...(T)>::type
-          , T...
-        > base;
+        typedef vector<T...> base_type;
 
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        BOOST_DEFAULTED_FUNCTION(tuple(), {})
+        tuple()
+            : base_type() {}
 
         template <
             typename ...U
@@ -56,7 +50,7 @@ namespace boost { namespace fusion
         >
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         tuple(tuple<U...> const& other)
-            : base(vector_detail::each_elem(), other) {}
+            : base_type(other) {}
 
         template <
             typename ...U
@@ -66,7 +60,7 @@ namespace boost { namespace fusion
         >
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         tuple(tuple<U...>&& other)
-            : base(vector_detail::each_elem(), std::move(other)) {}
+            : base_type(std::move(other)) {}
 
         template <
             typename ...U
@@ -78,23 +72,23 @@ namespace boost { namespace fusion
         /*BOOST_CONSTEXPR*/ BOOST_FUSION_GPU_ENABLED
         explicit
         tuple(U&&... args)
-            : base(vector_detail::each_elem(), std::forward<U>(args)...) {}
+            : base_type(std::forward<U>(args)...) {}
 
         template<typename U1, typename U2>
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         tuple(std::pair<U1, U2> const& other)
-            : base(vector_detail::each_elem(), other.first, other.second) {}
+            : base_type(other.first, other.second) {}
 
         template<typename U1, typename U2>
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         tuple(std::pair<U1, U2>&& other)
-            : base(vector_detail::each_elem(), std::move(other.first), std::move(other.second)) {}
+            : base_type(std::move(other.first), std::move(other.second)) {}
 
         template<typename U>
         BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         tuple& operator=(U&& rhs)
         {
-            base::assign_sequence(std::forward<U>(rhs));
+            base_type::operator=(std::forward<U>(rhs));
             return *this;
         }
     };

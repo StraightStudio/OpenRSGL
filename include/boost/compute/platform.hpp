@@ -211,23 +211,6 @@ public:
         return m_platform != other.m_platform;
     }
 
-    /// Returns \c true if the platform OpenCL version is major.minor
-    /// or newer; otherwise returns \c false.
-    bool check_version(int major, int minor) const
-    {
-        std::stringstream stream;
-        stream << version();
-
-        int actual_major, actual_minor;
-        stream.ignore(7); // 'OpenCL '
-        stream >> actual_major;
-        stream.ignore(1); // '.'
-        stream >> actual_minor;
-
-        return actual_major > major ||
-               (actual_major == major && actual_minor >= minor);
-    }
-
 private:
     cl_platform_id m_platform;
 };
@@ -240,12 +223,6 @@ BOOST_COMPUTE_DETAIL_DEFINE_GET_INFO_SPECIALIZATIONS(platform,
     ((std::string, CL_PLATFORM_VENDOR))
     ((std::string, CL_PLATFORM_EXTENSIONS))
 )
-
-#ifdef BOOST_COMPUTE_CL_VERSION_2_1
-BOOST_COMPUTE_DETAIL_DEFINE_GET_INFO_SPECIALIZATIONS(platform,
-    ((cl_ulong, CL_PLATFORM_HOST_TIMER_RESOLUTION))
-)
-#endif // BOOST_COMPUTE_CL_VERSION_2_1
 
 inline boost::compute::platform device::platform() const
 {

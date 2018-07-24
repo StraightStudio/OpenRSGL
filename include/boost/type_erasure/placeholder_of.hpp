@@ -14,15 +14,11 @@
 namespace boost {
 namespace type_erasure {
 
-#ifndef BOOST_TYPE_ERASURE_DOXYGEN
-
 template<class Concept, class T>
 class any;
 
 template<class Concept, class T>
 class param;
-
-#endif
 
 /**
  * A metafunction returning the (const/reference qualified) placeholder
@@ -55,13 +51,6 @@ struct placeholder_of< ::boost::type_erasure::param<Concept, T> >
 {
     typedef T type;
 };
-
-#ifndef BOOST_NO_CXX11_TEMPLATE_ALIASES
-
-template<class T>
-using placeholder_of_t = typename ::boost::type_erasure::placeholder_of<T>::type;
-
-#endif
 
 }
 }

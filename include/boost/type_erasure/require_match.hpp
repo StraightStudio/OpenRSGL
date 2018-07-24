@@ -32,10 +32,8 @@
 namespace boost {
 namespace type_erasure {
 
-#ifndef BOOST_TYPE_ERASURE_DOXYGEN
 template<class Concept>
 class binding;
-#endif
 
 #ifdef BOOST_TYPE_ERASURE_DOXYGEN
 
@@ -116,8 +114,6 @@ void require_match(
     ::boost::type_erasure::detail::require_match_impl(cond, table, op, ::std::forward<U>(arg)...);
 }
 
-#ifndef BOOST_TYPE_ERASURE_USE_MP11
-
 template<class Op, class... U>
 void require_match(
     const Op& op,
@@ -130,25 +126,6 @@ void require_match(
     > cond;
     ::boost::type_erasure::detail::require_match_impl(cond, op, ::std::forward<U>(arg)...);
 }
-
-#else
-
-template<class Op, class... U>
-void require_match(
-    const Op& op,
-    U&&... arg)
-{
-    ::boost::type_erasure::is_relaxed<
-        ::boost::type_erasure::detail::extract_concept_t<
-            ::boost::type_erasure::detail::get_args_t<
-                typename ::boost::type_erasure::detail::get_signature<Op>::type
-            >,
-            ::boost::mp11::mp_list< ::boost::remove_reference_t<U>...> >
-    > cond;
-    ::boost::type_erasure::detail::require_match_impl(cond, op, ::std::forward<U>(arg)...);
-}
-
-#endif
 
 #else
 

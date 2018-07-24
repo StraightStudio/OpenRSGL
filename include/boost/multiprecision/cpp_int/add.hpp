@@ -417,12 +417,8 @@ BOOST_MP_FORCEINLINE typename enable_if_c<!is_trivial_cpp_int<cpp_int_backend<Mi
    static const limb_type one = 1;
    if(!result.sign() && (result.limbs()[0] < cpp_int_backend<MinBits1, MaxBits1, SignType1, Checked1, Allocator1>::max_limb_value))
       ++result.limbs()[0];
-   else if (result.sign() && result.limbs()[0])
-   {
+   else if(result.sign() && result.limbs()[0])
       --result.limbs()[0];
-      if (!result.limbs()[0])
-         result.sign(false);
-   }
    else
       eval_add(result, one);
 }
@@ -433,7 +429,7 @@ BOOST_MP_FORCEINLINE typename enable_if_c<!is_trivial_cpp_int<cpp_int_backend<Mi
    static const limb_type one = 1;
    if(!result.sign() && result.limbs()[0])
       --result.limbs()[0];
-   else if (result.sign() && (result.limbs()[0] < cpp_int_backend<MinBits1, MaxBits1, SignType1, Checked1, Allocator1>::max_limb_value))
+   else if(result.sign() && (result.limbs()[0] < cpp_int_backend<MinBits1, MaxBits1, SignType1, Checked1, Allocator1>::max_limb_value))
       ++result.limbs()[0];
    else
       eval_subtract(result, one);

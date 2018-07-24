@@ -12,7 +12,6 @@
 #define BOOST_OCTONION_HPP
 
 #include <boost/math/quaternion.hpp>
-#include <valarray>
 
 
 namespace boost

@@ -2,7 +2,7 @@
 // posix/basic_stream_descriptor.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,8 +16,6 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
-
-#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
 
 #if defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR) \
   || defined(GENERATING_DOCUMENTATION)
@@ -52,6 +50,10 @@ class basic_stream_descriptor
   : public basic_descriptor<StreamDescriptorService>
 {
 public:
+  /// (Deprecated: Use native_handle_type.) The native representation of a
+  /// descriptor.
+  typedef typename StreamDescriptorService::native_handle_type native_type;
+
   /// The native representation of a descriptor.
   typedef typename StreamDescriptorService::native_handle_type
     native_handle_type;
@@ -62,12 +64,12 @@ public:
    * descriptor needs to be opened and then connected or accepted before data
    * can be sent or received on it.
    *
-   * @param io_context The io_context object that the stream descriptor will
+   * @param io_service The io_service object that the stream descriptor will
    * use to dispatch handlers for any asynchronous operations performed on the
    * descriptor.
    */
-  explicit basic_stream_descriptor(boost::asio::io_context& io_context)
-    : basic_descriptor<StreamDescriptorService>(io_context)
+  explicit basic_stream_descriptor(boost::asio::io_service& io_service)
+    : basic_descriptor<StreamDescriptorService>(io_service)
   {
   }
 
@@ -76,7 +78,7 @@ public:
    * This constructor creates a stream descriptor object to hold an existing
    * native descriptor.
    *
-   * @param io_context The io_context object that the stream descriptor will
+   * @param io_service The io_service object that the stream descriptor will
    * use to dispatch handlers for any asynchronous operations performed on the
    * descriptor.
    *
@@ -84,9 +86,9 @@ public:
    *
    * @throws boost::system::system_error Thrown on failure.
    */
-  basic_stream_descriptor(boost::asio::io_context& io_context,
+  basic_stream_descriptor(boost::asio::io_service& io_service,
       const native_handle_type& native_descriptor)
-    : basic_descriptor<StreamDescriptorService>(io_context, native_descriptor)
+    : basic_descriptor<StreamDescriptorService>(io_service, native_descriptor)
   {
   }
 
@@ -99,7 +101,7 @@ public:
    * will occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_stream_descriptor(io_context&) constructor.
+   * constructed using the @c basic_stream_descriptor(io_service&) constructor.
    */
   basic_stream_descriptor(basic_stream_descriptor&& other)
     : basic_descriptor<StreamDescriptorService>(
@@ -116,7 +118,7 @@ public:
    * will occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_stream_descriptor(io_context&) constructor.
+   * constructed using the @c basic_stream_descriptor(io_service&) constructor.
    */
   basic_stream_descriptor& operator=(basic_stream_descriptor&& other)
   {
@@ -207,7 +209,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the handler will not be invoked from within this function. Invocation
    * of the handler will be performed in a manner equivalent to using
-   * boost::asio::io_context::post().
+   * boost::asio::io_service::post().
    *
    * @note The write operation may not transmit all of the data to the peer.
    * Consider using the @ref async_write function if you need to ensure that all
@@ -319,7 +321,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the handler will not be invoked from within this function. Invocation
    * of the handler will be performed in a manner equivalent to using
-   * boost::asio::io_context::post().
+   * boost::asio::io_service::post().
    *
    * @note The read operation may not read all of the requested number of bytes.
    * Consider using the @ref async_read function if you need to ensure that the
@@ -358,7 +360,5 @@ public:
 
 #endif // defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR)
        //   || defined(GENERATING_DOCUMENTATION)
-
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
 
 #endif // BOOST_ASIO_POSIX_BASIC_STREAM_DESCRIPTOR_HPP

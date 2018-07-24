@@ -89,7 +89,7 @@ namespace boost
       };
     }  // namespace linux_error
 
-# ifdef BOOST_SYSTEM_ENABLE_DEPRECATED
+# ifndef BOOST_SYSTEM_NO_DEPRECATED
     namespace Linux = linux_error;
 # endif
 

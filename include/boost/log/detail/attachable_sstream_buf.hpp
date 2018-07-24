@@ -22,7 +22,7 @@
 #include <string>
 #include <streambuf>
 #include <boost/assert.hpp>
-#include <boost/type_traits/integral_constant.hpp>
+#include <boost/mpl/bool.hpp>
 #include <boost/locale/utf.hpp>
 #include <boost/log/detail/config.hpp>
 #include <boost/log/detail/header.hpp>
@@ -277,13 +277,11 @@ protected:
     //! Finds the string length so that it includes only complete characters, and does not exceed \a max_size
     size_type length_until_boundary(const char_type* s, size_type n, size_type max_size) const
     {
-        BOOST_ASSERT(max_size <= n);
-        return length_until_boundary(s, n, max_size, boost::integral_constant< bool, sizeof(char_type) == 1u >());
+        return length_until_boundary(s, n, max_size, mpl::bool_< sizeof(char_type) == 1u >());;
     }
 
-private:
     //! Finds the string length so that it includes only complete characters, and does not exceed \a max_size
-    size_type length_until_boundary(const char_type* s, size_type, size_type max_size, boost::true_type) const
+    size_type length_until_boundary(const char_type* s, size_type n, size_type max_size, mpl::true_) const
     {
         std::locale loc = this->getloc();
         std::codecvt< wchar_t, char, std::mbstate_t > const& fac = std::use_facet< std::codecvt< wchar_t, char, std::mbstate_t > >(loc);
@@ -292,12 +290,12 @@ private:
     }
 
     //! Finds the string length so that it includes only complete characters, and does not exceed \a max_size
-    static size_type length_until_boundary(const char_type* s, size_type n, size_type max_size, boost::false_type)
+    static size_type length_until_boundary(const char_type* s, size_type n, size_type max_size, mpl::false_)
     {
         // Note: Although it's not required to be true for wchar_t, here we assume that the string has Unicode encoding.
         // Compilers use some version of Unicode for wchar_t on all tested platforms, and std::locale doesn't offer a way
         // to find the character boundary for character types other than char anyway.
-        typedef boost::locale::utf::utf_traits< char_type > utf_traits;
+        typedef boost::locale::utf::utf_traits< CharT > utf_traits;
 
         size_type pos = max_size;
         while (pos > 0u)

@@ -33,15 +33,11 @@
 namespace boost {
 namespace type_erasure {
 
-#ifndef BOOST_TYPE_ERASURE_DOXYGEN
-
 template<class T>
 struct typeid_;
 
 template<class Concept>
 class binding;
-
-#endif
 
 namespace detail {
 
@@ -98,8 +94,8 @@ bool check_match(const Op& f, U&&... args);
 
 namespace detail {
 
-template<class Concept, class R>
-bool check_table(const ::boost::type_erasure::binding<Concept>* /*t*/, R(*)())
+template<class Concept>
+bool check_table(const ::boost::type_erasure::binding<Concept>* t, void(*)())
 {
     return true;
 }
@@ -138,8 +134,6 @@ bool check_match(
         arg...);
 }
 
-#ifndef BOOST_TYPE_ERASURE_USE_MP11
-
 template<
     class Op,
     class... U
@@ -155,42 +149,6 @@ bool check_match(
     return ::boost::type_erasure::detail::check_table(
         p, static_cast<typename ::boost::type_erasure::detail::get_signature<Op>::type*>(0), arg...);
 }
-
-#else
-
-namespace detail {
-
-template<class T>
-struct get_args;
-
-template<class R, class ... T>
-struct get_args<R(T...)> { typedef ::boost::mp11::mp_list<T...> type; };
-
-template<class Sig>
-using get_args_t = typename get_args<Sig>::type;
-
-}
-
-template<
-    class Op,
-    class... U
->
-bool check_match(
-    const Op&,
-    U&&... arg)
-{
-    const ::boost::type_erasure::binding<
-        ::boost::type_erasure::detail::extract_concept_t<
-            ::boost::type_erasure::detail::get_args_t<
-                typename ::boost::type_erasure::detail::get_signature<Op>::type
-            >,
-            ::boost::mp11::mp_list< ::boost::remove_reference_t<U>...> > >* p = 0;
-
-    return ::boost::type_erasure::detail::check_table(
-        p, static_cast<typename ::boost::type_erasure::detail::get_signature<Op>::type*>(0), arg...);
-}
-
-#endif
 
 #else
 

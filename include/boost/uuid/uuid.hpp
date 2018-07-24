@@ -200,9 +200,9 @@ struct is_pod<uuids::uuid> : true_type {};
 #endif
 
 #if defined(BOOST_UUID_USE_SSE2)
-#include <boost/uuid/detail/uuid_x86.ipp>
+#include <boost/uuid/detail/uuid_x86.hpp>
 #else
-#include <boost/uuid/detail/uuid_generic.ipp>
+#include <boost/uuid/detail/uuid_generic.hpp>
 #endif
 
 #if defined(_MSC_VER)

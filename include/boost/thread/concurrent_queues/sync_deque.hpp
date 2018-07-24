@@ -149,7 +149,11 @@ namespace concurrent
   template <class ValueType, class Container>
   queue_op_status sync_deque<ValueType, Container>::wait_pull_front(ValueType& elem, unique_lock<mutex>& lk)
   {
-    const bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
+    if (super::empty(lk))
+    {
+      if (super::closed(lk)) return queue_op_status::closed;
+    }
+    bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
     if (has_been_closed) return queue_op_status::closed;
     pull_front(elem, lk);
     return queue_op_status::success;
@@ -184,8 +188,7 @@ namespace concurrent
   void sync_deque<ValueType, Container>::pull_front(ValueType& elem)
   {
       unique_lock<mutex> lk(super::mtx_);
-      const bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
-      if (has_been_closed) super::throw_if_closed(lk);
+      super::wait_until_not_empty(lk);
       pull_front(elem, lk);
   }
 
@@ -194,8 +197,7 @@ namespace concurrent
   ValueType sync_deque<ValueType, Container>::pull_front()
   {
       unique_lock<mutex> lk(super::mtx_);
-      const bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
-      if (has_been_closed) super::throw_if_closed(lk);
+      super::wait_until_not_empty(lk);
       return pull_front(lk);
   }
 

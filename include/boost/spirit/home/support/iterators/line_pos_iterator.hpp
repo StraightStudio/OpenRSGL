@@ -1,7 +1,6 @@
 /*==============================================================================
     Copyright (c) 2001-2011 Joel de Guzman
     Copyright (c) 2010      Bryce Lelbach
-    Copyright (c) 2014      Tomoki Imai
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -127,30 +126,17 @@ namespace boost { namespace spirit
     inline Iterator get_line_start(Iterator lower_bound, Iterator current)
     {
         Iterator latest = lower_bound;
-        bool prev_was_newline = false;
+      
         for (Iterator i = lower_bound; i != current; ++i) {
-            if (prev_was_newline) {
-                latest = i;
-            }
-            prev_was_newline = (*i == '\r') || (*i == '\n');
+          switch (*i) {
+            case '\r':
+            case '\n':
+              latest = i;
+          }
         }
-        if (prev_was_newline) {
-            latest = current;
-        }
+      
         return latest;
     }
-
-    template <class Iterator>
-    inline Iterator get_line_end(Iterator current, Iterator upper_bound)
-    {
-        for (Iterator i = current; i != upper_bound; ++i) {
-            if ((*i == '\n') || (*i == '\r')) {
-                return i;
-            }
-        }
-        return upper_bound;
-    }
-
     
     template <class Iterator>
     inline iterator_range<Iterator>
@@ -159,7 +145,11 @@ namespace boost { namespace spirit
                      Iterator upper_bound)
     {
         Iterator first = get_line_start(lower_bound, current);
-        Iterator last = get_line_end(current, upper_bound);
+        Iterator last = get_line_start(current, upper_bound);
+      
+        if (last == current)
+          last = upper_bound;
+      
         return iterator_range<Iterator>(first, last);
     }
     

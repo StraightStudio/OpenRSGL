@@ -18,12 +18,6 @@
 
 #include <map>
 #include <boost/ptr_container/ptr_map_adapter.hpp>
-#include <boost/ptr_container/detail/ptr_container_disable_deprecated.hpp>
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 
 namespace boost
 {
@@ -34,15 +28,13 @@ namespace boost
         class T, 
         class Compare        = std::less<Key>,
         class CloneAllocator = heap_clone_allocator,
-        class Allocator      = std::allocator< std::pair<const Key,typename ptr_container_detail::void_ptr<T>::type> >
+        class Allocator      = std::allocator< std::pair<const Key,void*> >
     >
     class ptr_map : 
-        public ptr_map_adapter<T,std::map<Key,
-            typename ptr_container_detail::void_ptr<T>::type,
+        public ptr_map_adapter<T,std::map<Key,void*,
                                Compare,Allocator>,CloneAllocator>
     {
-        typedef ptr_map_adapter<T,std::map<Key,
-            typename ptr_container_detail::void_ptr<T>::type,
+        typedef ptr_map_adapter<T,std::map<Key,void*,
                                 Compare,Allocator>,CloneAllocator>
             base_type;
 
@@ -169,9 +161,5 @@ namespace boost
 
 
 }
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic pop
-#endif
 
 #endif

@@ -34,7 +34,6 @@
 #include <boost/container/detail/mpl.hpp>
 #include <boost/container/detail/node_alloc_holder.hpp>
 #include <boost/container/detail/type_traits.hpp>
-#include <boost/container/detail/value_functors.hpp>
 // intrusive
 #include <boost/intrusive/pointer_traits.hpp>
 #include <boost/intrusive/slist.hpp>
@@ -62,13 +61,13 @@ namespace container {
 template <class T, class Allocator>
 class slist;
 
-namespace dtl {
+namespace container_detail {
 
 template<class VoidPointer>
 struct slist_hook
 {
-   typedef typename dtl::bi::make_slist_base_hook
-      <dtl::bi::void_pointer<VoidPointer>, dtl::bi::link_mode<dtl::bi::normal_link> >::type type;
+   typedef typename container_detail::bi::make_slist_base_hook
+      <container_detail::bi::void_pointer<VoidPointer>, container_detail::bi::link_mode<container_detail::bi::normal_link> >::type type;
 };
 
 template <class T, class VoidPointer>
@@ -105,20 +104,20 @@ struct intrusive_slist_type
       <typename allocator_traits_type::pointer>::template
          rebind_pointer<void>::type
             void_pointer;
-   typedef typename dtl::slist_node
+   typedef typename container_detail::slist_node
          <value_type, void_pointer>             node_type;
 
-   typedef typename dtl::bi::make_slist
+   typedef typename container_detail::bi::make_slist
       <node_type
-      ,dtl::bi::base_hook<typename slist_hook<void_pointer>::type>
-      ,dtl::bi::constant_time_size<true>
-      , dtl::bi::size_type
+      ,container_detail::bi::base_hook<typename slist_hook<void_pointer>::type>
+      ,container_detail::bi::constant_time_size<true>
+      , container_detail::bi::size_type
          <typename allocator_traits_type::size_type>
       >::type                                   container_type;
    typedef container_type                       type ;
 };
 
-}  //namespace dtl {
+}  //namespace container_detail {
 
 #endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 
@@ -163,26 +162,26 @@ template <class T, class Allocator = new_allocator<T> >
 template <class T, class Allocator>
 #endif
 class slist
-   : protected dtl::node_alloc_holder
-      <Allocator, typename dtl::intrusive_slist_type<Allocator>::type>
+   : protected container_detail::node_alloc_holder
+      <Allocator, typename container_detail::intrusive_slist_type<Allocator>::type>
 {
    #ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
    typedef typename
-      dtl::intrusive_slist_type<Allocator>::type           Icont;
-   typedef dtl::node_alloc_holder<Allocator, Icont>        AllocHolder;
+      container_detail::intrusive_slist_type<Allocator>::type           Icont;
+   typedef container_detail::node_alloc_holder<Allocator, Icont>        AllocHolder;
    typedef typename AllocHolder::NodePtr                    NodePtr;
    typedef typename AllocHolder::NodeAlloc                  NodeAlloc;
    typedef typename AllocHolder::ValAlloc                   ValAlloc;
    typedef typename AllocHolder::Node                       Node;
-   typedef dtl::allocator_destroyer<NodeAlloc> Destroyer;
+   typedef container_detail::allocator_destroyer<NodeAlloc> Destroyer;
    typedef typename AllocHolder::alloc_version              alloc_version;
    typedef boost::container::
       allocator_traits<Allocator>                           allocator_traits_type;
    typedef boost::container::equal_to_value<Allocator>      equal_to_value_type;
 
    BOOST_COPYABLE_AND_MOVABLE(slist)
-   typedef dtl::iterator_from_iiterator<typename Icont::iterator, false>  iterator_impl;
-   typedef dtl::iterator_from_iiterator<typename Icont::iterator, true >  const_iterator_impl;
+   typedef container_detail::iterator_from_iiterator<typename Icont::iterator, false>  iterator_impl;
+   typedef container_detail::iterator_from_iiterator<typename Icont::iterator, true >  const_iterator_impl;
    #endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 
    public:
@@ -217,7 +216,7 @@ class slist
    //! <b>Throws</b>: If allocator_type's copy constructor throws.
    //!
    //! <b>Complexity</b>: Constant.
-   slist() BOOST_NOEXCEPT_IF(dtl::is_nothrow_default_constructible<Allocator>::value)
+   slist() BOOST_NOEXCEPT_IF(container_detail::is_nothrow_default_constructible<Allocator>::value)
       :  AllocHolder()
    {}
 
@@ -358,7 +357,7 @@ class slist
       if (&x != this){
          NodeAlloc &this_alloc     = this->node_alloc();
          const NodeAlloc &x_alloc  = x.node_alloc();
-         dtl::bool_<allocator_traits_type::
+         container_detail::bool_<allocator_traits_type::
             propagate_on_container_copy_assignment::value> flag;
          if(flag && this_alloc != x_alloc){
             this->clear();
@@ -443,7 +442,7 @@ class slist
    template <class InpIt>
    void assign(InpIt first, InpIt last
       #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
-      , typename dtl::disable_if_convertible<InpIt, size_type>::type * = 0
+      , typename container_detail::disable_if_convertible<InpIt, size_type>::type * = 0
       #endif
       )
    {
@@ -847,10 +846,10 @@ class slist
    template <class InpIt>
    iterator insert_after(const_iterator prev_p, InpIt first, InpIt last
       #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
-      , typename dtl::enable_if_c
-         < !dtl::is_convertible<InpIt, size_type>::value
-          && (dtl::is_input_iterator<InpIt>::value
-                || dtl::is_same<alloc_version, version_1>::value
+      , typename container_detail::enable_if_c
+         < !container_detail::is_convertible<InpIt, size_type>::value
+          && (container_detail::is_input_iterator<InpIt>::value
+                || container_detail::is_same<alloc_version, version_1>::value
                )
          >::type * = 0
       #endif
@@ -885,10 +884,10 @@ class slist
    #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
    template <class FwdIt>
    iterator insert_after(const_iterator prev, FwdIt first, FwdIt last
-      , typename dtl::enable_if_c
-         < !dtl::is_convertible<FwdIt, size_type>::value
-            && !(dtl::is_input_iterator<FwdIt>::value
-                || dtl::is_same<alloc_version, version_1>::value
+      , typename container_detail::enable_if_c
+         < !container_detail::is_convertible<FwdIt, size_type>::value
+            && !(container_detail::is_input_iterator<FwdIt>::value
+                || container_detail::is_same<alloc_version, version_1>::value
                )
          >::type * = 0
       )
@@ -1166,7 +1165,7 @@ class slist
    //! <b>Note</b>: The relative order of elements that are not removed is unchanged,
    //!   and iterators to elements that are not removed remain valid.
    void unique()
-   {  this->unique(value_equal_t());  }
+   {  this->unique(value_equal());  }
 
    //! <b>Effects</b>: Removes adjacent duplicate elements or adjacent
    //!   elements that satisfy some binary predicate from the list.
@@ -1196,7 +1195,7 @@ class slist
    //! <b>Complexity</b>: This function is linear time: it performs at most
    //!   size() + x.size() - 1 comparisons.
    void merge(slist & x)
-   {  this->merge(x, value_less_t()); }
+   {  this->merge(x, value_less()); }
 
    //! <b>Requires</b>: The lists x and *this must be distinct.
    //!
@@ -1262,7 +1261,7 @@ class slist
    //! <b>Complexity</b>: The number of comparisons is approximately N log N, where N
    //!   is the list's size.
    void sort()
-   {  this->sort(value_less_t());  }
+   {  this->sort(value_less());  }
 
    //! <b>Effects</b>: This function sorts the list *this according to std::less<value_type>.
    //!   The sort is stable, that is, the relative order of equivalent elements is preserved.
@@ -1471,7 +1470,7 @@ class slist
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //!   list. Iterators of this list and all the references are not invalidated.
    void splice(const_iterator p, slist& x, const_iterator i) BOOST_NOEXCEPT_OR_NOTHROW
-   {  this->splice_after(this->previous(p), x, x.previous(i));  }
+   {  this->splice_after(this->previous(p), x, this->previous(i));  }
 
    //! <b>Requires</b>: p must point to an element contained
    //!   by this list. i must point to an element contained in list x.
@@ -1505,7 +1504,7 @@ class slist
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //!   list. Iterators of this list and all the references are not invalidated.
    void splice(const_iterator p, slist& x, const_iterator first, const_iterator last) BOOST_NOEXCEPT_OR_NOTHROW
-   {  this->splice_after(this->previous(p), x, x.previous(first), x.previous(last));  }
+   {  this->splice_after(this->previous(p), x, this->previous(first), this->previous(last));  }
 
    //! <b>Requires</b>: p must point to an element contained
    //!   by this list. first and last must point to elements contained in list x.
@@ -1626,9 +1625,28 @@ class slist
    };
 
    //Functors for member algorithm defaults
-   typedef value_less<value_type>   value_less_t;
-   typedef value_equal<value_type>  value_equal_t;
+   struct value_less
+   {
+      bool operator()(const value_type &a, const value_type &b) const
+         {  return a < b;  }
+   };
 
+   struct value_equal
+   {
+      bool operator()(const value_type &a, const value_type &b) const
+         {  return a == b;  }
+   };
+
+   struct value_equal_to_this
+   {
+      explicit value_equal_to_this(const value_type &ref)
+         : m_ref(ref){}
+
+      bool operator()(const value_type &val) const
+         {  return m_ref == val;  }
+
+      const value_type &m_ref;
+   };
    #endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 };
 

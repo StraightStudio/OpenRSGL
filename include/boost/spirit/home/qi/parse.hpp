@@ -15,7 +15,7 @@
 #include <boost/spirit/home/support/context.hpp>
 #include <boost/spirit/home/support/nonterminal/locals.hpp>
 #include <boost/spirit/home/qi/detail/parse.hpp>
-#include <boost/iterator/iterator_concepts.hpp>
+#include <boost/concept_check.hpp>
 
 namespace boost { namespace spirit { namespace qi
 {
@@ -27,12 +27,11 @@ namespace boost { namespace spirit { namespace qi
       , Iterator last
       , Expr const& expr)
     {
-        // Make sure the iterator is at least a readable forward traversal iterator.
-        // If you got a compilation error here, then you are using a weaker iterator
-        // while calling this function, you need to supply a readable forward traversal
-        // iterator instead.
-        BOOST_CONCEPT_ASSERT((boost_concepts::ReadableIteratorConcept<Iterator>));
-        BOOST_CONCEPT_ASSERT((boost_concepts::ForwardTraversalConcept<Iterator>));
+        // Make sure the iterator is at least a forward_iterator. If you got a 
+        // compilation error here, then you are using an input_iterator while
+        // calling this function, you need to supply at least a 
+        // forward_iterator instead.
+        BOOST_CONCEPT_ASSERT((ForwardIterator<Iterator>));
 
         return detail::parse_impl<Expr>::call(first, last, expr);
     }
@@ -72,12 +71,11 @@ namespace boost { namespace spirit { namespace qi
       , Expr const& expr
       , Attr& attr)
     {
-        // Make sure the iterator is at least a readable forward traversal iterator.
-        // If you got a compilation error here, then you are using a weaker iterator
-        // while calling this function, you need to supply a readable forward traversal
-        // iterator instead.
-        BOOST_CONCEPT_ASSERT((boost_concepts::ReadableIteratorConcept<Iterator>));
-        BOOST_CONCEPT_ASSERT((boost_concepts::ForwardTraversalConcept<Iterator>));
+        // Make sure the iterator is at least a forward_iterator. If you got a 
+        // compilation error here, then you are using an input_iterator while
+        // calling this function, you need to supply at least a 
+        // forward_iterator instead.
+        BOOST_CONCEPT_ASSERT((ForwardIterator<Iterator>));
 
         // Report invalid expression error as early as possible.
         // If you got an error_invalid_expression error message here,
@@ -110,12 +108,11 @@ namespace boost { namespace spirit { namespace qi
       , Skipper const& skipper
       , BOOST_SCOPED_ENUM(skip_flag) post_skip = skip_flag::postskip)
     {
-        // Make sure the iterator is at least a readable forward traversal iterator.
-        // If you got a compilation error here, then you are using a weaker iterator
-        // while calling this function, you need to supply a readable forward traversal
-        // iterator instead.
-        BOOST_CONCEPT_ASSERT((boost_concepts::ReadableIteratorConcept<Iterator>));
-        BOOST_CONCEPT_ASSERT((boost_concepts::ForwardTraversalConcept<Iterator>));
+        // Make sure the iterator is at least a forward_iterator. If you got a 
+        // compilation error here, then you are using an input_iterator while
+        // calling this function, you need to supply at least a 
+        // forward_iterator instead.
+        BOOST_CONCEPT_ASSERT((ForwardIterator<Iterator>));
 
         return detail::phrase_parse_impl<Expr>::call(
             first, last, expr, skipper, post_skip);
@@ -145,12 +142,11 @@ namespace boost { namespace spirit { namespace qi
       , BOOST_SCOPED_ENUM(skip_flag) post_skip
       , Attr& attr)
     {
-        // Make sure the iterator is at least a readable forward traversal iterator.
-        // If you got a compilation error here, then you are using a weaker iterator
-        // while calling this function, you need to supply a readable forward traversal
-        // iterator instead.
-        BOOST_CONCEPT_ASSERT((boost_concepts::ReadableIteratorConcept<Iterator>));
-        BOOST_CONCEPT_ASSERT((boost_concepts::ForwardTraversalConcept<Iterator>));
+        // Make sure the iterator is at least a forward_iterator. If you got a 
+        // compilation error here, then you are using an input_iterator while
+        // calling this function, you need to supply at least a 
+        // forward_iterator instead.
+        BOOST_CONCEPT_ASSERT((ForwardIterator<Iterator>));
 
         // Report invalid expression error as early as possible.
         // If you got an error_invalid_expression error message here,

@@ -28,8 +28,6 @@
 #include <boost/serialization/traits.hpp>
 #include <boost/serialization/wrapper.hpp>
 
-#include <boost/core/addressof.hpp>
-
 namespace boost {
 namespace serialization {
 
@@ -45,7 +43,7 @@ struct nvp :
 public:
     explicit nvp(const char * name_, T & t) :
         // note: added _ to suppress useless gcc warning
-        std::pair<const char *, T *>(name_, boost::addressof(t))
+        std::pair<const char *, T *>(name_, & t)
     {}
 
     const char * name() const {

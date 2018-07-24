@@ -1,9 +1,8 @@
 // Boost.Geometry
 
-// Copyright (c) 2015-2017 Oracle and/or its affiliates.
+// Copyright (c) 2015-2016 Oracle and/or its affiliates.
 
 // Contributed and/or modified by Vissarion Fysikopoulos, on behalf of Oracle
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -541,11 +540,12 @@ public:
         return result;
     }
 
-    // Check whenever a segment crosses the prime meridian
+    // Keep track whenever a segment crosses the prime meridian
     // First normalize to [0,360)
-    template <typename PointOfSegment>
-    static inline bool crosses_prime_meridian(PointOfSegment const& p1,
-                                              PointOfSegment const& p2)
+    template <typename PointOfSegment, typename StateType>
+    static inline int crosses_prime_meridian(PointOfSegment const& p1,
+                                             PointOfSegment const& p2,
+                                             StateType& state)
     {
         CT const pi
             = geometry::math::pi<CT>();
@@ -562,7 +562,12 @@ public:
         CT max_lon = (std::max)(p1_lon, p2_lon);
         CT min_lon = (std::min)(p1_lon, p2_lon);
 
-        return max_lon > pi && min_lon < pi && max_lon - min_lon > pi;
+        if(max_lon > pi && min_lon < pi && max_lon - min_lon > pi)
+        {
+            state.m_crosses_prime_meridian++;
+        }
+
+        return state.m_crosses_prime_meridian;
     }
 
 };

@@ -18,7 +18,6 @@
 
 #include <valarray>
 #include <boost/config.hpp>
-#include <boost/core/addressof.hpp>
 
 #include <boost/serialization/collections_save_imp.hpp>
 #include <boost/serialization/collections_load_imp.hpp>
@@ -48,7 +47,7 @@ void save( Archive & ar, const STD::valarray<U> &t, const unsigned int /*file_ve
     if (t.size()){
         // explict template arguments to pass intel C++ compiler
         ar << serialization::make_array<const U, collection_size_type>(
-            static_cast<const U *>( boost::addressof(t[0]) ),
+            static_cast<const U *>(&t[0]),
             count
         );
     }
@@ -63,7 +62,7 @@ void load( Archive & ar, STD::valarray<U> &t,  const unsigned int /*file_version
     if (t.size()){
         // explict template arguments to pass intel C++ compiler
         ar >> serialization::make_array<U, collection_size_type>(
-            static_cast<U *>( boost::addressof(t[0]) ),
+            static_cast<U *>(&t[0]),
             count
         );
     }

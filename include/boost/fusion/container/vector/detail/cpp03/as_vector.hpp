@@ -25,13 +25,7 @@ namespace boost { namespace fusion { namespace detail
 BOOST_FUSION_BARRIER_BEGIN
 
     template <int size>
-    struct as_vector
-    {
-        BOOST_STATIC_ASSERT_MSG(
-            size <= FUSION_MAX_VECTOR_SIZE
-          , "FUSION_MAX_VECTOR_SIZE limit is too low"
-        );
-    };
+    struct as_vector;
 
     template <>
     struct as_vector<0>

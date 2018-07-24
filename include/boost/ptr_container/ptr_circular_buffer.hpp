@@ -18,13 +18,6 @@
 
 #include <boost/circular_buffer.hpp>
 #include <boost/ptr_container/ptr_sequence_adapter.hpp>
-#include <boost/next_prior.hpp>
-#include <boost/ptr_container/detail/ptr_container_disable_deprecated.hpp>
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 
 namespace boost
 {
@@ -36,17 +29,16 @@ namespace boost
         class Allocator      = std::allocator<void*>
     >
     class ptr_circular_buffer : public 
-        ptr_sequence_adapter< T, boost::circular_buffer<
-                typename ptr_container_detail::void_ptr<T>::type,Allocator>, 
+        ptr_sequence_adapter< T, 
+                              boost::circular_buffer<void*,Allocator>, 
                               CloneAllocator >
     {  
-        typedef ptr_sequence_adapter< T, boost::circular_buffer<
-                typename ptr_container_detail::void_ptr<T>::type,Allocator>, 
+        typedef ptr_sequence_adapter< T, 
+                                      boost::circular_buffer<void*,Allocator>, 
                                       CloneAllocator > 
             base_type;
 
-        typedef boost::circular_buffer<typename 
-            ptr_container_detail::void_ptr<T>::type,Allocator>  circular_buffer_type;
+        typedef boost::circular_buffer<void*,Allocator>         circular_buffer_type;
         typedef ptr_circular_buffer<T,CloneAllocator,Allocator> this_type;
         
     public: // typedefs
@@ -272,7 +264,7 @@ namespace boost
         {
             ptr_circular_buffer temp( n );
             for( size_type i = 0u; i != n; ++i )
-               temp.push_back( temp.null_policy_allocate_clone( to_clone ) );
+               temp.push_back( this->null_policy_allocate_clone( to_clone ) );
             this->swap( temp ); 
         }
         
@@ -292,88 +284,61 @@ namespace boost
 
         void push_back( value_type ptr ) // nothrow
         {
-            BOOST_ASSERT( capacity() > 0 );
+            BOOST_ASSERT( capacity() > 0 );   
             this->enforce_null_policy( ptr, "Null pointer in 'push_back()'" );
          
-            auto_type old_ptr( value_type(), *this );
+            auto_type old_ptr;
             if( full() )
-                old_ptr.reset( &*this->begin(), *this );
-            this->base().push_back( ptr );           
+                old_ptr.reset( &*this->begin() );
+            this->base().push_back( ptr );            
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         void push_back( std::auto_ptr<U> ptr ) // nothrow
         {
-            push_back( ptr.release() );
+            push_back( ptr.release() ); 
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        void push_back( std::unique_ptr<U> ptr ) // nothrow
-        {
-            push_back( ptr.release() );
-        }
-#endif
 
         void push_front( value_type ptr ) // nothrow
         {
             BOOST_ASSERT( capacity() > 0 );
             this->enforce_null_policy( ptr, "Null pointer in 'push_front()'" );
 
-            auto_type old_ptr( value_type(), *this );
+            auto_type old_ptr;
             if( full() )
-                old_ptr.reset( &*(--this->end()), *this );
+                old_ptr.reset( &*(--this->end()) );
             this->base().push_front( ptr );            
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         void push_front( std::auto_ptr<U> ptr ) // nothrow
         {
-            push_front( ptr.release() );
+            push_front( ptr.release() ); 
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        void push_front( std::unique_ptr<U> ptr ) // nothrow
-        {
-            push_front( ptr.release() );
-        }
-#endif
 
         iterator insert( iterator pos, value_type ptr ) // nothrow
         {
             BOOST_ASSERT( capacity() > 0 );
             this->enforce_null_policy( ptr, "Null pointer in 'insert()'" );
 
-            auto_type new_ptr( ptr, *this );
+            auto_type new_ptr( ptr );
             iterator b = this->begin();
             if( full() && pos == b )
                 return b;
             
-            new_ptr.release();            
-            auto_type old_ptr( value_type(), *this );
+            auto_type old_ptr;
             if( full() )
-                old_ptr.reset( &*this->begin(), *this );
+                old_ptr.reset( &*this->begin() );
 
+            new_ptr.release();
             return this->base().insert( pos.base(), ptr );
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         iterator insert( iterator pos, std::auto_ptr<U> ptr ) // nothrow
         {
             return insert( pos, ptr.release() );
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        iterator insert( iterator pos, std::unique_ptr<U> ptr ) // nothrow
-        {
-            return insert( pos, ptr.release() );
-        }
-#endif
 
         template< class InputIterator >
         void insert( iterator pos, InputIterator first, InputIterator last ) // basic
@@ -399,33 +364,24 @@ namespace boost
             BOOST_ASSERT( capacity() > 0 );
             this->enforce_null_policy( ptr, "Null pointer in 'rinsert()'" );
 
-            auto_type new_ptr( ptr, *this );
+            auto_type new_ptr( ptr );
             iterator b = this->end();
             if (full() && pos == b)
                 return b;
-                       
-            new_ptr.release();            
-            auto_type old_ptr( value_type(), *this );
+            
+            auto_type old_ptr;
             if( full() )
-                old_ptr.reset( &this->back(), *this );
+                old_ptr.reset( &this->back() );
 
+            new_ptr.release();
             return this->base().rinsert( pos.base(), ptr );
         }
 
-#ifndef BOOST_NO_AUTO_PTR
         template< class U >
         iterator rinsert( iterator pos, std::auto_ptr<U> ptr ) // nothrow
         {
             return rinsert( pos, ptr.release() );
         }
-#endif
-#ifndef BOOST_NO_CXX11_SMART_PTR
-        template< class U >
-        iterator rinsert( iterator pos, std::unique_ptr<U> ptr ) // nothrow
-        {
-            return rinsert( pos, ptr.release() );
-        }
-#endif
 
  
         template< class InputIterator >
@@ -529,7 +485,7 @@ namespace boost
             if( delete_from )
             {
                 BOOST_DEDUCED_TYPENAME base_type::scoped_deleter 
-                    deleter( *this, from, size );                  // nothrow
+                    deleter( from, size );                         // nothrow
                 for( size_type i = 0u; i != size; ++i, ++before )
                     before = insert( before, *(from+i) );          // nothrow
                 deleter.release();                                 // nothrow
@@ -571,9 +527,5 @@ namespace boost
     }
     
 }
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic pop
-#endif
 
 #endif

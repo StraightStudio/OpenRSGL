@@ -8,7 +8,6 @@
 #define BOOST_FIBERS_NUMA_PIN_THREAD_H
 
 #include <cstdint>
-#include <thread>
 
 #include <boost/config.hpp>
 
@@ -23,10 +22,7 @@ namespace fibers {
 namespace numa {
 
 BOOST_FIBERS_DECL
-void pin_thread( std::uint32_t, std::thread::native_handle_type);
-
-BOOST_FIBERS_DECL
-void pin_thread( std::uint32_t cpuid);
+void pin_thread( std::uint32_t);
 
 }}}
 

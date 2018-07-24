@@ -17,7 +17,6 @@
 #include <locale>
 #include <vector>
 #include <memory>
-#include <boost/locale/hold_ptr.hpp>
 
 namespace boost {
     namespace locale {
@@ -102,7 +101,6 @@ namespace boost {
             ///
             ~localization_backend_manager();
 
-            #if !defined(BOOST_LOCALE_HIDE_AUTO_PTR) && !defined(BOOST_NO_AUTO_PTR)
             ///
             /// Create new localization backend according to current settings.
             ///
@@ -114,32 +112,6 @@ namespace boost {
             /// This library provides: "icu", "posix", "winapi" and "std" backends.
             ///
             void add_backend(std::string const &name,std::auto_ptr<localization_backend> backend);
-            #endif
-
-            ///
-            /// Create new localization backend according to current settings. Ownership is passed to caller
-            ///
-            localization_backend *create() const;
-            ///
-            /// Add new backend to the manager, each backend should be uniquely defined by its name.
-            /// ownership on backend is transfered
-            ///
-            /// This library provides: "icu", "posix", "winapi" and "std" backends.
-            ///
-            void adopt_backend(std::string const &name,localization_backend *backend);
-            #ifndef BOOST_NO_CXX11_SMART_PTR
-            ///
-            /// Create new localization backend according to current settings.
-            ///
-            std::unique_ptr<localization_backend> get_unique_ptr() const;
-
-            ///
-            /// Add new backend to the manager, each backend should be uniquely defined by its name.
-            ///
-            /// This library provides: "icu", "posix", "winapi" and "std" backends.
-            ///
-            void add_backend(std::string const &name,std::unique_ptr<localization_backend> backend);
-            #endif
 
             ///
             /// Clear backend
@@ -171,7 +143,7 @@ namespace boost {
             static localization_backend_manager global();
         private:
             class impl;
-            hold_ptr<impl> pimpl_;
+            std::auto_ptr<impl> pimpl_;
         };
 
     } // locale

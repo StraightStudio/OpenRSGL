@@ -48,11 +48,11 @@ namespace ipcdetail {
 
 template<class VoidPointer>
 class basic_multiallocation_chain
-   : public boost::container::dtl::
+   : public boost::container::container_detail::
       basic_multiallocation_chain<VoidPointer>
 {
    BOOST_MOVABLE_BUT_NOT_COPYABLE(basic_multiallocation_chain)
-   typedef boost::container::dtl::
+   typedef boost::container::container_detail::
       basic_multiallocation_chain<VoidPointer> base_t;
    public:
 

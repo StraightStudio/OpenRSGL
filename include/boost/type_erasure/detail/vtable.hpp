@@ -17,7 +17,6 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/preprocessor/cat.hpp>
-#include <boost/preprocessor/expr_if.hpp>
 #include <boost/preprocessor/iteration/iterate.hpp>
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -99,7 +98,7 @@ struct compare_vtable;
 template<>
 struct compare_vtable<> {
     template<class S>
-    static bool apply(const S& /*s1*/, const S& /*s2*/)
+    static bool apply(const S& s1, const S& s2)
     {
         return true;
     }
@@ -152,9 +151,9 @@ struct vtable_storage<>
     vtable_storage() = default;
 
     template<class Bindings, class Src>
-    void convert_from(const Src& /*src*/) {}
+    void convert_from(const Src& src) {}
 
-    bool operator==(const vtable_storage& /*other*/) const
+    bool operator==(const vtable_storage& other) const
     { return true; }
 };
 
@@ -250,12 +249,12 @@ struct BOOST_PP_CAT(vtable_storage, N)
     BOOST_PP_REPEAT(N, BOOST_TYPE_ERASURE_VTABLE_ENTRY, ~)
 
     template<class Bindings, class Src>
-    void convert_from(const Src& BOOST_PP_EXPR_IF(N, src))
+    void convert_from(const Src& src)
     {
         BOOST_PP_REPEAT(N, BOOST_TYPE_ERASURE_CONVERT_ELEMENT, ~)
     }
 
-    bool operator==(const BOOST_PP_CAT(vtable_storage, N)& BOOST_PP_EXPR_IF(N, other)) const
+    bool operator==(const BOOST_PP_CAT(vtable_storage, N)& other) const
     { return true BOOST_PP_REPEAT(N, BOOST_TYPE_ERASURE_VTABLE_COMPARE, ~); }
 };
 

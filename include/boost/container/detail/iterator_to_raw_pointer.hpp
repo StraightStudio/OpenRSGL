@@ -22,11 +22,11 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 using ::boost::movelib::iterator_to_raw_pointer;
 
-}  //namespace dtl {
+}  //namespace container_detail {
 }  //namespace container {
 }  //namespace boost {
 

@@ -1,6 +1,6 @@
 #include <core.h>
 
-Core::Core() : spawnid(0), m_console(false), m_consolecolour({255, 255, 255, 0}), m_citem(0)
+Core::Core() : spawnid(0), m_console(false), m_consolecolour({255, 255, 255, 0}), m_citem(0), m_fov(90.f), m_VAO(0), m_VBO(0)
 {
     selection_rect.x = 0;
     selection_rect.y = 0;
@@ -43,6 +43,9 @@ void Core::cleanup()
         SDL_DestroyWindow(m_window);
     SDL_ShowCursor(SDL_ENABLE);
 
+#ifdef TESTING
+    SDL_GL_DeleteContext(m_glcontext);
+#endif
     SteamAPI_Shutdown();
     TTF_Quit();
     IMG_Quit();
@@ -54,8 +57,10 @@ void Core::init()
 {
     //
 #ifdef TESTING
-    if(!SteamAPI_Init())
+    if(!SteamAPI_IsSteamRunning())
         Logger::warn("Core", "SteamAPI init error!");
+    else
+        SteamAPI_Init();
 
     Logger::info("SteamAPI info", "Hello, "+unistring( SteamFriends()->GetPersonaName() )+" :D !" );
 #endif
@@ -78,6 +83,37 @@ void Core::init()
         Logger::err("Core", SDL_GetError());
     }
     Logger::log("Core", "SDL2 init complete.");
+
+#ifdef TESTING
+    m_window    = SDL_CreateWindow("Stratwenty " DW_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, DW_WIDTH, DW_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+
+    m_glcontext = SDL_GL_CreateContext(m_window);
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetSwapInterval(1); // VSync
+
+#ifndef __APPLE__
+    glewExperimental = GL_TRUE;
+    if(glewInit() != GLEW_OK)
+        Logger::err("Core", "Failed to init GLEW!");
+#endif
+    m_iout      = SDL_CreateRenderer(m_window, -1, 0);
+
+    glViewport( 0.0f, 0.0f, m_appconf.app_width, m_appconf.app_height ); // specifies the part of the window to which OpenGL will draw (in pixels), convert from normalised to pixels
+    glMatrixMode( GL_PROJECTION ); // projection matrix defines the properties of the camera that views the objects in the world coordinate frame. Here you typically set the zoom factor, aspect ratio and the near and far clipping planes
+    glLoadIdentity( ); // replace the current matrix with the identity matrix and starts us a fresh because matrix transforms such as glOrpho and glRotate cumulate, basically puts us at (0, 0, 0)
+    glOrtho( 0, m_appconf.app_width, 0, m_appconf.app_height, 0, 1000 ); // essentially set coordinate system
+    glMatrixMode( GL_MODELVIEW ); // (default matrix mode) modelview matrix defines how your objects are transformed (meaning translation, rotation and scaling) in your world
+    glLoadIdentity( ); // same as above comment
+#else
     m_window    = SDL_CreateWindow("Stratwenty " DW_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, DW_WIDTH, DW_HEIGHT, SDL_WINDOW_SHOWN);
 
     m_iout      = SDL_CreateRenderer(m_window, 0, SDL_RENDERER_ACCELERATED);
@@ -92,6 +128,7 @@ void Core::init()
             exit(-1);
         }
     }
+#endif
 
     if(m_window == nullptr)
     {
@@ -116,17 +153,20 @@ void Core::init()
     m_consolerect.x = 0; m_consolerect.y = 0;
     m_consolerect.w = m_appconf.app_width; m_consolerect.h = 24;
 
-     m_consoletextrect.x = 0; m_consoletextrect.y = 0;
-     m_consoletextrect.w = 16; m_consoletextrect.h = 24;
-
+    m_consoletextrect.x = 0; m_consoletextrect.y = 0;
+    m_consoletextrect.w = 16; m_consoletextrect.h = 24;
 
     if(m_appconf.is_full)
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
 
     SDL_ShowCursor(SDL_DISABLE);
     //
+#ifndef TESTING
     m_texloader.loadTextures(m_iout, m_appconf);
     m_animator.loadAnimations(m_appconf);
+
+    updateConsole();
+#endif
 
     m_audiomgr.init();
     m_audiomgr.loadSounds(m_appconf);
@@ -135,8 +175,6 @@ void Core::init()
     //
     mouse_rect.w = 32;
     mouse_rect.h = 32;
-
-    updateConsole();
 }
 
 void Core::updateConsole()
@@ -149,11 +187,13 @@ int Core::exec()
 {
     m_quit = false;
 
+#ifndef TESTING
     m_sceneparser.loadScene(m_scene, m_appconf);
     m_scene.start(&m_audiomgr);
+#endif
+
     while(!m_quit)
     {
-        SDL_RenderClear(m_iout);
         // =====================================================
         int c;
         while(SDL_PollEvent(&m_event))
@@ -162,6 +202,7 @@ int Core::exec()
                 case SDL_QUIT:
                     m_quit = true;
                 break;
+#ifndef TESTING
                 case SDL_KEYDOWN:
                     if(m_console)
                     {
@@ -246,6 +287,7 @@ int Core::exec()
                         }
                     }
                 break;
+#endif
                 case SDL_MOUSEBUTTONDOWN:
                     if(m_event.button.button > 0)
                     {
@@ -265,10 +307,11 @@ int Core::exec()
         }
         // =====================================================
         processEvents();
+#ifndef TESTING
         draw_objs();
-
-        SDL_RenderPresent(m_iout);
-        SDL_Delay(1000/TARGET_FPS);
+#else
+        draw_objs3D();
+#endif
     }
     return 0;
 }
@@ -363,6 +406,88 @@ void Core::draw_objs()
     //
     mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
     SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), &m_camrect, &mouse_rect);
+
+    SDL_RenderPresent(m_iout);
+    SDL_Delay(1000/TARGET_FPS);
+}
+
+void DrawCube( GLfloat centerPosX, GLfloat centerPosY, GLfloat centerPosZ, GLfloat edgeLength )
+{
+    GLfloat halfSideLength = edgeLength * 0.5f;
+
+    GLfloat verts[] =
+    {
+        // front face
+        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
+        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top right
+        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom right
+        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom left
+
+        // back face
+        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top left
+        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
+        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
+        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom left
+
+        // left face
+        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
+        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
+        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
+        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom left
+
+        // right face
+        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
+        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
+        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
+        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom left
+
+        // top face
+        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
+        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
+        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // bottom right
+        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // bottom left
+
+        // top face
+        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // top left
+        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // top right
+        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
+        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength  // bottom left
+    };
+
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glEnableClientState( GL_VERTEX_ARRAY );
+    glVertexPointer( 3, GL_FLOAT, 0, verts );
+
+    glDrawArrays( GL_QUADS, 0, 24 );
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+}
+
+void Core::draw_objs3D()
+{
+    glClear( GL_COLOR_BUFFER_BIT );
+
+    // Render OpenGL here
+
+    glPushMatrix( );
+    glTranslatef( m_appconf.app_width/2, m_appconf.app_height/2, -500 );
+    glRotatef( 30, 1, 0, 0 );
+    glRotatef( 30, 0, 1, 0 );
+    glTranslatef( -m_appconf.app_width/2, -m_appconf.app_height/2, 500 );
+
+    //
+    DrawCube(m_appconf.app_width/2, m_appconf.app_height/2, -500, 200);
+    //
+
+    glPopMatrix();
+
+    SDL_GL_SwapWindow(m_window);
+    SDL_Delay(1000/TARGET_FPS);
+}
+
+void Core::initGL()
+{
+
 }
 
 void Core::initialSpawn()

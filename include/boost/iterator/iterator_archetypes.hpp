@@ -9,6 +9,7 @@
 #include <boost/iterator/iterator_categories.hpp>
 #include <boost/operators.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/iterator.hpp>
 
 #include <boost/iterator/detail/facade_iterator_category.hpp>
 
@@ -426,16 +427,15 @@ namespace detail
       >::type iterator_category;
 
       // Needed for some broken libraries (see below)
-      struct workaround_iterator_base
-      {
-        typedef typename iterator_archetype_base::iterator_category iterator_category;
-        typedef Value value_type;
-        typedef typename traversal_archetype_base<
+      typedef boost::iterator<
+          iterator_category
+        , Value
+        , typename traversal_archetype_base<
               Value, AccessCategory, TraversalCategory
-          >::difference_type difference_type;
-        typedef typename access::pointer pointer;
-        typedef typename access::reference reference;
-      };
+          >::difference_type
+        , typename access::pointer
+        , typename access::reference
+      > workaround_iterator_base;
   };
 }
 

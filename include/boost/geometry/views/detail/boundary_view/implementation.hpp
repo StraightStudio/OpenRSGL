@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <boost/core/addressof.hpp>
+#include <boost/iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/iterator/iterator_categories.hpp>
 #include <boost/mpl/assert.hpp>

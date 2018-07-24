@@ -517,15 +517,11 @@ inline bool initialize(tokenizer const& tokens,
 {
     it = tokens.begin();
     end = tokens.end();
-
-    if (it == end || ! boost::iequals(*it++, geometry_name))
+    if (it != end && boost::iequals(*it++, geometry_name))
     {
-        BOOST_THROW_EXCEPTION(read_wkt_exception(std::string("Should start with '") + geometry_name + "'", wkt));
-    }
+        bool has_empty, has_z, has_m;
 
-    bool has_empty, has_z, has_m;
-
-    handle_empty_z_m(it, end, has_empty, has_z, has_m);
+        handle_empty_z_m(it, end, has_empty, has_z, has_m);
 
 // Silence warning C4127: conditional expression is constant
 #if defined(_MSC_VER)
@@ -533,23 +529,25 @@ inline bool initialize(tokenizer const& tokens,
 #pragma warning(disable : 4127)  
 #endif
 
-    if (has_z && dimension<Geometry>::type::value < 3)
-    {
-        BOOST_THROW_EXCEPTION(read_wkt_exception("Z only allowed for 3 or more dimensions", wkt));
-    }
+        if (has_z && dimension<Geometry>::type::value < 3)
+        {
+            BOOST_THROW_EXCEPTION(read_wkt_exception("Z only allowed for 3 or more dimensions", wkt));
+        }
 
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
 
-    if (has_empty)
-    {
-        check_end(it, end, wkt);
-        return false;
+        if (has_empty)
+        {
+            check_end(it, end, wkt);
+            return false;
+        }
+        // M is ignored at all.
+
+        return true;
     }
-    // M is ignored at all.
-    
-    return true;
+    BOOST_THROW_EXCEPTION(read_wkt_exception(std::string("Should start with '") + geometry_name + "'", wkt));
 }
 
 

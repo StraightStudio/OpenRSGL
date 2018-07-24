@@ -96,8 +96,7 @@
 #include <exception>
 #endif
 #include <typeinfo>
-#if ( (!_HAS_EXCEPTIONS && !defined(__ghs__)) || (!_HAS_NAMESPACE && defined(__ghs__)) ) && !defined(__TI_COMPILER_VERSION__) && !defined(__VISUALDSPVERSION__) \
-	&& !defined(__VXWORKS__)
+#if ( (!_HAS_EXCEPTIONS && !defined(__ghs__)) || (!_HAS_NAMESPACE && defined(__ghs__)) ) && !defined(__TI_COMPILER_VERSION__) && !defined(__VISUALDSPVERSION__)
 #  define BOOST_NO_STD_TYPEINFO
 #endif  
 
@@ -173,15 +172,9 @@
 // C++17 features
 #if !defined(_CPPLIB_VER) || (_CPPLIB_VER < 650) || !defined(BOOST_MSVC) || (BOOST_MSVC < 1910) || !defined(_HAS_CXX17) || (_HAS_CXX17 == 0)
 #  define BOOST_NO_CXX17_STD_APPLY
-#  define BOOST_NO_CXX17_ITERATOR_TRAITS
 #endif
 #if !defined(_CPPLIB_VER) || (_CPPLIB_VER < 650)
 #  define BOOST_NO_CXX17_STD_INVOKE
-#endif
-
-#if !(!defined(_CPPLIB_VER) || (_CPPLIB_VER < 650) || !defined(BOOST_MSVC) || (BOOST_MSVC < 1912) || !defined(_HAS_CXX17) || (_HAS_CXX17 == 0))
-// Deprecated std::iterator:
-#  define BOOST_NO_STD_ITERATOR
 #endif
 
 #if defined(BOOST_INTEL) && (BOOST_INTEL <= 1400)

@@ -133,27 +133,27 @@ namespace boost { namespace fusion
 
             BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             store(store const& rhs)
-                : elem(rhs.elem)
+                : elem(rhs.get())
             {}
 
             BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             store&
             operator=(store const& rhs)
             {
-                elem = rhs.elem;
+                elem = rhs.get();
                 return *this;
             }
 
             BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             store(store&& rhs)
-                : elem(static_cast<T&&>(rhs.elem))
+                : elem(static_cast<T&&>(rhs.get()))
             {}
 
             BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             store&
             operator=(store&& rhs)
             {
-                elem = static_cast<T&&>(rhs.elem);
+                elem = static_cast<T&&>(rhs.get());
                 return *this;
             }
 
@@ -167,6 +167,11 @@ namespace boost { namespace fusion
             store(U&& rhs)
                 : elem(std::forward<U>(rhs))
             {}
+
+            BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
+            T      & get()       { return elem; }
+            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
+            T const& get() const { return elem; }
 
             T elem;
         };
@@ -187,7 +192,8 @@ namespace boost { namespace fusion
             typedef vector<T...>                type_sequence;
 
             BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            BOOST_DEFAULTED_FUNCTION(vector_data(), {})
+            vector_data()
+            {}
 
             template <
                 typename Sequence
@@ -233,31 +239,35 @@ namespace boost { namespace fusion
 
             template <std::size_t N, typename U>
             static BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            U& at_detail(store<N, U>* this_)
+            auto at_detail(store<N, U>* this_) -> decltype(this_->get())
             {
-                return this_->elem;
+                return this_->get();
             }
 
             template <std::size_t N, typename U>
             static BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            U const& at_detail(store<N, U> const* this_)
+            auto at_detail(store<N, U> const* this_) -> decltype(this_->get())
             {
-                return this_->elem;
+                return this_->get();
             }
 
             template <typename J>
             BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            auto at_impl(J) -> decltype(at_detail<J::value>(&std::declval<vector_data&>()))
+            auto at_impl(J) -> decltype(at_detail<J::value>(this))
             {
                 return at_detail<J::value>(this);
             }
 
             template <typename J>
             BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            auto at_impl(J) const -> decltype(at_detail<J::value>(&std::declval<vector_data const&>()))
+            auto at_impl(J) const -> decltype(at_detail<J::value>(this))
             {
                 return at_detail<J::value>(this);
             }
+
+            template <std::size_t N, typename U>
+            static BOOST_FUSION_GPU_ENABLED
+            mpl::identity<U> value_at_impl(store<N, U>*);
         };
     } // namespace boost::fusion::vector_detail
 
@@ -274,7 +284,8 @@ namespace boost { namespace fusion
         > base;
 
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        BOOST_DEFAULTED_FUNCTION(vector(), {})
+        vector()
+        {}
 
         template <
             typename... U
@@ -295,11 +306,13 @@ namespace boost { namespace fusion
 
         template <
             typename Sequence
-          , typename = typename boost::enable_if_c<
+          , typename Sequence_ = typename remove_reference<Sequence>::type
+          , typename = typename boost::enable_if_c<(
+                !is_base_of<vector, Sequence_>::value &&
                 vector_detail::is_longer_sequence<
-                    typename remove_reference<Sequence>::type, sizeof...(T)
+                    Sequence_, sizeof...(T)
                 >::value
-            >::type
+            )>::type
         >
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         vector(Sequence&& seq)

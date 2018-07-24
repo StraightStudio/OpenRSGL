@@ -32,7 +32,7 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 //!Pooled memory allocator using single segregated storage. Includes
 //!a reference count but the class does not delete itself, this is
@@ -41,10 +41,10 @@ namespace dtl {
 template< std::size_t NodeSize, std::size_t NodesPerBlock >
 class private_node_pool
    //Inherit from the implementation to avoid template bloat
-   :  public boost::container::dtl::
+   :  public boost::container::container_detail::
          private_node_pool_impl<fake_segment_manager>
 {
-   typedef boost::container::dtl::
+   typedef boost::container::container_detail::
       private_node_pool_impl<fake_segment_manager>   base_t;
    //Non-copyable
    private_node_pool(const private_node_pool &);
@@ -148,7 +148,7 @@ class shared_node_pool
    default_mutex mutex_;
 };
 
-}  //namespace dtl {
+}  //namespace container_detail {
 }  //namespace container {
 }  //namespace boost {
 

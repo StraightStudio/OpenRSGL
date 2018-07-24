@@ -1,5 +1,5 @@
 // Copyright (C) 2014 Ian Forbed
-// Copyright (C) 2014-2017 Vicente J. Botet Escriba
+// Copyright (C) 2014 Vicente J. Botet Escriba
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -82,7 +82,7 @@ namespace detail {
           return boost::move(result);
       }
 
-      Type const& top() const
+      Type const& top()
       {
           return _elements.front();
       }
@@ -130,10 +130,8 @@ namespace concurrent
 
     void pull(ValueType&);
 
-    template <class WClock, class Duration>
-    queue_op_status pull_until(const chrono::time_point<WClock,Duration>&, ValueType&);
-    template <class Rep, class Period>
-    queue_op_status pull_for(const chrono::duration<Rep,Period>&, ValueType&);
+    queue_op_status pull_until(const clock::time_point&, ValueType&);
+    queue_op_status pull_for(const clock::duration&, ValueType&);
 
     queue_op_status try_pull(ValueType& elem);
     queue_op_status wait_pull(ValueType& elem);
@@ -249,8 +247,7 @@ namespace concurrent
   T sync_priority_queue<T,Container,Cmp>::pull()
   {
     unique_lock<mutex> lk(super::mtx_);
-    const bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
-    if (has_been_closed) super::throw_if_closed(lk);
+    super::wait_until_not_empty(lk);
     return pull(lk);
   }
 
@@ -270,30 +267,28 @@ namespace concurrent
   void sync_priority_queue<T,Container,Cmp>::pull(T& elem)
   {
     unique_lock<mutex> lk(super::mtx_);
-    const bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
-    if (has_been_closed) super::throw_if_closed(lk);
+    super::wait_until_not_empty(lk);
     pull(lk, elem);
   }
 
   //////////////////////
   template <class T, class Cont,class Cmp>
-  template <class WClock, class Duration>
   queue_op_status
-  sync_priority_queue<T,Cont,Cmp>::pull_until(const chrono::time_point<WClock,Duration>& tp, T& elem)
+  sync_priority_queue<T,Cont,Cmp>::pull_until(const clock::time_point& tp, T& elem)
   {
     unique_lock<mutex> lk(super::mtx_);
-    const queue_op_status rc = super::wait_until_not_empty_or_closed_until(lk, tp);
-    if (rc == queue_op_status::success) pull(lk, elem);
-    return rc;
+    if (queue_op_status::timeout == super::wait_until_not_empty_until(lk, tp))
+      return queue_op_status::timeout;
+    pull(lk, elem);
+    return queue_op_status::success;
   }
 
   //////////////////////
   template <class T, class Cont,class Cmp>
-  template <class Rep, class Period>
   queue_op_status
-  sync_priority_queue<T,Cont,Cmp>::pull_for(const chrono::duration<Rep,Period>& dura, T& elem)
+  sync_priority_queue<T,Cont,Cmp>::pull_for(const clock::duration& dura, T& elem)
   {
-    return pull_until(chrono::steady_clock::now() + dura, elem);
+    return pull_until(clock::now() + dura, elem);
   }
 
   //////////////////////
@@ -335,7 +330,11 @@ namespace concurrent
   template <class T,class Container, class Cmp>
   queue_op_status sync_priority_queue<T,Container,Cmp>::wait_pull(unique_lock<mutex>& lk, T& elem)
   {
-    const bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
+    if (super::empty(lk))
+    {
+      if (super::closed(lk)) return queue_op_status::closed;
+    }
+    bool has_been_closed = super::wait_until_not_empty_or_closed(lk);
     if (has_been_closed) return queue_op_status::closed;
     pull(lk, elem);
     return queue_op_status::success;
@@ -349,6 +348,7 @@ namespace concurrent
   }
 
   //////////////////////
+
   template <class T,class Container, class Cmp>
   queue_op_status sync_priority_queue<T,Container,Cmp>::nonblocking_pull(T& elem)
   {

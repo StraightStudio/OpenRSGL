@@ -38,7 +38,7 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 template<class SegmentManagerBase>
 class private_node_pool_impl
@@ -366,7 +366,7 @@ class private_node_pool_impl
 };
 
 
-}  //namespace dtl {
+}  //namespace container_detail {
 }  //namespace container {
 }  //namespace boost {
 

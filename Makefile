@@ -21,12 +21,15 @@ LD_LIBS=-L/usr/lib64/				\
 		-lSDL2_net			\
 		-lsteam_api			\
 		-ldl				\
+		-lGL				\
+		-lGLU				\
+		-lGLEW				\
 		-L$(LIB_PATH)/libsteam.a	\
 		-L$(LIB_PATH)/steamclient.a
 
 INCLUDE=-I/usr/include/ -Iinclude/
 
-CXXFLAGS=-Wall -O2 -fstrict-aliasing $(INCLUDE) $(DEBUG) -fPIC -std=c++17
+CXXFLAGS=-Wno-parentheses -O2 $(INCLUDE) $(DEBUG) -std=c++17
 
 SRCFILES=$(wildcard $(SRCDIR)/*)
 OBJFILES=$(SRCFILES:$(SRCDIR)/%.cpp=%.o)

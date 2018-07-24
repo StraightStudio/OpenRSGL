@@ -67,7 +67,7 @@ namespace detail{
    //Create namespace to avoid compilation errors
 }}}
 
-namespace boost{ namespace container{ namespace dtl{
+namespace boost{ namespace container{ namespace container_detail{
    namespace bi = boost::intrusive;
    namespace bid = boost::intrusive::detail;
 }}}
@@ -88,14 +88,23 @@ namespace boost{ namespace container{ namespace pmr{
 namespace boost {
 namespace container {
 
+//! Enumeration used to configure ordered associative containers
+//! with a concrete tree implementation.
+enum tree_type_enum
+{
+   red_black_tree,
+   avl_tree,
+   scapegoat_tree,
+   splay_tree
+};
+
 #ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 
 template<class T>
 class new_allocator;
 
 template <class T
-         ,class Allocator = new_allocator<T>
-         ,class Options = void>
+         ,class Allocator = new_allocator<T> >
 class vector;
 
 template <class T
@@ -121,30 +130,35 @@ template <class T
          ,class Allocator = new_allocator<T> >
 class slist;
 
+template<tree_type_enum TreeType, bool OptimizeSize>
+struct tree_opt;
+
+typedef tree_opt<red_black_tree, true> tree_assoc_defaults;
+
 template <class Key
          ,class Compare  = std::less<Key>
          ,class Allocator = new_allocator<Key>
-         ,class Options = void>
+         ,class Options = tree_assoc_defaults >
 class set;
 
 template <class Key
          ,class Compare  = std::less<Key>
          ,class Allocator = new_allocator<Key>
-         ,class Options = void >
+         ,class Options = tree_assoc_defaults >
 class multiset;
 
 template <class Key
          ,class T
          ,class Compare  = std::less<Key>
          ,class Allocator = new_allocator<std::pair<const Key, T> >
-         ,class Options = void >
+         ,class Options = tree_assoc_defaults >
 class map;
 
 template <class Key
          ,class T
          ,class Compare  = std::less<Key>
          ,class Allocator = new_allocator<std::pair<const Key, T> >
-         ,class Options = void >
+         ,class Options = tree_assoc_defaults >
 class multimap;
 
 template <class Key
@@ -231,6 +245,13 @@ class unsynchronized_pool_resource;
 class synchronized_pool_resource;
 
 }  //namespace pmr {
+
+#else
+
+//! Default options for tree-based associative containers
+//!   - tree_type<red_black_tree>
+//!   - optimize_size<true>
+typedef implementation_defined tree_assoc_defaults;
 
 #endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 

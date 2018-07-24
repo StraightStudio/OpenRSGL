@@ -3,7 +3,6 @@
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
 // Copyright (c) 2008-2012 Bruno Lalande, Paris, France.
 // Copyright (c) 2009-2012 Mateusz Loskot, London, UK.
-// Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland.
 
 // Parts of Boost.Geometry are redesigned from Geodan's Geographic Library
 // (geolib/GGL), copyright (c) 1995-2010 Geodan, Amsterdam, the Netherlands.
@@ -27,16 +26,19 @@ namespace boost { namespace geometry { namespace concepts
     \brief Checks strategy for area
     \ingroup area
 */
-template <typename Geometry, typename Strategy>
+template <typename Strategy>
 class AreaStrategy
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
 
-    // 1) must define state template,
-    typedef typename Strategy::template state<Geometry> state_type;
+    // 1) must define state_type,
+    typedef typename Strategy::state_type state_type;
 
-    // 2) must define result_type template,
-    typedef typename Strategy::template result_type<Geometry>::type return_type;
+    // 2) must define return_type,
+    typedef typename Strategy::return_type return_type;
+
+    // 3) must define point_type, of polygon (segments)
+    typedef typename Strategy::segment_point_type spoint_type;
 
     struct check_methods
     {
@@ -45,11 +47,11 @@ class AreaStrategy
             Strategy const* str = 0;
             state_type *st = 0;
 
-            // 3) must implement a method apply with the following signature
-            typename geometry::point_type<Geometry>::type const* sp = 0;
+            // 4) must implement a method apply with the following signature
+            spoint_type const* sp = 0;
             str->apply(*sp, *sp, *st);
 
-            // 4) must implement a static method result with the following signature
+            // 5) must implement a static method result with the following signature
             return_type r = str->result(*st);
 
             boost::ignore_unused_variable_warning(r);

@@ -1,12 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
-// Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland.
-
-// This file was modified by Oracle on 2017.
-// Modifications copyright (c) 2017, Oracle and/or its affiliates.
-
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -16,10 +10,8 @@
 #define BOOST_GEOMETRY_ALGORITHMS_DETAIL_OVERLAY_ADD_RINGS_HPP
 
 #include <boost/range.hpp>
-#include <boost/throw_exception.hpp>
 
 #include <boost/geometry/core/closure.hpp>
-#include <boost/geometry/core/exception.hpp>
 #include <boost/geometry/algorithms/area.hpp>
 #include <boost/geometry/algorithms/detail/overlay/convert_ring.hpp>
 #include <boost/geometry/algorithms/detail/overlay/get_ring.hpp>
@@ -70,13 +62,6 @@ inline void convert_and_add(GeometryOut& result,
     }
 }
 
-enum add_rings_error_handling
-{
-    add_rings_ignore_unordered,
-    add_rings_add_unordered,
-    add_rings_throw_if_reversed
-};
-
 template
 <
     typename GeometryOut,
@@ -84,21 +69,16 @@ template
     typename Geometry1,
     typename Geometry2,
     typename RingCollection,
-    typename OutputIterator,
-    typename AreaStrategy
+    typename OutputIterator
 >
 inline OutputIterator add_rings(SelectionMap const& map,
             Geometry1 const& geometry1, Geometry2 const& geometry2,
             RingCollection const& collection,
-            OutputIterator out,
-            AreaStrategy const& area_strategy,
-            add_rings_error_handling error_handling = add_rings_ignore_unordered)
+            OutputIterator out)
 {
     typedef typename SelectionMap::const_iterator iterator;
-    typedef typename AreaStrategy::template result_type
-        <
-            GeometryOut
-        >::type area_type;
+    typedef typename SelectionMap::mapped_type property_type;
+    typedef typename property_type::area_type area_type;
 
     area_type const zero = 0;
     std::size_t const min_num_points = core_detail::closure::minimum_ring_size
@@ -142,22 +122,10 @@ inline OutputIterator add_rings(SelectionMap const& map,
             // Only add rings if they satisfy minimal requirements.
             // This cannot be done earlier (during traversal), not
             // everything is figured out yet (sum of positive/negative rings)
-            if (geometry::num_points(result) >= min_num_points)
+            if (geometry::num_points(result) >= min_num_points
+                && math::larger(geometry::area(result), zero))
             {
-                area_type const area = geometry::area(result, area_strategy);
-                // Ignore if area is 0
-                if (! math::equals(area, zero))
-                {
-                    if (error_handling == add_rings_add_unordered
-                        || area > zero)
-                    {
-                        *out++ = result;
-                    }
-                    else if (error_handling == add_rings_throw_if_reversed)
-                    {
-                        BOOST_THROW_EXCEPTION(invalid_output_exception());
-                    }
-                }
+                *out++ = result;
             }
         }
     }
@@ -171,17 +139,15 @@ template
     typename SelectionMap,
     typename Geometry,
     typename RingCollection,
-    typename OutputIterator,
-    typename AreaStrategy
+    typename OutputIterator
 >
 inline OutputIterator add_rings(SelectionMap const& map,
             Geometry const& geometry,
             RingCollection const& collection,
-            OutputIterator out,
-            AreaStrategy const& area_strategy)
+            OutputIterator out)
 {
     Geometry empty;
-    return add_rings<GeometryOut>(map, geometry, empty, collection, out, area_strategy);
+    return add_rings<GeometryOut>(map, geometry, empty, collection, out);
 }
 
 

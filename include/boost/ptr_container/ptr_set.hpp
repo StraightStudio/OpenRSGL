@@ -18,13 +18,7 @@
 
 #include <boost/ptr_container/indirect_fun.hpp>
 #include <boost/ptr_container/ptr_set_adapter.hpp>
-#include <boost/ptr_container/detail/ptr_container_disable_deprecated.hpp>
 #include <set>
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 
 namespace boost
 {
@@ -34,17 +28,14 @@ namespace boost
         class Key, 
         class Compare        = std::less<Key>,
         class CloneAllocator = heap_clone_allocator,
-        class Allocator      = std::allocator<typename ptr_container_detail::void_ptr<Key>::type>
+        class Allocator      = std::allocator<void*>
     >
     class ptr_set : 
-        public ptr_set_adapter< Key, std::set<
-            typename ptr_container_detail::void_ptr<Key>::type,
-            void_ptr_indirect_fun<Compare,Key>,Allocator>,
+        public ptr_set_adapter< Key, 
+                                std::set<void*,void_ptr_indirect_fun<Compare,Key>,Allocator>,
                                 CloneAllocator, true >
     {
-        typedef ptr_set_adapter< Key, std::set<
-            typename ptr_container_detail::void_ptr<Key>::type,
-            void_ptr_indirect_fun<Compare,Key>,Allocator>,
+        typedef ptr_set_adapter< Key, std::set<void*,void_ptr_indirect_fun<Compare,Key>,Allocator>,
                                  CloneAllocator, true >
              base_type;
 
@@ -160,9 +151,5 @@ namespace boost
     }
 
 }
-
-#if defined(BOOST_PTR_CONTAINER_DISABLE_DEPRECATED)
-#pragma GCC diagnostic pop
-#endif
 
 #endif

@@ -18,6 +18,8 @@
 
 #include <boost/config.hpp>
 
+#include <functional>
+
 namespace boost {
 namespace bimaps {
 namespace detail {
@@ -32,13 +34,11 @@ template
     class SecondExtractor 
 >
 struct relation_modifier_adaptor :
+    public std::unary_function<NewArgument,bool>,
     Modifier,
     FirstExtractor,
     SecondExtractor
 {
-    typedef NewArgument argument_type;
-    typedef void result_type;
-
     relation_modifier_adaptor( const Modifier & m ) : Modifier(m) {}
     relation_modifier_adaptor( const Modifier & m,
                                const FirstExtractor & fe,
@@ -65,12 +65,10 @@ template
     class Extractor
 >
 struct unary_modifier_adaptor :
+    public std::unary_function<NewArgument,bool>,
     Modifier,
     Extractor
 {
-    typedef NewArgument argument_type;
-    typedef void result_type;
-
     unary_modifier_adaptor( const Modifier & m ) : Modifier(m) {}
     unary_modifier_adaptor( const Modifier & m,
                             const Extractor & fe) :

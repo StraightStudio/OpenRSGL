@@ -2,7 +2,7 @@
 // seq_packet_socket_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,14 +16,11 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
-
-#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
-
 #include <cstddef>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/detail/type_traits.hpp>
 #include <boost/asio/error.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 
 #if defined(BOOST_ASIO_WINDOWS_RUNTIME)
 # include <boost/asio/detail/null_socket_service.hpp>
@@ -42,7 +39,7 @@ namespace asio {
 template <typename Protocol>
 class seq_packet_socket_service
 #if defined(GENERATING_DOCUMENTATION)
-  : public boost::asio::io_context::service
+  : public boost::asio::io_service::service
 #else
   : public boost::asio::detail::service_base<
       seq_packet_socket_service<Protocol> >
@@ -51,7 +48,7 @@ class seq_packet_socket_service
 public:
 #if defined(GENERATING_DOCUMENTATION)
   /// The unique service identifier.
-  static boost::asio::io_context::id id;
+  static boost::asio::io_service::id id;
 #endif
 
   /// The protocol type.
@@ -78,6 +75,13 @@ public:
   typedef typename service_impl_type::implementation_type implementation_type;
 #endif
 
+  /// (Deprecated: Use native_handle_type.) The native socket type.
+#if defined(GENERATING_DOCUMENTATION)
+  typedef implementation_defined native_type;
+#else
+  typedef typename service_impl_type::native_handle_type native_type;
+#endif
+
   /// The native socket type.
 #if defined(GENERATING_DOCUMENTATION)
   typedef implementation_defined native_handle_type;
@@ -86,11 +90,11 @@ public:
 #endif
 
   /// Construct a new sequenced packet socket service for the specified
-  /// io_context.
-  explicit seq_packet_socket_service(boost::asio::io_context& io_context)
+  /// io_service.
+  explicit seq_packet_socket_service(boost::asio::io_service& io_service)
     : boost::asio::detail::service_base<
-        seq_packet_socket_service<Protocol> >(io_context),
-      service_impl_(io_context)
+        seq_packet_socket_service<Protocol> >(io_service),
+      service_impl_(io_service)
   {
   }
 
@@ -141,23 +145,22 @@ public:
   }
 
   /// Open a sequenced packet socket.
-  BOOST_ASIO_SYNC_OP_VOID open(implementation_type& impl,
+  boost::system::error_code open(implementation_type& impl,
       const protocol_type& protocol, boost::system::error_code& ec)
   {
     if (protocol.type() == BOOST_ASIO_OS_DEF(SOCK_SEQPACKET))
       service_impl_.open(impl, protocol, ec);
     else
       ec = boost::asio::error::invalid_argument;
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return ec;
   }
 
   /// Assign an existing native socket to a sequenced packet socket.
-  BOOST_ASIO_SYNC_OP_VOID assign(implementation_type& impl,
+  boost::system::error_code assign(implementation_type& impl,
       const protocol_type& protocol, const native_handle_type& native_socket,
       boost::system::error_code& ec)
   {
-    service_impl_.assign(impl, protocol, native_socket, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.assign(impl, protocol, native_socket, ec);
   }
 
   /// Determine whether the socket is open.
@@ -167,18 +170,16 @@ public:
   }
 
   /// Close a sequenced packet socket implementation.
-  BOOST_ASIO_SYNC_OP_VOID close(implementation_type& impl,
+  boost::system::error_code close(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.close(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.close(impl, ec);
   }
 
-  /// Release ownership of the underlying socket.
-  native_handle_type release(implementation_type& impl,
-      boost::system::error_code& ec)
+  /// (Deprecated: Use native_handle().) Get the native socket implementation.
+  native_type native(implementation_type& impl)
   {
-    return service_impl_.release(impl, ec);
+    return service_impl_.native_handle(impl);
   }
 
   /// Get the native socket implementation.
@@ -188,11 +189,10 @@ public:
   }
 
   /// Cancel all asynchronous operations associated with the socket.
-  BOOST_ASIO_SYNC_OP_VOID cancel(implementation_type& impl,
+  boost::system::error_code cancel(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.cancel(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.cancel(impl, ec);
   }
 
   /// Determine whether the socket is at the out-of-band data mark.
@@ -210,19 +210,17 @@ public:
   }
 
   /// Bind the sequenced packet socket to the specified local endpoint.
-  BOOST_ASIO_SYNC_OP_VOID bind(implementation_type& impl,
+  boost::system::error_code bind(implementation_type& impl,
       const endpoint_type& endpoint, boost::system::error_code& ec)
   {
-    service_impl_.bind(impl, endpoint, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.bind(impl, endpoint, ec);
   }
 
   /// Connect the sequenced packet socket to the specified endpoint.
-  BOOST_ASIO_SYNC_OP_VOID connect(implementation_type& impl,
+  boost::system::error_code connect(implementation_type& impl,
       const endpoint_type& peer_endpoint, boost::system::error_code& ec)
   {
-    service_impl_.connect(impl, peer_endpoint, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.connect(impl, peer_endpoint, ec);
   }
 
   /// Start an asynchronous connect.
@@ -233,39 +231,37 @@ public:
       const endpoint_type& peer_endpoint,
       BOOST_ASIO_MOVE_ARG(ConnectHandler) handler)
   {
-    async_completion<ConnectHandler,
-      void (boost::system::error_code)> init(handler);
+    detail::async_result_init<
+      ConnectHandler, void (boost::system::error_code)> init(
+        BOOST_ASIO_MOVE_CAST(ConnectHandler)(handler));
 
-    service_impl_.async_connect(impl, peer_endpoint, init.completion_handler);
+    service_impl_.async_connect(impl, peer_endpoint, init.handler);
 
     return init.result.get();
   }
 
   /// Set a socket option.
   template <typename SettableSocketOption>
-  BOOST_ASIO_SYNC_OP_VOID set_option(implementation_type& impl,
+  boost::system::error_code set_option(implementation_type& impl,
       const SettableSocketOption& option, boost::system::error_code& ec)
   {
-    service_impl_.set_option(impl, option, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.set_option(impl, option, ec);
   }
 
   /// Get a socket option.
   template <typename GettableSocketOption>
-  BOOST_ASIO_SYNC_OP_VOID get_option(const implementation_type& impl,
+  boost::system::error_code get_option(const implementation_type& impl,
       GettableSocketOption& option, boost::system::error_code& ec) const
   {
-    service_impl_.get_option(impl, option, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.get_option(impl, option, ec);
   }
 
   /// Perform an IO control command on the socket.
   template <typename IoControlCommand>
-  BOOST_ASIO_SYNC_OP_VOID io_control(implementation_type& impl,
+  boost::system::error_code io_control(implementation_type& impl,
       IoControlCommand& command, boost::system::error_code& ec)
   {
-    service_impl_.io_control(impl, command, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.io_control(impl, command, ec);
   }
 
   /// Gets the non-blocking mode of the socket.
@@ -275,11 +271,10 @@ public:
   }
 
   /// Sets the non-blocking mode of the socket.
-  BOOST_ASIO_SYNC_OP_VOID non_blocking(implementation_type& impl,
+  boost::system::error_code non_blocking(implementation_type& impl,
       bool mode, boost::system::error_code& ec)
   {
-    service_impl_.non_blocking(impl, mode, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.non_blocking(impl, mode, ec);
   }
 
   /// Gets the non-blocking mode of the native socket implementation.
@@ -289,11 +284,10 @@ public:
   }
 
   /// Sets the non-blocking mode of the native socket implementation.
-  BOOST_ASIO_SYNC_OP_VOID native_non_blocking(implementation_type& impl,
+  boost::system::error_code native_non_blocking(implementation_type& impl,
       bool mode, boost::system::error_code& ec)
   {
-    service_impl_.native_non_blocking(impl, mode, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.native_non_blocking(impl, mode, ec);
   }
 
   /// Get the local endpoint.
@@ -311,36 +305,10 @@ public:
   }
 
   /// Disable sends or receives on the socket.
-  BOOST_ASIO_SYNC_OP_VOID shutdown(implementation_type& impl,
+  boost::system::error_code shutdown(implementation_type& impl,
       socket_base::shutdown_type what, boost::system::error_code& ec)
   {
-    service_impl_.shutdown(impl, what, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
-  }
-
-  /// Wait for the socket to become ready to read, ready to write, or to have
-  /// pending error conditions.
-  BOOST_ASIO_SYNC_OP_VOID wait(implementation_type& impl,
-      socket_base::wait_type w, boost::system::error_code& ec)
-  {
-    service_impl_.wait(impl, w, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
-  }
-
-  /// Asynchronously wait for the socket to become ready to read, ready to
-  /// write, or to have pending error conditions.
-  template <typename WaitHandler>
-  BOOST_ASIO_INITFN_RESULT_TYPE(WaitHandler,
-      void (boost::system::error_code))
-  async_wait(implementation_type& impl, socket_base::wait_type w,
-      BOOST_ASIO_MOVE_ARG(WaitHandler) handler)
-  {
-    async_completion<WaitHandler,
-      void (boost::system::error_code)> init(handler);
-
-    service_impl_.async_wait(impl, w, init.completion_handler);
-
-    return init.result.get();
+    return service_impl_.shutdown(impl, what, ec);
   }
 
   /// Send the given data to the peer.
@@ -361,10 +329,11 @@ public:
       socket_base::message_flags flags,
       BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
   {
-    async_completion<WriteHandler,
-      void (boost::system::error_code, std::size_t)> init(handler);
+    detail::async_result_init<
+      WriteHandler, void (boost::system::error_code, std::size_t)> init(
+        BOOST_ASIO_MOVE_CAST(WriteHandler)(handler));
 
-    service_impl_.async_send(impl, buffers, flags, init.completion_handler);
+    service_impl_.async_send(impl, buffers, flags, init.handler);
 
     return init.result.get();
   }
@@ -388,20 +357,21 @@ public:
       socket_base::message_flags& out_flags,
       BOOST_ASIO_MOVE_ARG(ReadHandler) handler)
   {
-    async_completion<ReadHandler,
-      void (boost::system::error_code, std::size_t)> init(handler);
+    detail::async_result_init<
+      ReadHandler, void (boost::system::error_code, std::size_t)> init(
+        BOOST_ASIO_MOVE_CAST(ReadHandler)(handler));
 
     service_impl_.async_receive_with_flags(impl,
-        buffers, in_flags, out_flags, init.completion_handler);
+        buffers, in_flags, out_flags, init.handler);
 
     return init.result.get();
   }
 
 private:
   // Destroy all user-defined handler objects owned by the service.
-  void shutdown()
+  void shutdown_service()
   {
-    service_impl_.shutdown();
+    service_impl_.shutdown_service();
   }
 
   // The platform-specific implementation.
@@ -412,7 +382,5 @@ private:
 } // namespace boost
 
 #include <boost/asio/detail/pop_options.hpp>
-
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
 
 #endif // BOOST_ASIO_SEQ_PACKET_SOCKET_SERVICE_HPP

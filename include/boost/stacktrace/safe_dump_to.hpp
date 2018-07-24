@@ -12,11 +12,7 @@
 #   pragma once
 #endif
 
-#if defined(BOOST_WINDOWS)
-#include <boost/winapi/config.hpp>
-#endif
-
-#include <boost/stacktrace/detail/push_options.h>
+#include <boost/stacktrace/detail/push_options.pp>
 
 #ifdef BOOST_INTEL
 #   pragma warning(push)
@@ -111,7 +107,7 @@ BOOST_FORCEINLINE std::size_t safe_dump_to(std::size_t skip, void* memory, std::
 }
 
 
-/// @brief Opens a file and rewrites its content with current function call sequence if such operations are async signal safe.
+/// @brief Opens a file and rewrites its content with current function call sequence.
 ///
 /// @b Complexity: O(N) where N is call sequence length, O(1) if BOOST_STACKTRACE_USE_NOOP is defined.
 ///
@@ -124,7 +120,7 @@ BOOST_FORCEINLINE std::size_t safe_dump_to(const char* file) BOOST_NOEXCEPT {
     return boost::stacktrace::detail::this_thread_frames::safe_dump_to_impl(file, 0, boost::stacktrace::detail::max_frames_dump);
 }
 
-/// @brief Opens a file and rewrites its content with current function call sequence if such operations are async signal safe.
+/// @brief Opens a file and rewrites its content with current function call sequence.
 ///
 /// @b Complexity: O(N) where N is call sequence length, O(1) if BOOST_STACKTRACE_USE_NOOP is defined.
 ///
@@ -143,7 +139,7 @@ BOOST_FORCEINLINE std::size_t safe_dump_to(std::size_t skip, std::size_t max_dep
 
 #ifdef BOOST_STACKTRACE_DOXYGEN_INVOKED
 
-/// @brief Writes into the provided file descriptor the current function call sequence if such operation is async signal safe.
+/// @brief Writes into the provided file descriptor the current function call sequence.
 ///
 /// @b Complexity: O(N) where N is call sequence length, O(1) if BOOST_STACKTRACE_USE_NOOP is defined.
 ///
@@ -154,7 +150,7 @@ BOOST_FORCEINLINE std::size_t safe_dump_to(std::size_t skip, std::size_t max_dep
 /// @param file File to store current function call sequence.
 BOOST_FORCEINLINE std::size_t safe_dump_to(platform_specific_descriptor fd) BOOST_NOEXCEPT;
 
-/// @brief Writes into the provided file descriptor the current function call sequence if such operation is async signal safe.
+/// @brief Writes into the provided file descriptor the current function call sequence.
 ///
 /// @b Complexity: O(N) where N is call sequence length, O(1) if BOOST_STACKTRACE_USE_NOOP is defined.
 ///
@@ -199,7 +195,7 @@ BOOST_FORCEINLINE std::size_t safe_dump_to(std::size_t skip, std::size_t max_dep
 #   pragma warning(pop)
 #endif
 
-#include <boost/stacktrace/detail/pop_options.h>
+#include <boost/stacktrace/detail/pop_options.pp>
 
 #if !defined(BOOST_STACKTRACE_LINK) || defined(BOOST_STACKTRACE_INTERNAL_BUILD_LIBS)
 #   if defined(BOOST_STACKTRACE_USE_NOOP)
@@ -211,7 +207,7 @@ BOOST_FORCEINLINE std::size_t safe_dump_to(std::size_t skip, std::size_t max_dep
 #       else
 #           include <boost/stacktrace/detail/safe_dump_posix.ipp>
 #       endif
-#       if defined(BOOST_WINDOWS) && !defined(BOOST_WINAPI_IS_MINGW) // MinGW does not provide RtlCaptureStackBackTrace. MinGW-w64 does.
+#       if defined(BOOST_WINDOWS) && !defined(BOOST_GCC)
 #           include <boost/stacktrace/detail/collect_msvc.ipp>
 #       else
 #           include <boost/stacktrace/detail/collect_unwind.ipp>

@@ -42,9 +42,7 @@ class strided_iterator_base
 public:
     typedef ::boost::iterator_adaptor<
         ::boost::compute::strided_iterator<Iterator>,
-        Iterator,
-        typename std::iterator_traits<Iterator>::value_type,
-        typename std::iterator_traits<Iterator>::iterator_category
+        Iterator
     > type;
 };
 

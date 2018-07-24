@@ -39,16 +39,10 @@ template< typename Ch,
 class basic_buffer {
 private:
 #ifndef BOOST_NO_STD_ALLOCATOR
-#if defined(BOOST_NO_CXX11_ALLOCATOR)
     typedef typename Alloc::template rebind<Ch>::other allocator_type;
-#else
-    typedef typename std::allocator_traits<Alloc>::template rebind_alloc<Ch> allocator_type;
-    typedef std::allocator_traits<allocator_type> allocator_traits;
-#endif
 #else
     typedef std::allocator<Ch> allocator_type;
 #endif
-    static Ch* allocate(std::streamsize buffer_size);
 public:
     basic_buffer();
     basic_buffer(std::streamsize buffer_size);
@@ -151,21 +145,9 @@ template<typename Ch, typename Alloc>
 basic_buffer<Ch, Alloc>::basic_buffer() : buf_(0), size_(0) { }
 
 template<typename Ch, typename Alloc>
-inline Ch* basic_buffer<Ch, Alloc>::allocate(std::streamsize buffer_size)
-{
-#if defined(BOOST_NO_CXX11_ALLOCATOR) || defined(BOOST_NO_STD_ALLOCATOR)
-    return static_cast<Ch*>(allocator_type().allocate(
-           static_cast<BOOST_DEDUCED_TYPENAME Alloc::size_type>(buffer_size), 0));
-#else
-    allocator_type alloc;
-    return static_cast<Ch*>(allocator_traits::allocate(alloc,
-           static_cast<BOOST_DEDUCED_TYPENAME allocator_traits::size_type>(buffer_size)));
-#endif
-}
-
-template<typename Ch, typename Alloc>
 basic_buffer<Ch, Alloc>::basic_buffer(std::streamsize buffer_size)
-    : buf_(allocate(buffer_size)),
+    : buf_(static_cast<Ch*>(allocator_type().allocate(
+           static_cast<BOOST_DEDUCED_TYPENAME Alloc::size_type>(buffer_size), 0))), 
       size_(buffer_size) // Cast for SunPro 5.3.
     { }
 
@@ -173,14 +155,8 @@ template<typename Ch, typename Alloc>
 inline basic_buffer<Ch, Alloc>::~basic_buffer()
 {
     if (buf_) {
-#if defined(BOOST_NO_CXX11_ALLOCATOR) || defined(BOOST_NO_STD_ALLOCATOR)
         allocator_type().deallocate(buf_,
             static_cast<BOOST_DEDUCED_TYPENAME Alloc::size_type>(size_));
-#else
-        allocator_type alloc;
-        allocator_traits::deallocate(alloc, buf_,
-            static_cast<BOOST_DEDUCED_TYPENAME allocator_traits::size_type>(size_));
-#endif
     }
 }
 

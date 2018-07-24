@@ -28,7 +28,7 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 using ::boost::move_detail::enable_if;
 using ::boost::move_detail::enable_if_and;
@@ -63,7 +63,7 @@ using ::boost::move_detail::aligned_storage;
 using ::boost::move_detail::nat;
 using ::boost::move_detail::max_align_t;
 
-}  //namespace dtl {
+}  //namespace container_detail {
 }  //namespace container {
 }  //namespace boost {
 

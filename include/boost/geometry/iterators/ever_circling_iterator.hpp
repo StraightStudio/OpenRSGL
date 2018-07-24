@@ -15,6 +15,7 @@
 #define BOOST_GEOMETRY_ITERATORS_EVER_CIRCLING_ITERATOR_HPP
 
 #include <boost/range.hpp>
+#include <boost/iterator.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/iterator/iterator_categories.hpp>
 

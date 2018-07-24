@@ -21,6 +21,8 @@
 #include <windows.h>
 #include "dbgeng.h"
 
+#include <boost/detail/winapi/get_current_process.hpp>
+
 #ifdef BOOST_MSVC
 #   pragma comment(lib, "ole32.lib")
 #   pragma comment(lib, "Dbgeng.lib")
@@ -57,7 +59,7 @@ public:
         //
         // If we call CoInitializeEx befire user - user may end up with different mode, which is a problem.
         // So we need to call that initialization function as late as possible.
-        const DWORD res = ::CoInitializeEx(0, COINIT_MULTITHREADED);
+        const boost::detail::winapi::DWORD_ res = ::CoInitializeEx(0, COINIT_MULTITHREADED);
         ok_ = (res == S_OK || res == S_FALSE);
     }
 
@@ -98,7 +100,7 @@ public:
 };
 
 
-static std::string mingw_demangling_workaround(const std::string& s) {
+static std::string minwg_demangling_workaround(const std::string& s) {
 #ifdef BOOST_GCC
     if (s.empty()) {
         return s;
@@ -162,7 +164,7 @@ public:
 #else
 
 #ifdef BOOST_NO_CXX11_THREAD_LOCAL
-#   error Your compiler does not support C++11 thread_local storage. It`s impossible to build with BOOST_STACKTRACE_USE_WINDBG_CACHED.
+#   error Your compiler does not support C++11 thread_local storage. It's impossible to build with BOOST_STACKTRACE_USE_WINDBG_CACHED.
 #endif
 
     static com_holder< ::IDebugSymbols>& get_thread_local_debug_inst() BOOST_NOEXCEPT {
@@ -237,7 +239,7 @@ public:
             return result;
         }
 
-        result = mingw_demangling_workaround(
+        result = minwg_demangling_workaround(
             result.substr(delimiter + 1)
         );
 

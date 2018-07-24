@@ -2,7 +2,7 @@
 // detail/impl/winrt_ssocket_service_base.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -31,15 +31,15 @@ namespace asio {
 namespace detail {
 
 winrt_ssocket_service_base::winrt_ssocket_service_base(
-    boost::asio::io_context& io_context)
-  : io_context_(use_service<io_context_impl>(io_context)),
-    async_manager_(use_service<winrt_async_manager>(io_context)),
+    boost::asio::io_service& io_service)
+  : io_service_(use_service<io_service_impl>(io_service)),
+    async_manager_(use_service<winrt_async_manager>(io_service)),
     mutex_(),
     impl_list_(0)
 {
 }
 
-void winrt_ssocket_service_base::base_shutdown()
+void winrt_ssocket_service_base::shutdown_service()
 {
   // Close all implementations, causing all operations to complete.
   boost::asio::detail::mutex::scoped_lock lock(mutex_);
@@ -147,23 +147,6 @@ boost::system::error_code winrt_ssocket_service_base::close(
 
   ec = boost::system::error_code();
   return ec;
-}
-
-winrt_ssocket_service_base::native_handle_type
-winrt_ssocket_service_base::release(
-    winrt_ssocket_service_base::base_implementation_type& impl,
-    boost::system::error_code& ec)
-{
-  if (!is_open(impl))
-    return nullptr;
-
-  cancel(impl, ec);
-  if (ec)
-    return nullptr;
-
-  native_handle_type tmp = impl.socket_;
-  impl.socket_ = nullptr;
-  return tmp;
 }
 
 std::size_t winrt_ssocket_service_base::do_get_endpoint(
@@ -399,7 +382,7 @@ void winrt_ssocket_service_base::start_connect_op(
   if (!is_open(impl))
   {
     op->ec_ = boost::asio::error::bad_descriptor;
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
     return;
   }
 
@@ -428,7 +411,7 @@ void winrt_ssocket_service_base::start_connect_op(
 
   if (op->ec_)
   {
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
     return;
   }
 
@@ -443,7 +426,7 @@ void winrt_ssocket_service_base::start_connect_op(
   {
     op->ec_ = boost::system::error_code(
         e->HResult, boost::system::system_category());
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
   }
 }
 
@@ -467,7 +450,7 @@ std::size_t winrt_ssocket_service_base::do_send(
   try
   {
     buffer_sequence_adapter<boost::asio::const_buffer,
-      boost::asio::const_buffer> bufs(boost::asio::buffer(data));
+      boost::asio::const_buffers_1> bufs(boost::asio::buffer(data));
 
     if (bufs.all_empty())
     {
@@ -494,25 +477,25 @@ void winrt_ssocket_service_base::start_send_op(
   if (flags)
   {
     op->ec_ = boost::asio::error::operation_not_supported;
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
     return;
   }
 
   if (!is_open(impl))
   {
     op->ec_ = boost::asio::error::bad_descriptor;
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
     return;
   }
 
   try
   {
     buffer_sequence_adapter<boost::asio::const_buffer,
-        boost::asio::const_buffer> bufs(boost::asio::buffer(data));
+        boost::asio::const_buffers_1> bufs(boost::asio::buffer(data));
 
     if (bufs.all_empty())
     {
-      io_context_.post_immediate_completion(op, is_continuation);
+      io_service_.post_immediate_completion(op, is_continuation);
       return;
     }
 
@@ -523,7 +506,7 @@ void winrt_ssocket_service_base::start_send_op(
   {
     op->ec_ = boost::system::error_code(e->HResult,
         boost::system::system_category());
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
   }
 }
 
@@ -547,7 +530,7 @@ std::size_t winrt_ssocket_service_base::do_receive(
   try
   {
     buffer_sequence_adapter<boost::asio::mutable_buffer,
-        boost::asio::mutable_buffer> bufs(boost::asio::buffer(data));
+        boost::asio::mutable_buffers_1> bufs(boost::asio::buffer(data));
 
     if (bufs.all_empty())
     {
@@ -585,25 +568,25 @@ void winrt_ssocket_service_base::start_receive_op(
   if (flags)
   {
     op->ec_ = boost::asio::error::operation_not_supported;
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
     return;
   }
 
   if (!is_open(impl))
   {
     op->ec_ = boost::asio::error::bad_descriptor;
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
     return;
   }
 
   try
   {
     buffer_sequence_adapter<boost::asio::mutable_buffer,
-        boost::asio::mutable_buffer> bufs(boost::asio::buffer(data));
+        boost::asio::mutable_buffers_1> bufs(boost::asio::buffer(data));
 
     if (bufs.all_empty())
     {
-      io_context_.post_immediate_completion(op, is_continuation);
+      io_service_.post_immediate_completion(op, is_continuation);
       return;
     }
 
@@ -616,7 +599,7 @@ void winrt_ssocket_service_base::start_receive_op(
   {
     op->ec_ = boost::system::error_code(e->HResult,
         boost::system::system_category());
-    io_context_.post_immediate_completion(op, is_continuation);
+    io_service_.post_immediate_completion(op, is_continuation);
   }
 }
 

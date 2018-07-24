@@ -549,7 +549,8 @@ operator>>(std::basic_istream<CharT, Traits>& is, duration<Rep, Period>& d)
                 if (t > duration_values<common_type_t>::zero())
                 {
                   //std::cerr << __FILE__ << "[" << __LINE__ << "]"<< std::endl;
-                  if ( (duration_values<Rep>::max)() < Rep(t))
+                  Rep pt = t;
+                  if ( (duration_values<Rep>::max)() < pt)
                   {
                     //std::cerr << __FILE__ << "[" << __LINE__ << "]"<< std::endl;
                     // Conversion to Period overflowed
@@ -559,7 +560,8 @@ operator>>(std::basic_istream<CharT, Traits>& is, duration<Rep, Period>& d)
                 }
                 //std::cerr << __FILE__ << "[" << __LINE__ << "]"<< std::endl;
                 // Success!  Store it.
-                d = duration<Rep, Period>(Rep(t));
+                r = Rep(t);
+                d = duration<Rep, Period>(r);
                 is.setstate(err);
                 //std::cerr << __FILE__ << "[" << __LINE__ << "]"<< std::endl;
                 return is;

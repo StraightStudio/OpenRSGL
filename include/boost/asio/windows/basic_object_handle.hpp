@@ -2,7 +2,7 @@
 // windows/basic_object_handle.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Copyright (c) 2011 Boris Schaeling (boris@highscore.de)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -17,8 +17,6 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
-
-#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
 
 #if defined(BOOST_ASIO_HAS_WINDOWS_OBJECT_HANDLE) \
   || defined(GENERATING_DOCUMENTATION)
@@ -55,11 +53,11 @@ public:
   /**
    * This constructor creates an object handle without opening it.
    *
-   * @param io_context The io_context object that the object handle will use to
+   * @param io_service The io_service object that the object handle will use to
    * dispatch handlers for any asynchronous operations performed on the handle.
    */
-  explicit basic_object_handle(boost::asio::io_context& io_context)
-    : basic_handle<ObjectHandleService>(io_context)
+  explicit basic_object_handle(boost::asio::io_service& io_service)
+    : basic_handle<ObjectHandleService>(io_service)
   {
   }
 
@@ -68,16 +66,16 @@ public:
    * This constructor creates an object handle object to hold an existing native
    * handle.
    *
-   * @param io_context The io_context object that the object handle will use to
+   * @param io_service The io_service object that the object handle will use to
    * dispatch handlers for any asynchronous operations performed on the handle.
    *
    * @param native_handle The new underlying handle implementation.
    *
    * @throws boost::system::system_error Thrown on failure.
    */
-  basic_object_handle(boost::asio::io_context& io_context,
+  basic_object_handle(boost::asio::io_service& io_service,
       const native_handle_type& native_handle)
-    : basic_handle<ObjectHandleService>(io_context, native_handle)
+    : basic_handle<ObjectHandleService>(io_service, native_handle)
   {
   }
 
@@ -90,7 +88,7 @@ public:
    * occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_object_handle(io_context&) constructor.
+   * constructed using the @c basic_object_handle(io_service&) constructor.
    */
   basic_object_handle(basic_object_handle&& other)
     : basic_handle<ObjectHandleService>(
@@ -106,7 +104,7 @@ public:
    * occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_object_handle(io_context&) constructor.
+   * constructed using the @c basic_object_handle(io_service&) constructor.
    */
   basic_object_handle& operator=(basic_object_handle&& other)
   {
@@ -158,7 +156,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the handler will not be invoked from within this function. Invocation
    * of the handler will be performed in a manner equivalent to using
-   * boost::asio::io_context::post().
+   * boost::asio::io_service::post().
    */
   template <typename WaitHandler>
   BOOST_ASIO_INITFN_RESULT_TYPE(WaitHandler,
@@ -178,7 +176,5 @@ public:
 
 #endif // defined(BOOST_ASIO_HAS_WINDOWS_OBJECT_HANDLE)
        //   || defined(GENERATING_DOCUMENTATION)
-
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
 
 #endif // BOOST_ASIO_WINDOWS_BASIC_OBJECT_HANDLE_HPP

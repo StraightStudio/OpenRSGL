@@ -28,8 +28,8 @@ typedef scaled_base_unit<pound_base_unit, scale<7000, static_rational<-1> > > gr
 
 template<>
 struct base_unit_info<us::grain_base_unit> {
-    static BOOST_CONSTEXPR const char* name()   { return("grain"); }
-    static BOOST_CONSTEXPR const char* symbol() { return("gr"); }
+    static const char* name()   { return("grain"); }
+    static const char* symbol() { return("gr"); }
 };
 
 } // namespace units

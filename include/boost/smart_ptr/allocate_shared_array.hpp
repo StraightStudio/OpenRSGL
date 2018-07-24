@@ -175,8 +175,7 @@ sp_array_destroy(A& allocator, T* start, std::size_t size)
 template<bool E, class A, class T>
 inline typename sp_enable<!E &&
     boost::has_trivial_constructor<T>::value &&
-    boost::has_trivial_assign<T>::value &&
-    boost::has_trivial_destructor<T>::value>::type
+    boost::has_trivial_assign<T>::value>::type
 sp_array_construct(A&, T* start, std::size_t size)
 {
     for (std::size_t i = 0; i < size; ++i) {
@@ -187,8 +186,7 @@ sp_array_construct(A&, T* start, std::size_t size)
 template<bool E, class A, class T>
 inline typename sp_enable<!E &&
     boost::has_trivial_constructor<T>::value &&
-    boost::has_trivial_assign<T>::value &&
-    boost::has_trivial_destructor<T>::value>::type
+    boost::has_trivial_assign<T>::value>::type
 sp_array_construct(A&, T* start, std::size_t size, const T* list,
     std::size_t count)
 {
@@ -201,8 +199,7 @@ sp_array_construct(A&, T* start, std::size_t size, const T* list,
 template<bool E, class A, class T>
 inline typename sp_enable<!E &&
     !(boost::has_trivial_constructor<T>::value &&
-      boost::has_trivial_assign<T>::value &&
-      boost::has_trivial_destructor<T>::value)>::type
+      boost::has_trivial_assign<T>::value)>::type
 sp_array_construct(A& none, T* start, std::size_t size)
 {
     std::size_t i = 0;
@@ -219,8 +216,7 @@ sp_array_construct(A& none, T* start, std::size_t size)
 template<bool E, class A, class T>
 inline typename sp_enable<!E &&
     !(boost::has_trivial_constructor<T>::value &&
-      boost::has_trivial_assign<T>::value &&
-      boost::has_trivial_destructor<T>::value)>::type
+      boost::has_trivial_assign<T>::value)>::type
 sp_array_construct(A& none, T* start, std::size_t size, const T* list,
     std::size_t count)
 {
@@ -238,8 +234,7 @@ sp_array_construct(A& none, T* start, std::size_t size, const T* list,
 template<bool E, class A, class T>
 inline typename sp_enable<!E &&
     !(boost::has_trivial_constructor<T>::value &&
-      boost::has_trivial_assign<T>::value &&
-      boost::has_trivial_destructor<T>::value)>::type
+      boost::has_trivial_assign<T>::value)>::type
 sp_array_construct(A&, T* start, std::size_t size)
 {
     for (std::size_t i = 0; i < size; ++i) {
@@ -250,8 +245,7 @@ sp_array_construct(A&, T* start, std::size_t size)
 template<bool E, class A, class T>
 inline typename sp_enable<!E &&
     !(boost::has_trivial_constructor<T>::value &&
-      boost::has_trivial_assign<T>::value &&
-      boost::has_trivial_destructor<T>::value)>::type
+      boost::has_trivial_assign<T>::value)>::type
 sp_array_construct(A&, T* start, std::size_t size, const T* list,
     std::size_t count)
 {
@@ -353,9 +347,9 @@ public:
     typedef A type;
 
     template<class U>
-    sp_array_state(const U& _allocator, std::size_t _size) BOOST_SP_NOEXCEPT
-        : allocator_(_allocator),
-          size_(_size) { }
+    sp_array_state(const U& allocator, std::size_t size) BOOST_SP_NOEXCEPT
+        : allocator_(allocator),
+          size_(size) { }
 
     A& allocator() BOOST_SP_NOEXCEPT {
         return allocator_;
@@ -376,8 +370,8 @@ public:
     typedef A type;
 
     template<class U>
-    sp_size_array_state(const U& _allocator, std::size_t) BOOST_SP_NOEXCEPT
-        : allocator_(_allocator) { }
+    sp_size_array_state(const U& allocator, std::size_t) BOOST_SP_NOEXCEPT
+        : allocator_(allocator) { }
 
     A& allocator() BOOST_SP_NOEXCEPT {
         return allocator_;

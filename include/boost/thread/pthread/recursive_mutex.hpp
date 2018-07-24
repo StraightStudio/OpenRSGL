@@ -19,22 +19,27 @@
 #endif
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <errno.h>
-#include <boost/thread/detail/platform_time.hpp>
+#include <boost/thread/pthread/timespec.hpp>
 #include <boost/thread/pthread/pthread_mutex_scoped_lock.hpp>
-#include <boost/thread/pthread/pthread_helpers.hpp>
 #ifdef BOOST_THREAD_USES_CHRONO
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/chrono/ceil.hpp>
 #endif
 #include <boost/thread/detail/delete.hpp>
 
+#if (defined _POSIX_TIMEOUTS && (_POSIX_TIMEOUTS-0)>=200112L) \
+ || (defined __ANDROID__ && defined __ANDROID_API__ && __ANDROID_API__ >= 21)
+#ifndef BOOST_PTHREAD_HAS_TIMEDLOCK
+#define BOOST_PTHREAD_HAS_TIMEDLOCK
+#endif
+#endif
 
 #if  defined BOOST_HAS_PTHREAD_MUTEXATTR_SETTYPE \
  ||  defined __ANDROID__
 #define BOOST_THREAD_HAS_PTHREAD_MUTEXATTR_SETTYPE
 #endif
 
-#if defined BOOST_THREAD_HAS_PTHREAD_MUTEXATTR_SETTYPE && defined BOOST_THREAD_USES_PTHREAD_TIMEDLOCK
+#if defined BOOST_THREAD_HAS_PTHREAD_MUTEXATTR_SETTYPE && defined BOOST_PTHREAD_HAS_TIMEDLOCK
 #define BOOST_USE_PTHREAD_RECURSIVE_TIMEDLOCK
 #endif
 
@@ -84,11 +89,11 @@ namespace boost
             {
                 boost::throw_exception(thread_resource_error(res, "boost:: recursive_mutex constructor failed in pthread_mutex_init"));
             }
-            int const res2=pthread::cond_init(cond);
+            int const res2=pthread_cond_init(&cond,NULL);
             if(res2)
             {
                 BOOST_VERIFY(!pthread_mutex_destroy(&m));
-                boost::throw_exception(thread_resource_error(res2, "boost:: recursive_mutex constructor failed in pthread::cond_init"));
+                boost::throw_exception(thread_resource_error(res2, "boost:: recursive_mutex constructor failed in pthread_cond_init"));
             }
             is_locked=false;
             count=0;
@@ -219,11 +224,11 @@ namespace boost
             {
                 boost::throw_exception(thread_resource_error(res, "boost:: recursive_timed_mutex constructor failed in pthread_mutex_init"));
             }
-            int const res2=pthread::cond_init(cond);
+            int const res2=pthread_cond_init(&cond,NULL);
             if(res2)
             {
                 BOOST_VERIFY(!pthread_mutex_destroy(&m));
-                boost::throw_exception(thread_resource_error(res2, "boost:: recursive_timed_mutex constructor failed in pthread::cond_init"));
+                boost::throw_exception(thread_resource_error(res2, "boost:: recursive_timed_mutex constructor failed in pthread_cond_init"));
             }
             is_locked=false;
             count=0;
@@ -241,29 +246,7 @@ namespace boost
         template<typename TimeDuration>
         bool timed_lock(TimeDuration const & relative_time)
         {
-            if (relative_time.is_pos_infinity())
-            {
-                lock();
-                return true;
-            }
-            if (relative_time.is_special())
-            {
-                return true;
-            }
-            detail::platform_duration d(relative_time);
-#if defined(BOOST_THREAD_HAS_MONO_CLOCK) && !defined(BOOST_THREAD_INTERNAL_CLOCK_IS_MONO)
-            const detail::mono_platform_timepoint ts(detail::mono_platform_clock::now() + d);
-            d = (std::min)(d, detail::platform_milliseconds(BOOST_THREAD_POLL_INTERVAL_MILLISECONDS));
-            while ( ! do_try_lock_until(detail::internal_platform_clock::now() + d) )
-            {
-              d = ts - detail::mono_platform_clock::now();
-              if ( d <= detail::platform_duration::zero() ) return false; // timeout occurred
-              d = (std::min)(d, detail::platform_milliseconds(BOOST_THREAD_POLL_INTERVAL_MILLISECONDS));
-            }
-            return true;
-#else
-            return do_try_lock_until(detail::internal_platform_clock::now() + d);
-#endif
+            return timed_lock(get_system_time()+relative_time);
         }
 #endif
 
@@ -285,9 +268,9 @@ namespace boost
             return !res;
         }
     private:
-        bool do_try_lock_until(detail::internal_platform_timepoint const &timeout)
+        bool do_try_lock_until(struct timespec const &timeout)
         {
-            int const res=pthread_mutex_timedlock(&m,&timeout.getTs());
+            int const res=pthread_mutex_timedlock(&m,&timeout);
             BOOST_ASSERT(!res || res==ETIMEDOUT);
             return !res;
         }
@@ -337,7 +320,7 @@ namespace boost
         }
 
     private:
-        bool do_try_lock_until(detail::internal_platform_timepoint const &timeout)
+        bool do_try_lock_until(struct timespec const &timeout)
         {
             boost::pthread::pthread_mutex_scoped_lock const local_lock(&m);
             if(is_locked && pthread_equal(owner,pthread_self()))
@@ -347,16 +330,12 @@ namespace boost
             }
             while(is_locked)
             {
-                int const cond_res=pthread_cond_timedwait(&cond,&m,&timeout.getTs());
+                int const cond_res=pthread_cond_timedwait(&cond,&m,&timeout);
                 if(cond_res==ETIMEDOUT)
                 {
-                    break;
+                    return false;
                 }
                 BOOST_ASSERT(!cond_res);
-            }
-            if(is_locked)
-            {
-                return false;
             }
             is_locked=true;
             ++count;
@@ -370,20 +349,8 @@ namespace boost
 #if defined BOOST_THREAD_USES_DATETIME
         bool timed_lock(system_time const & abs_time)
         {
-            const detail::real_platform_timepoint ts(abs_time);
-#if defined BOOST_THREAD_INTERNAL_CLOCK_IS_MONO
-            detail::platform_duration d(ts - detail::real_platform_clock::now());
-            d = (std::min)(d, detail::platform_milliseconds(BOOST_THREAD_POLL_INTERVAL_MILLISECONDS));
-            while ( ! do_try_lock_until(detail::internal_platform_clock::now() + d) )
-            {
-              d = ts - detail::real_platform_clock::now();
-              if ( d <= detail::platform_duration::zero() ) return false; // timeout occurred
-              d = (std::min)(d, detail::platform_milliseconds(BOOST_THREAD_POLL_INTERVAL_MILLISECONDS));
-            }
-            return true;
-#else
+            struct timespec const ts=detail::to_timespec(abs_time);
             return do_try_lock_until(ts);
-#endif
         }
 #endif
 #ifdef BOOST_THREAD_USES_CHRONO
@@ -395,22 +362,23 @@ namespace boost
         template <class Clock, class Duration>
         bool try_lock_until(const chrono::time_point<Clock, Duration>& t)
         {
-          typedef typename common_type<Duration, typename Clock::duration>::type common_duration;
-          common_duration d(t - Clock::now());
-          d = (std::min)(d, common_duration(chrono::milliseconds(BOOST_THREAD_POLL_INTERVAL_MILLISECONDS)));
-          while ( ! try_lock_until(detail::internal_chrono_clock::now() + d))
-          {
-              d = t - Clock::now();
-              if ( d <= common_duration::zero() ) return false; // timeout occurred
-              d = (std::min)(d, common_duration(chrono::milliseconds(BOOST_THREAD_POLL_INTERVAL_MILLISECONDS)));
-          }
-          return true;
-
+          using namespace chrono;
+          system_clock::time_point     s_now = system_clock::now();
+          typename Clock::time_point  c_now = Clock::now();
+          return try_lock_until(s_now + ceil<nanoseconds>(t - c_now));
         }
         template <class Duration>
-        bool try_lock_until(const chrono::time_point<detail::internal_chrono_clock, Duration>& t)
+        bool try_lock_until(const chrono::time_point<chrono::system_clock, Duration>& t)
         {
-          detail::internal_platform_timepoint ts(t);
+          using namespace chrono;
+          typedef time_point<system_clock, nanoseconds> nano_sys_tmpt;
+          return try_lock_until(nano_sys_tmpt(ceil<nanoseconds>(t.time_since_epoch())));
+        }
+        bool try_lock_until(const chrono::time_point<chrono::system_clock, chrono::nanoseconds>& tp)
+        {
+          //using namespace chrono;
+          chrono::nanoseconds d = tp.time_since_epoch();
+          timespec ts = boost::detail::to_timespec(d);
           return do_try_lock_until(ts);
         }
 #endif

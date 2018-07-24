@@ -16,7 +16,6 @@
 #ifndef BOOST_ATOMIC_DETAIL_OPS_MSVC_X86_HPP_INCLUDED_
 #define BOOST_ATOMIC_DETAIL_OPS_MSVC_X86_HPP_INCLUDED_
 
-#include <cstddef>
 #include <boost/memory_order.hpp>
 #include <boost/atomic/detail/config.hpp>
 #include <boost/atomic/detail/interlocked.hpp>
@@ -73,7 +72,6 @@ namespace detail {
 
 struct msvc_x86_operations_base
 {
-    static BOOST_CONSTEXPR_OR_CONST bool full_cas_based = false;
     static BOOST_CONSTEXPR_OR_CONST bool is_always_lock_free = true;
 
     static BOOST_FORCEINLINE void hardware_full_fence() BOOST_NOEXCEPT
@@ -108,15 +106,11 @@ struct msvc_x86_operations_base
     }
 };
 
-template< std::size_t Size, bool Signed, typename Derived >
+template< typename T, typename Derived >
 struct msvc_x86_operations :
     public msvc_x86_operations_base
 {
-    typedef typename make_storage_type< Size >::type storage_type;
-    typedef typename make_storage_type< Size >::aligned aligned_storage_type;
-
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = Size;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
+    typedef T storage_type;
 
     static BOOST_FORCEINLINE void store(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
@@ -164,10 +158,11 @@ struct msvc_x86_operations :
 
 template< bool Signed >
 struct operations< 4u, Signed > :
-    public msvc_x86_operations< 4u, Signed, operations< 4u, Signed > >
+    public msvc_x86_operations< typename make_storage_type< 4u, Signed >::type, operations< 4u, Signed > >
 {
-    typedef msvc_x86_operations< 4u, Signed, operations< 4u, Signed > > base_type;
+    typedef msvc_x86_operations< typename make_storage_type< 4u, Signed >::type, operations< 4u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
+    typedef typename make_storage_type< 4u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -235,10 +230,11 @@ struct operations< 4u, Signed > :
 
 template< bool Signed >
 struct operations< 1u, Signed > :
-    public msvc_x86_operations< 1u, Signed, operations< 1u, Signed > >
+    public msvc_x86_operations< typename make_storage_type< 1u, Signed >::type, operations< 1u, Signed > >
 {
-    typedef msvc_x86_operations< 1u, Signed, operations< 1u, Signed > > base_type;
+    typedef msvc_x86_operations< typename make_storage_type< 1u, Signed >::type, operations< 1u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
+    typedef typename make_storage_type< 1u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -279,10 +275,11 @@ struct operations< 1u, Signed > :
 
 template< bool Signed >
 struct operations< 1u, Signed > :
-    public msvc_x86_operations< 1u, Signed, operations< 1u, Signed > >
+    public msvc_x86_operations< typename make_storage_type< 1u, Signed >::type, operations< 1u, Signed > >
 {
-    typedef msvc_x86_operations< 1u, Signed, operations< 1u, Signed > > base_type;
+    typedef msvc_x86_operations< typename make_storage_type< 1u, Signed >::type, operations< 1u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
+    typedef typename make_storage_type< 1u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
@@ -335,19 +332,22 @@ struct operations< 1u, Signed > :
     static BOOST_FORCEINLINE storage_type fetch_and(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
         base_type::fence_before(order);
+        int backup;
         __asm
         {
-            mov edi, storage
-            movzx ecx, v
+            mov backup, ebx
             xor edx, edx
+            mov edi, storage
+            movzx ebx, v
             movzx eax, byte ptr [edi]
             align 16
         again:
             mov dl, al
-            and dl, cl
+            and dl, bl
             lock cmpxchg byte ptr [edi], dl
             jne again
             mov v, al
+            mov ebx, backup
         };
         base_type::fence_after(order);
         return v;
@@ -356,19 +356,22 @@ struct operations< 1u, Signed > :
     static BOOST_FORCEINLINE storage_type fetch_or(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
         base_type::fence_before(order);
+        int backup;
         __asm
         {
-            mov edi, storage
-            movzx ecx, v
+            mov backup, ebx
             xor edx, edx
+            mov edi, storage
+            movzx ebx, v
             movzx eax, byte ptr [edi]
             align 16
         again:
             mov dl, al
-            or dl, cl
+            or dl, bl
             lock cmpxchg byte ptr [edi], dl
             jne again
             mov v, al
+            mov ebx, backup
         };
         base_type::fence_after(order);
         return v;
@@ -377,19 +380,22 @@ struct operations< 1u, Signed > :
     static BOOST_FORCEINLINE storage_type fetch_xor(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
         base_type::fence_before(order);
+        int backup;
         __asm
         {
-            mov edi, storage
-            movzx ecx, v
+            mov backup, ebx
             xor edx, edx
+            mov edi, storage
+            movzx ebx, v
             movzx eax, byte ptr [edi]
             align 16
         again:
             mov dl, al
-            xor dl, cl
+            xor dl, bl
             lock cmpxchg byte ptr [edi], dl
             jne again
             mov v, al
+            mov ebx, backup
         };
         base_type::fence_after(order);
         return v;
@@ -410,10 +416,11 @@ struct operations< 1u, Signed > :
 
 template< bool Signed >
 struct operations< 2u, Signed > :
-    public msvc_x86_operations< 2u, Signed, operations< 2u, Signed > >
+    public msvc_x86_operations< typename make_storage_type< 2u, Signed >::type, operations< 2u, Signed > >
 {
-    typedef msvc_x86_operations< 2u, Signed, operations< 2u, Signed > > base_type;
+    typedef msvc_x86_operations< typename make_storage_type< 2u, Signed >::type, operations< 2u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
+    typedef typename make_storage_type< 2u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -454,10 +461,11 @@ struct operations< 2u, Signed > :
 
 template< bool Signed >
 struct operations< 2u, Signed > :
-    public msvc_x86_operations< 2u, Signed, operations< 2u, Signed > >
+    public msvc_x86_operations< typename make_storage_type< 2u, Signed >::type, operations< 2u, Signed > >
 {
-    typedef msvc_x86_operations< 2u, Signed, operations< 2u, Signed > > base_type;
+    typedef msvc_x86_operations< typename make_storage_type< 2u, Signed >::type, operations< 2u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
+    typedef typename make_storage_type< 2u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
@@ -510,19 +518,22 @@ struct operations< 2u, Signed > :
     static BOOST_FORCEINLINE storage_type fetch_and(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
         base_type::fence_before(order);
+        int backup;
         __asm
         {
-            mov edi, storage
-            movzx ecx, v
+            mov backup, ebx
             xor edx, edx
+            mov edi, storage
+            movzx ebx, v
             movzx eax, word ptr [edi]
             align 16
         again:
             mov dx, ax
-            and dx, cx
+            and dx, bx
             lock cmpxchg word ptr [edi], dx
             jne again
             mov v, ax
+            mov ebx, backup
         };
         base_type::fence_after(order);
         return v;
@@ -531,19 +542,22 @@ struct operations< 2u, Signed > :
     static BOOST_FORCEINLINE storage_type fetch_or(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
         base_type::fence_before(order);
+        int backup;
         __asm
         {
-            mov edi, storage
-            movzx ecx, v
+            mov backup, ebx
             xor edx, edx
+            mov edi, storage
+            movzx ebx, v
             movzx eax, word ptr [edi]
             align 16
         again:
             mov dx, ax
-            or dx, cx
+            or dx, bx
             lock cmpxchg word ptr [edi], dx
             jne again
             mov v, ax
+            mov ebx, backup
         };
         base_type::fence_after(order);
         return v;
@@ -552,19 +566,22 @@ struct operations< 2u, Signed > :
     static BOOST_FORCEINLINE storage_type fetch_xor(storage_type volatile& storage, storage_type v, memory_order order) BOOST_NOEXCEPT
     {
         base_type::fence_before(order);
+        int backup;
         __asm
         {
-            mov edi, storage
-            movzx ecx, v
+            mov backup, ebx
             xor edx, edx
+            mov edi, storage
+            movzx ebx, v
             movzx eax, word ptr [edi]
             align 16
         again:
             mov dx, ax
-            xor dx, cx
+            xor dx, bx
             lock cmpxchg word ptr [edi], dx
             jne again
             mov v, ax
+            mov ebx, backup
         };
         base_type::fence_after(order);
         return v;
@@ -587,14 +604,10 @@ struct operations< 2u, Signed > :
 template< bool Signed >
 struct msvc_dcas_x86
 {
-    typedef typename make_storage_type< 8u >::type storage_type;
-    typedef typename make_storage_type< 8u >::aligned aligned_storage_type;
+    typedef typename make_storage_type< 8u, Signed >::type storage_type;
+    typedef typename make_storage_type< 8u, Signed >::aligned aligned_storage_type;
 
-    static BOOST_CONSTEXPR_OR_CONST bool full_cas_based = true;
     static BOOST_CONSTEXPR_OR_CONST bool is_always_lock_free = true;
-
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 8u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
 
     // Intel 64 and IA-32 Architectures Software Developer's Manual, Volume 3A, 8.1.1. Guaranteed Atomic Operations:
     //
@@ -638,7 +651,7 @@ struct msvc_dcas_x86
         }
         else
         {
-            uint32_t backup;
+            int backup;
             __asm
             {
                 mov backup, ebx
@@ -726,7 +739,7 @@ struct msvc_dcas_x86
         expected = old_val;
 #else
         bool result;
-        uint32_t backup;
+        int backup;
         __asm
         {
             mov backup, ebx
@@ -759,7 +772,7 @@ struct msvc_dcas_x86
         BOOST_ATOMIC_DETAIL_COMPILER_BARRIER();
 
         storage_type volatile* p = &storage;
-        uint32_t backup;
+        int backup;
         __asm
         {
             mov backup, ebx
@@ -793,10 +806,11 @@ struct operations< 8u, Signed > :
 
 template< bool Signed >
 struct operations< 8u, Signed > :
-    public msvc_x86_operations< 8u, Signed, operations< 8u, Signed > >
+    public msvc_x86_operations< typename make_storage_type< 8u, Signed >::type, operations< 8u, Signed > >
 {
-    typedef msvc_x86_operations< 8u, Signed, operations< 8u, Signed > > base_type;
+    typedef msvc_x86_operations< typename make_storage_type< 8u, Signed >::type, operations< 8u, Signed > > base_type;
     typedef typename base_type::storage_type storage_type;
+    typedef typename make_storage_type< 8u, Signed >::aligned aligned_storage_type;
 
     static BOOST_FORCEINLINE storage_type fetch_add(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {
@@ -840,14 +854,10 @@ struct operations< 8u, Signed > :
 template< bool Signed >
 struct msvc_dcas_x86_64
 {
-    typedef typename make_storage_type< 16u >::type storage_type;
-    typedef typename make_storage_type< 16u >::aligned aligned_storage_type;
+    typedef typename make_storage_type< 16u, Signed >::type storage_type;
+    typedef typename make_storage_type< 16u, Signed >::aligned aligned_storage_type;
 
-    static BOOST_CONSTEXPR_OR_CONST bool full_cas_based = true;
     static BOOST_CONSTEXPR_OR_CONST bool is_always_lock_free = true;
-
-    static BOOST_CONSTEXPR_OR_CONST std::size_t storage_size = 16u;
-    static BOOST_CONSTEXPR_OR_CONST bool is_signed = Signed;
 
     static BOOST_FORCEINLINE void store(storage_type volatile& storage, storage_type v, memory_order) BOOST_NOEXCEPT
     {

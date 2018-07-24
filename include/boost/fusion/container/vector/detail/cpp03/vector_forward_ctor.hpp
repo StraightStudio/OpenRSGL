@@ -64,11 +64,7 @@ FUSION_HASH endif
 #if M == 1
     explicit
 #endif
-    vector(BOOST_PP_ENUM_BINARY_PARAMS(M, U, && arg)
-#if M == 1
-        , typename boost::disable_if_c<boost::is_same<vector, typename boost::remove_cv_ref<U0>::type>::value, detail::enabler_>::type = detail::enabler
-#endif
-        )
+    vector(BOOST_PP_ENUM_BINARY_PARAMS(M, U, && arg))
         : vec(BOOST_PP_ENUM(M, FUSION_FORWARD_CTOR_FORWARD, arg)) {}
 #endif
 #if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)

@@ -2,7 +2,7 @@
 // windows/object_handle_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Copyright (c) 2011 Boris Schaeling (boris@highscore.de)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -18,15 +18,13 @@
 
 #include <boost/asio/detail/config.hpp>
 
-#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
-
 #if defined(BOOST_ASIO_HAS_WINDOWS_OBJECT_HANDLE) \
   || defined(GENERATING_DOCUMENTATION)
 
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/detail/win_object_handle_service.hpp>
 #include <boost/asio/error.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
 
@@ -37,7 +35,7 @@ namespace windows {
 /// Default service implementation for an object handle.
 class object_handle_service
 #if defined(GENERATING_DOCUMENTATION)
-  : public boost::asio::io_context::service
+  : public boost::asio::io_service::service
 #else
   : public boost::asio::detail::service_base<object_handle_service>
 #endif
@@ -45,7 +43,7 @@ class object_handle_service
 public:
 #if defined(GENERATING_DOCUMENTATION)
   /// The unique service identifier.
-  static boost::asio::io_context::id id;
+  static boost::asio::io_service::id id;
 #endif
 
 private:
@@ -67,10 +65,10 @@ public:
   typedef service_impl_type::native_handle_type native_handle_type;
 #endif
 
-  /// Construct a new object handle service for the specified io_context.
-  explicit object_handle_service(boost::asio::io_context& io_context)
-    : boost::asio::detail::service_base<object_handle_service>(io_context),
-      service_impl_(io_context)
+  /// Construct a new object handle service for the specified io_service.
+  explicit object_handle_service(boost::asio::io_service& io_service)
+    : boost::asio::detail::service_base<object_handle_service>(io_service),
+      service_impl_(io_service)
   {
   }
 
@@ -104,11 +102,10 @@ public:
   }
 
   /// Assign an existing native handle to an object handle.
-  BOOST_ASIO_SYNC_OP_VOID assign(implementation_type& impl,
+  boost::system::error_code assign(implementation_type& impl,
       const native_handle_type& handle, boost::system::error_code& ec)
   {
-    service_impl_.assign(impl, handle, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.assign(impl, handle, ec);
   }
 
   /// Determine whether the handle is open.
@@ -118,11 +115,10 @@ public:
   }
 
   /// Close an object handle implementation.
-  BOOST_ASIO_SYNC_OP_VOID close(implementation_type& impl,
+  boost::system::error_code close(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.close(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.close(impl, ec);
   }
 
   /// Get the native handle implementation.
@@ -132,11 +128,10 @@ public:
   }
 
   /// Cancel all asynchronous operations associated with the handle.
-  BOOST_ASIO_SYNC_OP_VOID cancel(implementation_type& impl,
+  boost::system::error_code cancel(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.cancel(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.cancel(impl, ec);
   }
 
   // Wait for a signaled state.
@@ -152,19 +147,20 @@ public:
   async_wait(implementation_type& impl,
       BOOST_ASIO_MOVE_ARG(WaitHandler) handler)
   {
-    boost::asio::async_completion<WaitHandler,
-      void (boost::system::error_code)> init(handler);
+    boost::asio::detail::async_result_init<
+      WaitHandler, void (boost::system::error_code)> init(
+        BOOST_ASIO_MOVE_CAST(WaitHandler)(handler));
 
-    service_impl_.async_wait(impl, init.completion_handler);
+    service_impl_.async_wait(impl, init.handler);
 
     return init.result.get();
   }
 
 private:
   // Destroy all user-defined handler objects owned by the service.
-  void shutdown()
+  void shutdown_service()
   {
-    service_impl_.shutdown();
+    service_impl_.shutdown_service();
   }
 
   // The platform-specific implementation.
@@ -179,7 +175,5 @@ private:
 
 #endif // defined(BOOST_ASIO_HAS_WINDOWS_OBJECT_HANDLE)
        //   || defined(GENERATING_DOCUMENTATION)
-
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
 
 #endif // BOOST_ASIO_WINDOWS_OBJECT_HANDLE_SERVICE_HPP
