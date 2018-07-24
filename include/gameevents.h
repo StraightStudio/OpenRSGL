@@ -4,25 +4,26 @@
 #include <depends.h>
 #include <config.h>
 #include <actor2d.h>
+#include <cube3d.h>
 
 struct Action {
     int id;
     unistring data;
-    vec2 transform_data[2];
+    vec3 transform_data[2];
 
     Action() :
         id(0), data("")
     {
-        transform_data[0] = vec2(0, 0);
-        transform_data[1] = vec2(0, 0);
+        transform_data[0] = vec3(0, 0, 0);
+        transform_data[1] = vec3(0, 0, 0);
     }
     Action(int i, unistring d) : id(i), data(d)
     {
-        transform_data[0] = vec2(0, 0);
-        transform_data[1] = vec2(0, 0);
+        transform_data[0] = vec3(0, 0, 0);
+        transform_data[1] = vec3(0, 0, 0);
     }
 
-    Action(int i, unistring d, vec2 da, vec2 dd)
+    Action(int i, unistring d, vec3 da, vec3 dd)
         : id(i), data(d)
     {
         transform_data[0] = da;
@@ -33,8 +34,8 @@ struct Action {
     {
         data.clear();
         id=0;
-        transform_data[0]=vec2(0,0);
-        transform_data[1]=vec2(0,0);
+        transform_data[0]=vec3(0, 0, 0);
+        transform_data[1]=vec3(0, 0, 0);
     }
 
     bool boolData()
@@ -50,7 +51,7 @@ struct Action {
         data.clear();
     }
 
-    vec2 vec2Data(int i)
+    vec3 vec3Data(int i)
     {
         return transform_data[i];
     }
@@ -60,11 +61,11 @@ class GameEvents
 {
 public:
     GameEvents();
-    vec2 oldmpos;
+    vec3 oldmpos;
 
-    vec2 mousePos();
-    bool rectOverlap(SDL_Rect &rect_1, SDL_Rect &rect_2);
-    bool isMouseOver(SDL_Rect &rect);
+    vec3 mousePos();
+    bool rectOverlap(Cube3D &first, Cube3D &last);
+    bool isMouseOver(Cube3D &other);
     bool isMouseDown(int mbtn);
     bool isMouseUp(int mbtn);
     bool isMouseClicked(int mbtn);

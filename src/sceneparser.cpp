@@ -102,7 +102,7 @@ void SceneParser::readScene(AppConfig &conf, Scene2d &target, unistring file)
                 Config::cfgerr("'parent' variable must be STRING!");
             parent = i.value["parent"].GetString();
         }
-        target.addActor(conf, vec2(x,y), model, parent);
+        target.addActor(conf, vec3(x,y,0), model, parent);
     }
 
     if(doc.HasMember("bg-track"))

@@ -5,7 +5,7 @@ Actor2d::Actor2d()
     reset();
 }
 
-void Actor2d::moveTo(vec2 target)
+void Actor2d::moveTo(vec3 target)
 {
     frameIter=0;
     curFrame=0;
@@ -13,9 +13,9 @@ void Actor2d::moveTo(vec2 target)
     targetPos = target;
 }
 
-void Actor2d::moveTo(int tx, int ty)
+void Actor2d::moveTo(float tx, float ty, float tz)
 {
-    moveTo(vec2(tx, ty));
+    moveTo(vec3(tx, ty, tz));
 }
 
 void Actor2d::updatePath()

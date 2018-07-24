@@ -78,7 +78,7 @@ void Config::loadCfg(AppConfig &conf)
     unistring tex, type, anim, st, name;
     unistrlist sts, mts, punits;
     int w,h, rw,rh;
-    vec2 so;
+    vec3 so;
     map<unistring, unistring> trigger;
     Document mds;
     Actor2d actor;

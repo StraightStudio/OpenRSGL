@@ -1,6 +1,6 @@
 #include <core.h>
 
-Core::Core() : spawnid(0), m_console(false), m_consolecolour({255, 255, 255, 0}), m_citem(0), m_fov(90.f), m_VAO(0), m_VBO(0)
+Core::Core() : spawnid(0), m_fov(90.f), m_campos(0, -50.f, 0), m_camrot(30.f, 0, 0)
 {
     selection_rect.x = 0;
     selection_rect.y = 0;
@@ -18,24 +18,12 @@ void Core::cleanup()
 {
     Logger::log("Core", "Started cleanup...");
 
-
     m_scene.clear();
     m_scene.doOperations();
 
     m_animator.clear();
     m_audiomgr.clear();
     m_texloader.clear();
-
-
-    if(m_consoletext != nullptr)
-        SDL_DestroyTexture(m_consoletext);
-
-    m_cinput.clear();
-    m_consoleHistory.clear();
-
-    if(m_consolefont != nullptr)
-        TTF_CloseFont(m_consolefont);
-    //
 
     if(m_iout != nullptr)
         SDL_DestroyRenderer(m_iout);
@@ -47,7 +35,6 @@ void Core::cleanup()
     SDL_GL_DeleteContext(m_glcontext);
 #endif
     SteamAPI_Shutdown();
-    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 
@@ -55,28 +42,19 @@ void Core::cleanup()
 
 void Core::init()
 {
-    //
+    Config::loadCfg(m_appconf);
+    pname = m_appconf.playername;
 #ifdef TESTING
     if(!SteamAPI_IsSteamRunning())
         Logger::warn("Core", "SteamAPI init error!");
     else
         SteamAPI_Init();
 
-    Logger::info("SteamAPI info", "Hello, "+unistring( SteamFriends()->GetPersonaName() )+" :D !" );
+    pname = unistring( SteamFriends()->GetPersonaName() );
+    Logger::info("SteamAPI info", "Hello, "+pname+" :D !" );
 #endif
     //
-    Config::loadCfg(m_appconf);
-    pname = m_appconf.playername;
 
-    m_camrect.x = 0; m_camrect.y = 0;
-    m_camrect.w = m_appconf.app_width;
-    m_camrect.h = m_appconf.app_height;
-
-    if(TTF_Init() < 0)
-    {
-        Logger::err("Core", TTF_GetError());
-    }
-    m_consolefont = TTF_OpenFont(RES_ROOT "fonts/freemono.ttf", 18);
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0)
     {
@@ -110,7 +88,7 @@ void Core::init()
     glViewport( 0.0f, 0.0f, m_appconf.app_width, m_appconf.app_height ); // specifies the part of the window to which OpenGL will draw (in pixels), convert from normalised to pixels
     glMatrixMode( GL_PROJECTION ); // projection matrix defines the properties of the camera that views the objects in the world coordinate frame. Here you typically set the zoom factor, aspect ratio and the near and far clipping planes
     glLoadIdentity( ); // replace the current matrix with the identity matrix and starts us a fresh because matrix transforms such as glOrpho and glRotate cumulate, basically puts us at (0, 0, 0)
-    glOrtho( 0, m_appconf.app_width, 0, m_appconf.app_height, 0, 1000 ); // essentially set coordinate system
+    gluPerspective( m_fov, (float)m_appconf.app_width/(float)m_appconf.app_height, 0, 1000 ); // essentially set coordinate system
     glMatrixMode( GL_MODELVIEW ); // (default matrix mode) modelview matrix defines how your objects are transformed (meaning translation, rotation and scaling) in your world
     glLoadIdentity( ); // same as above comment
 #else
@@ -150,12 +128,6 @@ void Core::init()
     menu_rect.x = 0;
     menu_rect.y = m_appconf.app_height-menu_rect.h;
 
-    m_consolerect.x = 0; m_consolerect.y = 0;
-    m_consolerect.w = m_appconf.app_width; m_consolerect.h = 24;
-
-    m_consoletextrect.x = 0; m_consoletextrect.y = 0;
-    m_consoletextrect.w = 16; m_consoletextrect.h = 24;
-
     if(m_appconf.is_full)
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
 
@@ -177,12 +149,6 @@ void Core::init()
     mouse_rect.h = 32;
 }
 
-void Core::updateConsole()
-{
-    m_consoletext = SDL_CreateTextureFromSurface(m_iout, TTF_RenderText_Solid(m_consolefont, m_cinput.c_str(), m_consolecolour) );
-    TTF_SizeText(m_consolefont, m_cinput.c_str(),&m_consoletextrect.w,&m_consoletextrect.h);
-}
-
 int Core::exec()
 {
     m_quit = false;
@@ -202,92 +168,6 @@ int Core::exec()
                 case SDL_QUIT:
                     m_quit = true;
                 break;
-#ifndef TESTING
-                case SDL_KEYDOWN:
-                    if(m_console)
-                    {
-                        if(m_event.key.keysym.scancode == CONSOLE_KEY)
-                            m_console = false;
-                        if(m_event.key.keysym.scancode == SDL_SCANCODE_RETURN)
-                        {
-                            vector<unistring> parts;
-                            split(parts, m_cinput, is_any_of(" "), token_compress_on);
-                            if(parts.size() > 1)
-                            {
-                                if(parts[0] == "spawn")
-                                {
-                                    if(m_appconf.app_models.count(parts[1]) > 0)
-                                        m_scene.addActor(m_appconf, m_processor.mousePos(), parts[1], pname);
-                                }
-                            }
-                            else
-                            {
-								if (m_cinput == "exit") {
-									cleanup();
-									exit (0);
-								}
-                            }
-
-                            m_consoleHistory.push_back(m_cinput);
-                            //
-                            m_cinput.clear();
-                            updateConsole();
-                            m_citem = m_consoleHistory.size();
-                        }
-                        else if(m_event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
-                        {
-                            if(m_cinput.length() > 0)
-                                m_cinput.pop_back();
-                            updateConsole();
-                        }
-                        else if(m_event.key.keysym.scancode == SDL_SCANCODE_UP)
-                        {
-                            if(m_consoleHistory.size() > 0)
-                            {
-                                if(m_citem > 0)
-                                {
-                                    --m_citem;
-                                    m_cinput = m_consoleHistory.at(m_citem);
-                                    updateConsole();
-                                }
-                            }
-                        }
-                        else if(m_event.key.keysym.scancode == SDL_SCANCODE_DOWN)
-                        {
-                            if(m_consoleHistory.size() > 0)
-                            {
-                                if(m_citem < m_consoleHistory.size()-1)
-                                {
-                                    ++m_citem;
-                                    m_cinput = m_consoleHistory.at(m_citem);
-                                }
-                                else
-                                {
-                                    m_cinput = "";
-                                    m_citem = m_consoleHistory.size();
-                                }
-                                updateConsole();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if(m_event.key.keysym.scancode == CONSOLE_KEY)
-                            m_console = true;
-                    }
-                break;
-                case SDL_TEXTINPUT:
-                    c = m_event.text.text[0];
-                    if(m_console)
-                    {
-                        if( c >= 0x20 && c < 0x7E && c != 0x60) // 0x60 - `, 0x7E - ~
-                        {
-                            m_cinput += (char)c;
-                            updateConsole();
-                        }
-                    }
-                break;
-#endif
                 case SDL_MOUSEBUTTONDOWN:
                     if(m_event.button.button > 0)
                     {
@@ -318,6 +198,7 @@ int Core::exec()
 
 void Core::draw_objs()
 {
+    /*
     if(m_scene.sinfo.type == "game")
     {
         SDL_SetRenderDrawColor(m_iout, 192, 192, 192, SDL_ALPHA_OPAQUE);
@@ -334,7 +215,7 @@ void Core::draw_objs()
         {
             if(obj.type == "actor")
             {
-                if(m_processor.isSelected(obj) || m_processor.isMouseOver(obj.real_rect))
+                if(m_processor.isSelected(obj) || m_processor.isMouseOver( Cube3D(obj.real_rect) ))
                 {
                     SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
                     SDL_RenderFillRect(m_iout, &obj.healthBar());
@@ -380,14 +261,14 @@ void Core::draw_objs()
         }
         else
         {
-            if(m_processor.oldmpos.x != 0 && m_processor.oldmpos.y != 0)
+            if(m_processor.oldmpos.X() != 0 && m_processor.oldmpos.Y() != 0 && m_processor.oldmpos.Z() != 0)
             {
                 if( ( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) ) )
                 {
                     m_processor.addSelected(m_scene.m_objs, selection_rect);
                 }
                 //
-                m_processor.oldmpos = vec2(0,0);
+                m_processor.oldmpos = vec3(0, 0, 0);
             }
         }
     }
@@ -395,20 +276,13 @@ void Core::draw_objs()
 
     m_scene.doOperations();
     obj.reset();
-    //
-    if(m_console)
-    {
-        SDL_SetRenderDrawColor(m_iout, 32, 32, 32, 0);
-        SDL_RenderFillRect(m_iout, &m_consolerect);
-        SDL_RenderCopy(m_iout, m_consoletext, &m_camrect, &m_consoletextrect);
-        SDL_SetRenderDrawColor(m_iout, 0, 0, 0, 0);
-    }
-    //
+
     mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
     SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), &m_camrect, &mouse_rect);
 
     SDL_RenderPresent(m_iout);
     SDL_Delay(1000/TARGET_FPS);
+    */
 }
 
 void DrawCube( GLfloat centerPosX, GLfloat centerPosY, GLfloat centerPosZ, GLfloat edgeLength )
@@ -455,10 +329,18 @@ void DrawCube( GLfloat centerPosX, GLfloat centerPosY, GLfloat centerPosZ, GLflo
     };
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glVertexPointer( 3, GL_FLOAT, 0, verts );
 
-    glDrawArrays( GL_QUADS, 0, 24 );
+    glEnableClientState( GL_VERTEX_ARRAY );
+
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    glColor3f(1.f, 0.f, 0.f);
+    glVertexPointer( 3, GL_FLOAT, 0, verts );
+    glDrawArrays( GL_QUADS, 0, 6*4);
+
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glColor3f(0.f, 1.f, 0.f);
+    glVertexPointer( 3, GL_FLOAT, 0, verts );
+    glDrawArrays( GL_QUADS, 0, 6*4);
 
     glDisableClientState( GL_VERTEX_ARRAY );
 }
@@ -467,32 +349,21 @@ void Core::draw_objs3D()
 {
     glClear( GL_COLOR_BUFFER_BIT );
 
-    // Render OpenGL here
+    //glPushMatrix(); // Deprecated
+    glLoadIdentity();
 
-    glPushMatrix( );
-    glTranslatef( m_appconf.app_width/2, m_appconf.app_height/2, -500 );
-    glRotatef( 30, 1, 0, 0 );
-    glRotatef( 30, 0, 1, 0 );
-    glTranslatef( -m_appconf.app_width/2, -m_appconf.app_height/2, 500 );
+    glRotatef(m_camrot.X(), 1.f, 0.f, 0.f);
+    glTranslatef(m_campos.X(), m_campos.Y(), m_campos.Z());
 
-    //
-    DrawCube(m_appconf.app_width/2, m_appconf.app_height/2, -500, 200);
-    //
+    DrawCube(0, 0, -100, 20);
+    DrawCube(50, 0, -100, 20);
 
-    glPopMatrix();
+    //glPopMatrix(); // Deprecated
 
     SDL_GL_SwapWindow(m_window);
+
+    m_scene.doOperations();
     SDL_Delay(1000/TARGET_FPS);
-}
-
-void Core::initGL()
-{
-
-}
-
-void Core::initialSpawn()
-{
-    m_scene.addActor(m_appconf, vec2(200, 200), "ussr_barracks", pname);
 }
 
 void Core::processEvents()
@@ -511,7 +382,7 @@ void Core::processEvents()
     Action act;
     unistrlist info;
     info.resize(2, "");
-    vec2 sp;
+    vec3 sp;
     for(const auto &it : m_scene.m_objs)
     {
         obj.reset();
@@ -531,32 +402,32 @@ void Core::processEvents()
         switch(act.id)
         {
             case POS_ACTION:
-                m_scene.m_objs[obj.getName()].setPos( act.vec2Data(1) );
+                m_scene.m_objs[obj.getName()].setPos( act.vec3Data(1) );
             break;
             case POS_RES_ACTION:
-                m_scene.m_objs[obj.getName()].setDim( act.vec2Data(0) );
-                m_scene.m_objs[obj.getName()].setPos( act.vec2Data(1) );
+                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
+                m_scene.m_objs[obj.getName()].setPos( act.vec3Data(1) );
             break;
             case RESIZE_ACTION:
-                m_scene.m_objs[obj.getName()].setDim( act.vec2Data(0) );
+                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
             break;
             case RES_SND_ACTION:
                 m_audiomgr.playSound(act.data);
-                m_scene.m_objs[obj.getName()].setDim( act.vec2Data(0) );
+                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
             break;
             case POS_RES_SND_ACTION:
                 m_audiomgr.playSound(act.data);
-                m_scene.m_objs[obj.getName()].setDim( act.vec2Data(0) );
-                m_scene.m_objs[obj.getName()].setPos( act.vec2Data(1) );
+                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
+                m_scene.m_objs[obj.getName()].setPos( act.vec3Data(1) );
             break;
 
             case MOV_ACTION:
-                m_scene.m_objs[obj.getName()].moveTo(act.vec2Data(1));
+                m_scene.m_objs[obj.getName()].moveTo(act.vec3Data(1));
             break;
 
             case SND_MOV_ACTION:
                 m_audiomgr.playSound(act.data);
-                m_scene.m_objs[obj.getName()].moveTo(act.vec2Data(1));
+                m_scene.m_objs[obj.getName()].moveTo(act.vec3Data(1));
             break;
 
             case SOUND_ACTION:
@@ -565,8 +436,6 @@ void Core::processEvents()
             case SCENE_ACTION:
                 m_sceneparser.loadScene(m_scene, act.data, m_appconf);
                 m_scene.start(&m_audiomgr);
-                if(m_scene.sinfo.type == "game")
-                    initialSpawn();
             break;
             case SPW_ACTION:
             split(info, act.data, is_any_of(":"), token_compress_on);
@@ -605,6 +474,17 @@ void Core::processEvents()
             break;
         }
     }
+    //
+    if(m_processor.keyDown(SDL_SCANCODE_LEFT))
+        m_campos.x += 1.f;
+    else if(m_processor.keyDown(SDL_SCANCODE_RIGHT))
+        m_campos.x -= 1.f;
+
+    if(m_processor.keyDown(SDL_SCANCODE_UP))
+        m_campos.z += 1.f;
+    else if(m_processor.keyDown(SDL_SCANCODE_DOWN))
+        m_campos.z -= 1.f;
+    //
     obj.reset();
     if(m_processor.isMouseClicked(SDL_BUTTON_LEFT))
             m_processor.button_clicked[0] = false;

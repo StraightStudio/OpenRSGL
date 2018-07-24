@@ -4,6 +4,8 @@
 #define TESTING
 
 
+#define VEC3_UP 0,1,0
+
 #include <algorithm>
 #include <fstream>
 #include <cstdio>

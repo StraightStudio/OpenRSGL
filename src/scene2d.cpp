@@ -17,7 +17,7 @@ void Scene2d::start(AudioManager *mgr)
     }
 }
 
-void Scene2d::addActor(vec2 pos, vec2 dim, vec2 rdim, map<unistring, unistring> trigger, unistring name, unistring type, unistring texture, unistring anim_idle)
+void Scene2d::addActor(vec3 pos, vec3 dim, vec3 rdim, map<unistring, unistring> trigger, unistring name, unistring type, unistring texture, unistring anim_idle)
 {
     Actor2d actor;
 
@@ -49,7 +49,7 @@ void Scene2d::doOperations()
     toDelete.clear();
 }
 
-void Scene2d::addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring parent)
+void Scene2d::addActor(AppConfig &conf, vec3 pos, unistring model_id, unistring parent)
 {
     Actor2d actor;
     actor = conf.app_models[model_id];

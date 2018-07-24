@@ -9,7 +9,7 @@
 #include <gameevents.h>
 #include <audiomanager.h>
 #include <animationmanager.h>
-#include <vec2.h>
+#include <vec3.h>
 
 
 class Core
@@ -25,9 +25,6 @@ public:
     void draw_objs();
 
     void draw_objs3D();
-    void initGL();
-
-    void initialSpawn();
 
     void processEvents();
 
@@ -62,31 +59,15 @@ private:
 
     Actor2d obj; // TMP object
 
-
-    bool m_console;
-    unistring m_cinput;
-    TTF_Font *m_consolefont;
-    SDL_Rect m_consolerect;
-    SDL_Color m_consolecolour;
-
-    SDL_Rect m_consoletextrect;
-    SDL_Texture* m_consoletext;
-
-	unsigned long int m_citem;
-    vector<unistring> m_consoleHistory;
-
     // ================ L O G I C   V A R I A B L E S ================
     // etc...
     unistring pname;
     SDL_Rect m_camrect;
 
     SDL_GLContext m_glcontext;
-    GLuint m_shaderprogram;
-    GLuint m_VAO; // Vertex Arrays Object
-    GLuint m_VBO; // Vertex Buffer Object
-    GLuint m_vsh; // VertexShader (Model)
-    GLuint m_fsh; // FragmentShader (Texture, Color)
     float m_fov;
+    vec3 m_campos; // Camera Position
+    vec3 m_camrot; // Camera Rotation
 
     // S T E A M   A P I
 

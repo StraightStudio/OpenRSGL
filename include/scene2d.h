@@ -54,17 +54,17 @@ public:
     void start(AudioManager *mgr);
 
     void draw(SDL_Renderer* rend=nullptr);
-    void spawn(vec2 pos=vec2(0,0), vec2 dim=vec2(0,0), unistring textureAlias="none", TexLoader *tl=nullptr);
-    void spawn(vec2 pos=vec2(0,0), unistring textureAlias="none", TexLoader *tl=nullptr);
+    void spawn(vec3 pos=vec3(0,0,0), vec3 dim=vec3(0,0,0), unistring textureAlias="none", TexLoader *tl=nullptr);
+    void spawn(vec3 pos=vec3(0,0,0), unistring textureAlias="none", TexLoader *tl=nullptr);
 
     SDL_Rect &getRect(unistring name="");
 
     void clear();
 
     SceneInfo sinfo;
-    void addActor(AppConfig &conf, vec2 pos, unistring model_id, unistring parent);
+    void addActor(AppConfig &conf, vec3 pos, unistring model_id, unistring parent);
 
-    void addActor(vec2 pos, vec2 dim, vec2 rdim, map<unistring, unistring> trigger, unistring name, unistring type, unistring texture, unistring anim_idle);
+    void addActor(vec3 pos, vec3 dim, vec3 rdim, map<unistring, unistring> trigger, unistring name, unistring type, unistring texture, unistring anim_idle);
 
     void addToQueue(unistring object);
     void doOperations(); // Add / delete actors.

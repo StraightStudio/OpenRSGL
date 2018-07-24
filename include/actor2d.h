@@ -3,7 +3,7 @@
 
 #include <depends.h>
 #include <logger.h>
-#include <vec2.h>
+#include <vec3.h>
 
 enum DIRECTIONS {
     UP_DIR=0,
@@ -41,7 +41,7 @@ public:
     unistring parent; // Player or PC or another player.
     bool visible;
 
-    vec2 targetPos; // Moving to...
+    vec3 targetPos; // Moving to...
     int move_speed;
     int move_direction;
     //
@@ -51,7 +51,7 @@ public:
     unistrlist mov_taunts;
 
     // Building variables
-    vec2 so; // Spawn Offset
+    vec3 so; // Spawn Offset
     bool structSelected;
     unistring structType;
     unistrlist punits; // Producing units.
@@ -67,7 +67,7 @@ public:
         texture = t;
     }
 
-    void setSO(vec2 s)
+    void setSO(vec3 s)
     {
         so = s;
     }
@@ -83,7 +83,7 @@ public:
         structType = t;
     }
 
-    void setPos(vec2 pos)
+    void setPos(vec3 pos)
     {
         targetPos = pos;
         rect.x = pos.x;
@@ -93,19 +93,27 @@ public:
     }
     void setPos(int x, int y)
     {
-        targetPos = vec2(x, y);
+        targetPos = vec3(x, y, 0);
+        rect.x = x;
+        rect.y = y;
+        real_rect.x = x;
+        real_rect.y = y;
+    }
+    void setPos(int x, int y, int z)
+    {
+        targetPos = vec3(x, y, z);
         rect.x = x;
         rect.y = y;
         real_rect.x = x;
         real_rect.y = y;
     }
 
-    vec2 getPos()
+    vec3 getPos()
     {
-        return vec2(rect.x, rect.y);
+        return vec3(rect.x, rect.y, 0);
     }
 
-    void setDim(vec2 dim)
+    void setDim(vec3 dim)
     {
         rect.w = dim.x;
         rect.h = dim.y;
@@ -120,14 +128,14 @@ public:
         real_rect.w = rw;
         real_rect.h = rh;
     }
-    void setRealDim(vec2 rdim)
+    void setRealDim(vec3 rdim)
     {
         real_rect.w = rdim.x;
         real_rect.h = rdim.y;
     }
-    vec2 getDim()
+    vec3 getDim()
     {
-        return vec2(rect.w, rect.h);
+        return vec3(rect.w, rect.h, 0);
     }
 
     void setName(unistring n)
@@ -268,8 +276,8 @@ public:
         trigger.clear();
     }
 
-    void moveTo(vec2 target);
-    void moveTo(int tx, int ty);
+    void moveTo(vec3 target);
+    void moveTo(float tx, float ty, float tz);
     void updatePath();
 };
 
