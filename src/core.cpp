@@ -37,12 +37,11 @@ void Core::cleanup()
     SteamAPI_Shutdown();
     IMG_Quit();
     SDL_Quit();
-
 }
 
 void Core::init()
 {
-	m_loader3d.LoadModel(RES_ROOT "cube.obj");
+    m_loader3d.LoadModel(RES_ROOT "test.obj", "test");
 
 	Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
@@ -86,13 +85,6 @@ void Core::init()
         Logger::err("Core", "Failed to init GLEW!");
 #endif
     m_iout      = SDL_CreateRenderer(m_window, -1, 0);
-
-    glViewport( 0.0f, 0.0f, m_appconf.app_width, m_appconf.app_height ); // specifies the part of the window to which OpenGL will draw (in pixels), convert from normalised to pixels
-    glMatrixMode( GL_PROJECTION ); // projection matrix defines the properties of the camera that views the objects in the world coordinate frame. Here you typically set the zoom factor, aspect ratio and the near and far clipping planes
-    glLoadIdentity( ); // replace the current matrix with the identity matrix and starts us a fresh because matrix transforms such as glOrpho and glRotate cumulate, basically puts us at (0, 0, 0)
-    gluPerspective( m_fov, (float)m_appconf.app_width/(float)m_appconf.app_height, 0, 1000 ); // essentially set coordinate system
-    glMatrixMode( GL_MODELVIEW ); // (default matrix mode) modelview matrix defines how your objects are transformed (meaning translation, rotation and scaling) in your world
-    glLoadIdentity( ); // same as above comment
 #else
     m_window    = SDL_CreateWindow("Stratwenty " DW_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, DW_WIDTH, DW_HEIGHT, SDL_WINDOW_SHOWN);
 
@@ -149,6 +141,9 @@ void Core::init()
     //
     mouse_rect.w = 32;
     mouse_rect.h = 32;
+
+
+    initGL();
 }
 
 int Core::exec()
@@ -287,95 +282,35 @@ void Core::draw_objs()
     */
 }
 
-void DrawCube( GLfloat centerPosX, GLfloat centerPosY, GLfloat centerPosZ, GLfloat edgeLength )
-{
-    GLfloat halfSideLength = edgeLength * 0.5f;
-
-    GLfloat verts[] =
-    {
-        // front face
-        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
-        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top right
-        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom right
-        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom left
-
-        // back face
-        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top left
-        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
-        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
-        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom left
-
-        // left face
-        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
-        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
-        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
-        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom left
-
-        // right face
-        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
-        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
-        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
-        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // bottom left
-
-        // top face
-        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // top left
-        centerPosX - halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // top right
-        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ - halfSideLength, // bottom right
-        centerPosX + halfSideLength, centerPosY + halfSideLength, centerPosZ + halfSideLength, // bottom left
-
-        // top face
-        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength, // top left
-        centerPosX - halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // top right
-        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ - halfSideLength, // bottom right
-        centerPosX + halfSideLength, centerPosY - halfSideLength, centerPosZ + halfSideLength  // bottom left
-    };
-
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-    glEnableClientState( GL_VERTEX_ARRAY );
-
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    glVertexPointer( 3, GL_FLOAT, 0, verts );
-    glDrawArrays( GL_QUADS, 0, 6*4);
-
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    glColor3f(0.f, 1.f, 0.f);
-    glVertexPointer( 3, GL_FLOAT, 0, verts );
-    glDrawArrays( GL_QUADS, 0, 6*4);
-
-    glDisableClientState( GL_VERTEX_ARRAY );
-}
-
 void Core::draw_objs3D()
 {
-	auto *data = m_loader3d.GetModel();
-	glClear( GL_COLOR_BUFFER_BIT );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //glPushMatrix(); // Deprecated
-    glLoadIdentity();
+    glLoadIdentity(); // Reset Transformations
 
     glRotatef(m_camrot.X(), 1.f, 0.f, 0.f);
     glTranslatef(m_campos.X(), m_campos.Y(), m_campos.Z());
-	//
+
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glVertexPointer(3, GL_FLOAT, 0, data);
-	glDrawArrays(GL_QUADS, 0, 6 * 4);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glColor3f(0.f, 1.f, 0.f);
-	glVertexPointer(3, GL_FLOAT, 0, data);
-	glDrawArrays(GL_QUADS, 0, 6 * 4);
-
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glVertexPointer(3, GL_FLOAT, 0, m_loader3d.GetModel("test"));
+    glDrawArrays(GL_TRIANGLES, 0, m_loader3d.GetSize("test"));
 	glDisableClientState(GL_VERTEX_ARRAY);
-	//
-    //glPopMatrix(); // Deprecated
 
     SDL_GL_SwapWindow(m_window);
 
-    m_scene.doOperations();
     SDL_Delay(1000/TARGET_FPS);
+}
+
+void Core::initGL()
+{
+    glViewport( 0.0f, 0.0f, m_appconf.app_width, m_appconf.app_height );
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity( );
+    gluPerspective( m_fov, (float)m_appconf.app_width/(float)m_appconf.app_height, 0, 1000.f );
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity( );
 }
 
 void Core::processEvents()

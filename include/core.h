@@ -25,6 +25,7 @@ public:
     void draw_objs();
 
     void draw_objs3D();
+    void initGL();
 
     void processEvents();
 
@@ -65,12 +66,13 @@ private:
     SDL_Rect m_camrect;
 
     SDL_GLContext m_glcontext;
+
     float m_fov;
     vec3 m_campos; // Camera Position
     vec3 m_camrot; // Camera Rotation
 
     // S T E A M   A P I
-	Loader3D m_loader3d;
+    Loader3D m_loader3d;
 };
 
 #endif // CORE_H
