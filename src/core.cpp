@@ -44,7 +44,7 @@ void Core::init()
 {
     Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
-#ifdef TESTING
+#ifdef Steam
     if(!SteamAPI_IsSteamRunning())
         Logger::warn("Core", "SteamAPI init error!");
     else
