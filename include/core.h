@@ -70,7 +70,7 @@ private:
     vec3 m_camrot; // Camera Rotation
 
     // S T E A M   A P I
-
+	Loader3D m_loader3d;
 };
 
 #endif // CORE_H

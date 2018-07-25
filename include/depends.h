@@ -94,4 +94,6 @@ using namespace std;
 using namespace boost;
 using namespace rapidjson;
 
+#include <loader3d.h>
+
 #endif

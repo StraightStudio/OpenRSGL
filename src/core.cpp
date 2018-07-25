@@ -42,7 +42,9 @@ void Core::cleanup()
 
 void Core::init()
 {
-    Config::loadCfg(m_appconf);
+	m_loader3d.LoadModel(RES_ROOT "cube.obj");
+
+	Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
 #ifdef STEAM
     if(!SteamAPI_IsSteamRunning())
@@ -346,17 +348,28 @@ void DrawCube( GLfloat centerPosX, GLfloat centerPosY, GLfloat centerPosZ, GLflo
 
 void Core::draw_objs3D()
 {
-    glClear( GL_COLOR_BUFFER_BIT );
+	auto *data = m_loader3d.GetModel();
+	glClear( GL_COLOR_BUFFER_BIT );
 
     //glPushMatrix(); // Deprecated
     glLoadIdentity();
 
     glRotatef(m_camrot.X(), 1.f, 0.f, 0.f);
     glTranslatef(m_campos.X(), m_campos.Y(), m_campos.Z());
+	//
+	glEnableClientState(GL_VERTEX_ARRAY);
 
-    DrawCube(0, 0, -100, 20);
-    DrawCube(50, 0, -100, 20);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glVertexPointer(3, GL_FLOAT, 0, data);
+	glDrawArrays(GL_QUADS, 0, 6 * 4);
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glColor3f(0.f, 1.f, 0.f);
+	glVertexPointer(3, GL_FLOAT, 0, data);
+	glDrawArrays(GL_QUADS, 0, 6 * 4);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	//
     //glPopMatrix(); // Deprecated
 
     SDL_GL_SwapWindow(m_window);
