@@ -2,7 +2,8 @@
 
 int main()
 {
-    setlocale(0, "");
+
+	setlocale(0, "");
 
     Core core;
     //
