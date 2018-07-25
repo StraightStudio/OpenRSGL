@@ -44,7 +44,7 @@ void Core::init()
 {
     Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
-#ifdef Steam
+#ifdef STEAM
     if(!SteamAPI_IsSteamRunning())
         Logger::warn("Core", "SteamAPI init error!");
     else
@@ -333,7 +333,6 @@ void DrawCube( GLfloat centerPosX, GLfloat centerPosY, GLfloat centerPosZ, GLflo
     glEnableClientState( GL_VERTEX_ARRAY );
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    glColor3f(1.f, 0.f, 0.f);
     glVertexPointer( 3, GL_FLOAT, 0, verts );
     glDrawArrays( GL_QUADS, 0, 6*4);
 
