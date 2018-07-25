@@ -1,5 +1,5 @@
-#ifndef VEC2_H
-#define VEC2_H
+#ifndef VEC3_H
+#define VEC3_H
 
 #include <depends.h>
 
@@ -24,4 +24,4 @@ public:
     float D(){return z;}
 };
 
-#endif // VEC2_H
+#endif // VEC3_H

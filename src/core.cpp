@@ -1,6 +1,7 @@
 #include <core.h>
 
-Core::Core() : spawnid(0), m_fov(90.f), m_campos(0, -50.f, 0), m_camrot(30.f, 0, 0)
+Core::Core() :
+    spawnid(0)
 {
     selection_rect.x = 0;
     selection_rect.y = 0;
@@ -41,8 +42,6 @@ void Core::cleanup()
 
 void Core::init()
 {
-    m_loader3d.LoadModel(RES_ROOT "test.obj", "test");
-
 	Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
 #ifdef STEAM
@@ -55,7 +54,6 @@ void Core::init()
     Logger::info("SteamAPI info", "Hello, "+pname+" :D !" );
 #endif
     //
-
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0)
     {
@@ -76,7 +74,7 @@ void Core::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetSwapInterval(1); // VSync
 
 #ifndef __APPLE__
@@ -286,17 +284,17 @@ void Core::draw_objs3D()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glLoadIdentity(); // Reset Transformations
+    // ======================================================================================
 
-    glRotatef(m_camrot.X(), 1.f, 0.f, 0.f);
-    glTranslatef(m_campos.X(), m_campos.Y(), m_campos.Z());
+    glm::mat4 ModelMatrix = glm::mat4(1.0f);  // Индивидуально для каждой модели
 
-	glEnableClientState(GL_VERTEX_ARRAY);
+    glm::mat4 MVP = m_camera.matrix() * ModelMatrix; // Помните, что умножение матрицы производиться в обратном порядке
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glVertexPointer(3, GL_FLOAT, 0, m_loader3d.GetModel("test"));
-    glDrawArrays(GL_TRIANGLES, 0, m_loader3d.GetSize("test"));
-	glDisableClientState(GL_VERTEX_ARRAY);
+    // ======================================================================================
+
+    test_obj.draw(m_shadeprog);
+    m_modelview = glGetUniformLocation(m_shadeprog, "MVP");
+    glUniformMatrix4fv(m_modelview, 1, GL_FALSE, &MVP[0][0]);
 
     SDL_GL_SwapWindow(m_window);
 
@@ -305,134 +303,116 @@ void Core::draw_objs3D()
 
 void Core::initGL()
 {
-    glViewport( 0.0f, 0.0f, m_appconf.app_width, m_appconf.app_height );
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity( );
-    gluPerspective( m_fov, (float)m_appconf.app_width/(float)m_appconf.app_height, 0, 1000.f );
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity( );
+//    glViewport( 0.0f, 0.0f, m_appconf.app_width, m_appconf.app_height );
+//    glMatrixMode( GL_PROJECTION );
+//    glLoadIdentity( );
+//    gluPerspective( m_fov, (float)m_appconf.app_width/(float)m_appconf.app_height, 0, 1000.f );
+//    glMatrixMode( GL_MODELVIEW );
+//    glLoadIdentity( );
+    m_camera = Camera(90.f, (float)m_appconf.app_width/(float)m_appconf.app_height);
+
+    initShaders(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/main.frag"); // Vertex & Fragment shaders
+
+    m_loader3d.LoadModel(RES_ROOT "test.obj", test_obj.vertices);
+    test_obj.update(test_obj.vertices);
+}
+
+void Core::initShaders(unistring fvertex, unistring ffragment)
+{
+    unistring tvs, tfs; // TemporaryString (Vertex, Fragment)
+
+    tvs.clear();
+    ifstream vshader(fvertex);
+    getline(vshader, tvs, (char)vshader.eof());
+    vshader.close();
+
+    tfs.clear();
+    ifstream fshader(ffragment);
+    getline(fshader, tfs, (char)fshader.eof());
+    fshader.close();
+
+    m_vsh = glCreateShader(GL_VERTEX_SHADER);
+    m_fsh = glCreateShader(GL_FRAGMENT_SHADER);
+
+    //
+
+    GLint Result = GL_FALSE;
+    int InfoLogLength;
+
+    // Компилируем Вершинный шейдер
+    printf("Compiling shader: %s\n", fvertex.c_str());
+    char const * vsh_src = tvs.c_str();
+    glShaderSource(m_vsh, 1, &vsh_src, NULL);
+    glCompileShader(m_vsh);
+
+
+    // Выполняем проверку Вершинного шейдера
+    glGetShaderiv(m_vsh, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(m_vsh, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 ){
+        std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
+        glGetShaderInfoLog(m_vsh, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+        fprintf(stdout, "%s\n", &VertexShaderErrorMessage[0]);
+    }
+
+
+    // Компилируем Фрагментный шейдер
+    printf("Compiling shader: %s\n", ffragment.c_str());
+    char const * fsh_src = tfs.c_str();
+    glShaderSource(m_fsh, 1, &fsh_src, NULL);
+    glCompileShader(m_fsh);
+
+
+    // Проверяем Фрагментный шейдер
+    glGetShaderiv(m_fsh, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(m_fsh, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 ){
+        std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
+        glGetShaderInfoLog(m_fsh, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+        fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
+    }
+
+
+    // Создаем шейдерную программу и привязываем шейдеры к ней
+    fprintf(stdout, "Connecting shaders...\n");
+    m_shadeprog = glCreateProgram();
+    glAttachShader(m_shadeprog, m_vsh);
+    glAttachShader(m_shadeprog, m_fsh);
+    glLinkProgram(m_shadeprog);
+
+
+    // Проверяем шейдерную программу
+    glGetProgramiv(m_shadeprog, GL_LINK_STATUS, &Result);
+    glGetProgramiv(m_shadeprog, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 ){
+        std::vector<char> ProgramErrorMessage(InfoLogLength+1);
+        glGetProgramInfoLog(m_shadeprog, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+        fprintf(stdout, "%s\n", &ProgramErrorMessage[0]);
+    }
+
+    fflush(stdout);
+    //
+    glDeleteShader(m_vsh);
+    glDeleteShader(m_fsh);
 }
 
 void Core::processEvents()
 {
-    m_processor.mouse_state = "none";
-
-    if(m_scene.sinfo.type == "game")
-    {
-        if(m_processor.keyDown(SDL_SCANCODE_LCTRL))
-            SDL_RenderSetScale(m_iout, 2.0f, 2.0f);
-        else if(m_processor.keyDown(SDL_SCANCODE_LSHIFT))
-            SDL_RenderSetScale(m_iout, 1.0f, 1.0f);
-    }
-
-    Actor2d a;
-    Action act;
-    unistrlist info;
-    info.resize(2, "");
-    vec3 sp;
-    for(const auto &it : m_scene.m_objs)
-    {
-        obj.reset();
-        obj = it.second;
-
-        if(m_scene.sinfo.type == "game" && pname != obj.parent)
-            continue;
-
-        act.reset();
-        if(obj.type == "button")
-            act = m_processor.processUIobject(obj);
-        else if(obj.type == "actor")
-            act = m_processor.processActor(obj);
-        else if(obj.type == "building")
-            act = m_processor.processBuilding(obj);
-
-        switch(act.id)
-        {
-            case POS_ACTION:
-                m_scene.m_objs[obj.getName()].setPos( act.vec3Data(1) );
-            break;
-            case POS_RES_ACTION:
-                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
-                m_scene.m_objs[obj.getName()].setPos( act.vec3Data(1) );
-            break;
-            case RESIZE_ACTION:
-                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
-            break;
-            case RES_SND_ACTION:
-                m_audiomgr.playSound(act.data);
-                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
-            break;
-            case POS_RES_SND_ACTION:
-                m_audiomgr.playSound(act.data);
-                m_scene.m_objs[obj.getName()].setDim( act.vec3Data(0) );
-                m_scene.m_objs[obj.getName()].setPos( act.vec3Data(1) );
-            break;
-
-            case MOV_ACTION:
-                m_scene.m_objs[obj.getName()].moveTo(act.vec3Data(1));
-            break;
-
-            case SND_MOV_ACTION:
-                m_audiomgr.playSound(act.data);
-                m_scene.m_objs[obj.getName()].moveTo(act.vec3Data(1));
-            break;
-
-            case SOUND_ACTION:
-                m_audiomgr.playSound(act.data);
-            break;
-            case SCENE_ACTION:
-                m_sceneparser.loadScene(m_scene, act.data, m_appconf);
-                m_scene.start(&m_audiomgr);
-            break;
-            case SPW_ACTION:
-            split(info, act.data, is_any_of(":"), token_compress_on);
-            if(info.size() != 2)
-                break;
-            for(auto const &object : m_scene.m_objs)
-            {
-                a = object.second;
-                if(a.structType == info[0])
-                {
-                    sp = a.getPos()+a.so;
-                    break;
-                }
-            }
-            if(sp.x != 0)
-            {
-                m_scene.addActor(m_appconf, sp, info[1].c_str(), pname);
-                //
-                srand(time(nullptr));
-                m_audiomgr.playSound( "ussr_soldier_spawn_"+ to_string(rand()%3) );
-            }
-            break;
-            case SELECTED_BUILDING_ACTION:
-
-            break;
-            case DESELECTED_BUILDING_ACTION:
-
-            break;
-            case QUIT_ACTION:
-            m_quit = act.boolData();
-            break;
-            case 0:
-            break;
-            default:
-            Config::cfgwarn( "Undefined event triggered!\n"+act.data);
-            break;
-        }
-    }
-    //
+    glm::vec3 dir;
     if(m_processor.keyDown(SDL_SCANCODE_LEFT))
-        m_campos.x += 1.f;
+        dir.x = -1.f;
     else if(m_processor.keyDown(SDL_SCANCODE_RIGHT))
-        m_campos.x -= 1.f;
+        dir.x = +1.f;
 
     if(m_processor.keyDown(SDL_SCANCODE_UP))
-        m_campos.z += 1.f;
+        dir.z = +1.f;
     else if(m_processor.keyDown(SDL_SCANCODE_DOWN))
-        m_campos.z -= 1.f;
-    //
-    obj.reset();
+        dir.z = -1.f;
+
+    if(dir.length() != 0)
+        m_camera.rtsmove(dir);
+
+
     if(m_processor.isMouseClicked(SDL_BUTTON_LEFT))
             m_processor.button_clicked[0] = false;
     if(m_processor.isMouseClicked(SDL_BUTTON_RIGHT))

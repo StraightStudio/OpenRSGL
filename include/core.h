@@ -10,7 +10,8 @@
 #include <audiomanager.h>
 #include <animationmanager.h>
 #include <vec3.h>
-
+#include <camera.h>
+#include <object3d.h>
 
 class Core
 {
@@ -26,6 +27,7 @@ public:
 
     void draw_objs3D();
     void initGL();
+    void initShaders(unistring fvertex="", unistring ffragment="");
 
     void processEvents();
 
@@ -58,21 +60,20 @@ private:
     SDL_Rect menu_rect;
     SDL_Rect map_rect;
 
-    Actor2d obj; // TMP object
-
     // ================ L O G I C   V A R I A B L E S ================
     // etc...
     unistring pname;
     SDL_Rect m_camrect;
 
     SDL_GLContext m_glcontext;
+    GLuint m_modelview;
+    GLuint m_shadeprog, m_vsh, m_fsh;
 
-    float m_fov;
-    vec3 m_campos; // Camera Position
-    vec3 m_camrot; // Camera Rotation
 
-    // S T E A M   A P I
     Loader3D m_loader3d;
+    Camera m_camera;
+
+    Object3d test_obj;
 };
 
 #endif // CORE_H
