@@ -348,6 +348,8 @@ extern void stbi_install_YCbCr_to_RGB(stbi_YCbCr_to_RGB_run func);
 }
 #endif
 
+
+extern void stbi_vertical_flip(void *image, int w, int h, int bytes_per_pixel);
 //
 //
 ////   end header file   /////////////////////////////////////////////////////

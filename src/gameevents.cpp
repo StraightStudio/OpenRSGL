@@ -14,11 +14,11 @@ GameEvents::GameEvents()
     button_clicked[2] = false;
 }
 
-vec3 GameEvents::mousePos()
+glm::vec2 GameEvents::mousePos()
 {
     int x,y;
     SDL_GetMouseState(&x, &y);
-    return vec3(x, y, 0);
+    return glm::vec2(x, y);
 }
 
 bool GameEvents::rectOverlap(Cube3D &first, Cube3D &last)
@@ -58,31 +58,4 @@ bool GameEvents::isMouseClicked(int mbtn)
 bool GameEvents::keyDown(int scancode)
 {
     return SDL_GetKeyboardState(nullptr)[scancode];
-}
-
-bool GameEvents::isSelected(Actor2d &a)
-{
-    if(selectionList.count(a.getName()) > 0)
-        return true;
-    return false;
-}
-
-void GameEvents::addSelected(const map<unistring, Actor2d> &objs, SDL_Rect &selrect)
-{
-
-}
-
-Action GameEvents::processUIobject(Actor2d &obj)
-{
-    return Action(0, "");
-}
-
-Action GameEvents::processActor(Actor2d &obj)
-{
-    return Action(0, "");
-}
-
-Action GameEvents::processBuilding(Actor2d &obj)
-{
-    return Action(0, "");
 }

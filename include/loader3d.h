@@ -3,7 +3,6 @@
 
 #include <depends.h>
 #include <object3d.h>
-#include <vec3.h>
 #include <logger.h>
 
 class Loader3D

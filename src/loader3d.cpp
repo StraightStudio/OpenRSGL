@@ -69,5 +69,5 @@ void Loader3D::LoadModel(unistring fname, Object3d &target)
     }
     fin.close();
 
-    target.update();
+    target.update(GL_STATIC_DRAW);
 }

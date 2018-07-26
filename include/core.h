@@ -3,14 +3,10 @@
 
 #include <logger.h>
 #include <depends.h>
-#include <scene2d.h>
-#include <texloader.h>
-#include <sceneparser.h>
 #include <gameevents.h>
 #include <audiomanager.h>
-#include <animationmanager.h>
-#include <vec3.h>
 #include <camera.h>
+#include <loader3d.h>
 #include <object3d.h>
 
 class Core
@@ -23,7 +19,6 @@ public:
     void spawn();
     int exec();
     void loadTextures();
-    void draw_objs();
 
     void draw_objs3D();
     void initGL();
@@ -40,16 +35,12 @@ private:
     SDL_Window* m_window;
     SDL_Renderer* m_iout;
     SDL_Event m_event;
-    Scene2d m_scene;
     bool m_quit;
 
-    TexLoader m_texloader;
     AudioManager m_audiomgr;
-    SceneParser m_sceneparser;
     GameEvents m_processor;
 
     AppConfig m_appconf;
-    AnimationManager m_animator;
 
     //
     SDL_Rect selection_rect;
@@ -60,7 +51,7 @@ private:
     SDL_Rect menu_rect;
     SDL_Rect map_rect;
 
-    // ================ L O G I C   V A R I A B L E S ================
+    // ================ O P E N  G L   V A R I A B L E S ================
     // etc...
     unistring pname;
     SDL_Rect m_camrect;

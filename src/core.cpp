@@ -19,12 +19,7 @@ void Core::cleanup()
 {
     Logger::log("Core", "Started cleanup...");
 
-    m_scene.clear();
-    m_scene.doOperations();
-
-    m_animator.clear();
     m_audiomgr.clear();
-    m_texloader.clear();
 
     SDL_ShowCursor(SDL_ENABLE);
     SDL_SetWindowGrab(m_window, SDL_FALSE);
@@ -34,9 +29,8 @@ void Core::cleanup()
     if(m_window != nullptr)
         SDL_DestroyWindow(m_window);
 
-#ifdef TESTING
     SDL_GL_DeleteContext(m_glcontext);
-#endif
+
     SteamAPI_Shutdown();
     IMG_Quit();
     SDL_Quit();
@@ -44,7 +38,7 @@ void Core::cleanup()
 
 void Core::init()
 {
-	Config::loadCfg(m_appconf);
+    //Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
 #ifdef STEAM
     if(!SteamAPI_IsSteamRunning())
@@ -106,30 +100,28 @@ void Core::init()
     {
         Logger::err("Core", "SDL2 failed to create window.");
     }
-    Logger::log("Core", "Window & renderer created.");
-    SDL_SetWindowSize(m_window, m_appconf.app_width, m_appconf.app_height);
-    Logger::log("Core", "Window size set.");
-    SDL_SetWindowTitle(m_window, unistring(m_appconf.app_name+" " DW_VERSION).c_str() );
-    Logger::log("Core", "Window title set.");
+//    Logger::log("Core", "Window & renderer created.");
+//    SDL_SetWindowSize(m_window, m_appconf.app_width, m_appconf.app_height);
+//    Logger::log("Core", "Window size set.");
+//    SDL_SetWindowTitle(m_window, unistring(m_appconf.app_name+" " DW_VERSION).c_str() );
+//    Logger::log("Core", "Window title set.");
 
-    map_rect.w = 164;
-    map_rect.h = 164;
-    map_rect.x = 2;
-    map_rect.y = m_appconf.app_height-map_rect.h-2;
 
-    menu_rect.w = m_appconf.app_width;
-    menu_rect.h = map_rect.h+4;
-    menu_rect.x = 0;
-    menu_rect.y = m_appconf.app_height-menu_rect.h;
+//    map_rect.w = 164;
+//    map_rect.h = 164;
+//    map_rect.x = 2;
+//    map_rect.y = m_appconf.app_height-map_rect.h-2;
 
-    if(m_appconf.is_full)
-        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+//    menu_rect.w = m_appconf.app_width;
+//    menu_rect.h = map_rect.h+4;
+//    menu_rect.x = 0;
+//    menu_rect.y = m_appconf.app_height-menu_rect.h;
 
-    SDL_ShowCursor(SDL_DISABLE);
+//    SDL_ShowCursor(SDL_DISABLE);
 
-    m_audiomgr.init();
-    m_audiomgr.loadSounds(m_appconf);
-    m_audiomgr.loadMusic(m_appconf);
+//    m_audiomgr.init();
+//    m_audiomgr.loadSounds(m_appconf);
+//    m_audiomgr.loadMusic(m_appconf);
 
     //
     mouse_rect.w = 32;
@@ -199,95 +191,6 @@ int Core::exec()
     return 0;
 }
 
-void Core::draw_objs()
-{
-    /*
-    if(m_scene.sinfo.type == "game")
-    {
-        SDL_SetRenderDrawColor(m_iout, 192, 192, 192, SDL_ALPHA_OPAQUE);
-        SDL_RenderFillRect(m_iout, &menu_rect);
-        SDL_SetRenderDrawColor(m_iout, 255, 255, 255, SDL_ALPHA_OPAQUE);
-        SDL_RenderFillRect(m_iout, &map_rect);
-        SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    }
-    for(const auto &it : m_scene.m_objs)
-    {
-        obj.reset();
-        obj = it.second;
-        if(m_scene.sinfo.type == "game")
-        {
-            if(obj.type == "actor")
-            {
-                if(m_processor.isSelected(obj) || m_processor.isMouseOver( Cube3D(obj.real_rect) ))
-                {
-                    SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-                    SDL_RenderFillRect(m_iout, &obj.healthBar());
-                    if(obj.move_direction != IDLE)
-                    {
-                        SDL_RenderDrawLine(m_iout, obj.rect.x+obj.rect.w/2, obj.rect.y+obj.rect.h-16, obj.targetPos.x+obj.rect.w/2, obj.targetPos.y+obj.rect.h-16);
-                    }
-        #ifdef DEBUG
-                    SDL_SetRenderDrawColor(m_iout, 255, 0, 0, SDL_ALPHA_OPAQUE);
-                    SDL_RenderDrawRect(m_iout, &obj.real_rect);
-        #endif
-                    SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
-                }
-            }
-        }
-        if(obj.visible)
-        {
-            SDL_RenderCopy(m_iout, m_texloader.getTex( obj.tex() ), &m_animator.frame(obj.curAnim, obj.curFrame), &obj.rect);
-            m_scene.m_objs[obj.getName()].nextFrame( m_animator.fcount(obj.curAnim), m_animator.fps(obj.curAnim) );
-        }
-    }
-
-
-    if(m_scene.sinfo.type == "game")
-    {
-        if(m_processor.isMouseDown(1))
-        {
-            if(m_processor.oldmpos.x == 0 && m_processor.oldmpos.y == 0)
-            {
-                m_processor.oldmpos = m_processor.mousePos();
-                selection_rect.x = m_processor.oldmpos.x;
-                selection_rect.y = m_processor.oldmpos.y;
-            }
-            selection_rect.w = m_processor.mousePos().x-m_processor.oldmpos.x;
-            selection_rect.h = m_processor.mousePos().y-m_processor.oldmpos.y;
-
-            if(!SDL_RectEmpty(&selection_rect))
-            {
-                SDL_SetRenderDrawColor(m_iout, 0, 255, 0, SDL_ALPHA_OPAQUE);
-                SDL_RenderDrawRect(m_iout, &selection_rect);
-                SDL_SetRenderDrawColor(m_iout, 0, 0, 0, SDL_ALPHA_OPAQUE);
-            }
-        }
-        else
-        {
-            if(m_processor.oldmpos.X() != 0 && m_processor.oldmpos.Y() != 0 && m_processor.oldmpos.Z() != 0)
-            {
-                if( ( (selection_rect.w >= 8 && selection_rect.h >= 8) || (selection_rect.w <= -8 && selection_rect.h <= -8) ) )
-                {
-                    m_processor.addSelected(m_scene.m_objs, selection_rect);
-                }
-                //
-                m_processor.oldmpos = vec3(0, 0, 0);
-            }
-        }
-    }
-
-
-    m_scene.doOperations();
-    obj.reset();
-
-    mouse_rect.x = m_processor.mousePos().x-mouse_rect.w/2; mouse_rect.y = m_processor.mousePos().y;
-    SDL_RenderCopy(m_iout, m_texloader.getTex( "cursor_"+m_processor.mouse_state ), &m_camrect, &mouse_rect);
-
-    SDL_RenderPresent(m_iout);
-    SDL_Delay(1000/TARGET_FPS);
-    */
-}
-
 void Core::draw_objs3D()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -310,7 +213,7 @@ void Core::initGL()
 
     initShaders(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/main.frag"); // Vertex & Fragment shaders
 
-    m_loader3d.LoadModel(RES_ROOT "test.obj", test_obj.vertices, test_obj.texCoords);
+    m_loader3d.LoadModel(RES_ROOT "test.obj", test_obj);
 }
 
 void Core::initShaders(unistring fvertex, unistring ffragment)

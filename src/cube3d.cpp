@@ -7,8 +7,15 @@ Cube3D::Cube3D() :
 
 }
 
-Cube3D::Cube3D(vec3 p) :
+Cube3D::Cube3D(glm::vec3 p) :
     pos(p),
+    size(0,0,0)
+{
+
+}
+
+Cube3D::Cube3D(glm::vec2 p) :
+    pos(glm::vec3(p.x, p.y, 0)),
     size(0,0,0)
 {
 

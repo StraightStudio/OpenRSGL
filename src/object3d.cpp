@@ -32,7 +32,7 @@ void Object3d::draw(GLuint shader_program, glm::mat4 &cam_matrix)
 
     glEnableVertexAttribArray(1); // ID=1
     glBindBuffer(GL_ARRAY_BUFFER, m_uvbuff);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), (void*)0); // ID=1
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0); // ID=1
 
 
     glActiveTexture(GL_TEXTURE0);
@@ -96,40 +96,11 @@ void Object3d::update(const vector<GLfloat> &verts, int draw_type)
     mainTex.unloadTex();
 }
 
-void Object3d::update(int draw_type)
+void Object3d::update(int draw_type, unistring targetTex)
 {
-    if(m_VAO == 0)
-        glGenVertexArrays(1, &m_VAO);
-    if(m_buffer == 0)
-        glGenBuffers(1, &m_buffer);
-    if(m_texid == 0)
-        glGenTextures(1, &m_texid);
+    setTex(unistring(IMG_ROOT) + targetTex);
 
-    m_size = vertices.size();
-    GLfloat data[m_size];
-    for(int i=0; i < m_size; i++)
-        data[i] = verts.at(i);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, draw_type);
-
-    GLfloat uvdata[texCoords.size()];
-    for(int i=0; i < texCoords.size(); i++)
-        uvdata[i] = texCoords.at(i);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_uvbuff);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(uvdata), uvdata, draw_type);
-
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    glBindTexture(GL_TEXTURE_2D, m_texid);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mainTex.width, mainTex.height, 0, GL_RGB, GL_UNSIGNED_BYTE, mainTex.data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    mainTex.unloadTex();
+    update(vertices, draw_type);
 }
 
 void Object3d::move(glm::vec3 mv)

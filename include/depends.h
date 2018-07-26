@@ -18,8 +18,6 @@
 #include <random>
 
 
-#ifdef TESTING
-
 #include <steam/steam_api.h>
 
 #include <GL/glew.h>
@@ -28,14 +26,13 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#endif
+#include <stb_image_aug.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
 #include <SDL2/SDL_ttf.h>
-#include <rapidjson/document.h>
 
 #undef main // SDL Windows Fix
 
@@ -102,8 +99,5 @@ typedef std::vector<unistring> unistrlist;
 
 using namespace std;
 using namespace boost;
-using namespace rapidjson;
-
-#include <loader3d.h>
 
 #endif

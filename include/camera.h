@@ -6,7 +6,6 @@
 #define DEFAULT_SCROLL_SPEED 0.5f
 
 #include <depends.h>
-#include <vec3.h>
 
 class Camera
 {

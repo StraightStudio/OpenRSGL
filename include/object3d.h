@@ -2,8 +2,7 @@
 #define OBJECT3D_H
 
 #include <depends.h>
-#include <stb_image_aug.h>
-#include <vec3.h>
+#include <config.h>
 
 struct Texture
 {
@@ -11,15 +10,20 @@ struct Texture
     uchar* data;
     Texture(uint w, uint h, uchar* d)
         :   width(w), height(h), data(d)
-    {}
+    {
+
+    }
 
     Texture()
         :   width(0), height(0), data(nullptr)
-    {}
+    {
+
+    }
 
     void loadTex(unistring fname)
     {
         data = stbi_load(fname.c_str(), &width, &height, &depth, 0);
+        stbi_vertical_flip(data, width, height, depth);
     }
 
     void unloadTex()
@@ -47,6 +51,7 @@ public:
     void setTex(unistring fname);
 
     void update(const vector<GLfloat> &verts={0}, int draw_type=GL_STATIC_DRAW);
+    void update(int draw_type=GL_STATIC_DRAW, unistring targetTex="none.jpg");
 
     //
     void move(glm::vec3 mv);
