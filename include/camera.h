@@ -19,8 +19,8 @@ public:
 
     void rtsmove(glm::vec3 direction);
 
-    void rotate(float rx=0.f, float ry=0.f, float rz=0.f);
-    glm::mat4x4 &matrix();
+    void rotate(glm::vec3 axis, float angle);
+    glm::mat4 &matrix();
 
 
     glm::vec3 pos, rot;
@@ -28,7 +28,7 @@ public:
     glm::vec3 cam_front, cam_up;
 
     float m_fov, m_aspect, m_speed;
-    glm::mat4x4 ProjectionMatrix;
+    glm::mat4 ProjectionMatrix, RotationMatrix, PositionMatrix;
 };
 
 #endif // CAMERA_H

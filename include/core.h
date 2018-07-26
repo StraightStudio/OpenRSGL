@@ -66,7 +66,6 @@ private:
     SDL_Rect m_camrect;
 
     SDL_GLContext m_glcontext;
-    GLuint m_modelview;
     GLuint m_shadeprog, m_vsh, m_fsh;
 
 

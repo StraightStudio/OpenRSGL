@@ -29,7 +29,8 @@ LD_LIBS=-L/usr/lib64/				\
 
 INCLUDE=-I/usr/include/ -Iinclude/
 
-CXXFLAGS=-Wno-parentheses -O2 $(INCLUDE) $(DEBUG) -std=c++17
+NOWARNS=-Wno-parentheses -Wno-write-strings
+CXXFLAGS= $(NOWARNS) -O2 $(INCLUDE) $(DEBUG) -std=c++17
 
 SRCFILES=$(wildcard $(SRCDIR)/*)
 OBJFILES=$(SRCFILES:$(SRCDIR)/%.cpp=%.o)

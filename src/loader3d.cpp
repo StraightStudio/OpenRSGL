@@ -9,16 +9,19 @@ Loader3D::~Loader3D()
 {
 }
 
-void Loader3D::LoadModel(unistring fname, vector<GLfloat> &target)
+void Loader3D::LoadModel(unistring fname, Object3d &target)
 {
 	ifstream fin(fname);
 
 	unistring ts;
 	unistrlist parts;
-    vector <vec3> coords;
+    vector <glm::vec3> coords;
+    vector <glm::vec2> texcoords;
     unistrlist trio;
 
-    target.clear();
+    target.vertices.clear();
+    target.texCoords.clear();
+
 	while (getline(fin, ts)) 
 	{
         parts.clear();
@@ -26,7 +29,10 @@ void Loader3D::LoadModel(unistring fname, vector<GLfloat> &target)
 		{
             if(ts[1] == 't') // Texture coords
             {
-
+                split(parts, ts, is_any_of(" "));
+                if(parts.size() != 3)
+                    break;
+                texcoords.push_back( glm::vec2( atof(parts.at(1).c_str()), atof(parts.at(2).c_str()) ) );
             }
             else if(ts[1] == 'n') // Normal coords
             {
@@ -37,7 +43,7 @@ void Loader3D::LoadModel(unistring fname, vector<GLfloat> &target)
                 split(parts, ts, is_any_of(" "));
                 if(parts.size() < 4)
                     break;
-                coords.push_back( vec3(atof(parts.at(1).c_str()), atof(parts.at(2).c_str()), atof(parts.at(3).c_str()) ) );
+                coords.push_back( glm::vec3(atof(parts.at(1).c_str()), atof(parts.at(2).c_str()), atof(parts.at(3).c_str()) ) );
             }
 		}
 		else if (ts[0] == 'f')
@@ -52,11 +58,16 @@ void Loader3D::LoadModel(unistring fname, vector<GLfloat> &target)
                 split(trio, parts.at(i), is_any_of("/"));
                 if(trio.size() < 2)
                     break;
-                target.push_back( coords.at( atol(trio.at(0).c_str())-1).X() );
-                target.push_back( coords.at( atol(trio.at(0).c_str())-1).Y() );
-                target.push_back( coords.at( atol(trio.at(0).c_str())-1).Z() );
-}
+                target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).x );
+                target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).y );
+                target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).z );
+
+                target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).x );
+                target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).y );
+            }
 		}
     }
     fin.close();
+
+    target.update();
 }

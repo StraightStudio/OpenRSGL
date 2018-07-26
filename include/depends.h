@@ -25,6 +25,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #endif
@@ -38,6 +39,12 @@
 
 #undef main // SDL Windows Fix
 
+#ifndef uint
+typedef unsigned int uint;
+#endif
+#ifndef uchar
+typedef unsigned char uchar;
+#endif
 
 typedef std::string unistring;
 

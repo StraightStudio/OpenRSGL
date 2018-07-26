@@ -26,11 +26,13 @@ void Core::cleanup()
     m_audiomgr.clear();
     m_texloader.clear();
 
+    SDL_ShowCursor(SDL_ENABLE);
+    SDL_SetWindowGrab(m_window, SDL_FALSE);
+
     if(m_iout != nullptr)
         SDL_DestroyRenderer(m_iout);
     if(m_window != nullptr)
         SDL_DestroyWindow(m_window);
-    SDL_ShowCursor(SDL_ENABLE);
 
 #ifdef TESTING
     SDL_GL_DeleteContext(m_glcontext);
@@ -124,13 +126,6 @@ void Core::init()
         SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
 
     SDL_ShowCursor(SDL_DISABLE);
-    //
-#ifndef TESTING
-    m_texloader.loadTextures(m_iout, m_appconf);
-    m_animator.loadAnimations(m_appconf);
-
-    updateConsole();
-#endif
 
     m_audiomgr.init();
     m_audiomgr.loadSounds(m_appconf);
@@ -148,11 +143,6 @@ int Core::exec()
 {
     m_quit = false;
 
-#ifndef TESTING
-    m_sceneparser.loadScene(m_scene, m_appconf);
-    m_scene.start(&m_audiomgr);
-#endif
-
     while(!m_quit)
     {
         // =====================================================
@@ -166,6 +156,9 @@ int Core::exec()
                 case SDL_MOUSEBUTTONDOWN:
                     if(m_event.button.button > 0)
                     {
+                        if(m_event.button.button == SDL_BUTTON_MIDDLE)
+                            SDL_SetWindowGrab(m_window, SDL_TRUE);
+
                         m_processor.button_clicked[m_event.button.button-1] = true;
                         m_processor.button_down[m_event.button.button-1] = true;
                     }
@@ -173,7 +166,26 @@ int Core::exec()
                 case SDL_MOUSEBUTTONUP:
                     if(m_event.button.button > 0)
                     {
+                        //
+                        if(m_event.button.button == SDL_BUTTON_MIDDLE)
+                            SDL_SetWindowGrab(m_window, SDL_FALSE);
+                        //
                         m_processor.button_down[m_event.button.button-1] = false;
+                    }
+                break;
+                case SDL_MOUSEWHEEL:
+                    if(m_event.wheel.y < 0)
+                        m_camera.move(0.f, +1.0f, 0.f);
+                    else if(m_event.wheel.y > 0)
+                        m_camera.move(0.f, -1.0f, 0.f);
+                break;
+                case SDL_MOUSEMOTION:
+                    if(m_processor.isMouseDown(SDL_BUTTON_MIDDLE))
+                    {
+                        if(m_event.motion.xrel > 0)
+                            m_camera.rotate(glm::vec3(0,1,0), +10.f);
+                        else if(m_event.motion.xrel < 0)
+                            m_camera.rotate(glm::vec3(0,1,0), -10.f);
                     }
                 break;
                 default:
@@ -182,11 +194,7 @@ int Core::exec()
         }
         // =====================================================
         processEvents();
-#ifndef TESTING
-        draw_objs();
-#else
         draw_objs3D();
-#endif
     }
     return 0;
 }
@@ -284,17 +292,7 @@ void Core::draw_objs3D()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // ======================================================================================
-
-    glm::mat4 ModelMatrix = glm::mat4(1.0f);  // Индивидуально для каждой модели
-
-    glm::mat4 MVP = m_camera.matrix() * ModelMatrix; // Помните, что умножение матрицы производиться в обратном порядке
-
-    // ======================================================================================
-
-    test_obj.draw(m_shadeprog);
-    m_modelview = glGetUniformLocation(m_shadeprog, "MVP");
-    glUniformMatrix4fv(m_modelview, 1, GL_FALSE, &MVP[0][0]);
+    test_obj.draw(m_shadeprog, m_camera.matrix());
 
     SDL_GL_SwapWindow(m_window);
 
@@ -303,18 +301,16 @@ void Core::draw_objs3D()
 
 void Core::initGL()
 {
-//    glViewport( 0.0f, 0.0f, m_appconf.app_width, m_appconf.app_height );
-//    glMatrixMode( GL_PROJECTION );
-//    glLoadIdentity( );
-//    gluPerspective( m_fov, (float)m_appconf.app_width/(float)m_appconf.app_height, 0, 1000.f );
-//    glMatrixMode( GL_MODELVIEW );
-//    glLoadIdentity( );
     m_camera = Camera(90.f, (float)m_appconf.app_width/(float)m_appconf.app_height);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    glEnable(GL_MULTISAMPLE);
 
     initShaders(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/main.frag"); // Vertex & Fragment shaders
 
-    m_loader3d.LoadModel(RES_ROOT "test.obj", test_obj.vertices);
-    test_obj.update(test_obj.vertices);
+    m_loader3d.LoadModel(RES_ROOT "test.obj", test_obj.vertices, test_obj.texCoords);
 }
 
 void Core::initShaders(unistring fvertex, unistring ffragment)
