@@ -8,6 +8,8 @@ struct Texture
 {
     int width, height, depth;
     uchar* data;
+    unistring name;
+
     Texture(uint w, uint h, uchar* d)
         :   width(w), height(h), data(d)
     {
@@ -22,7 +24,8 @@ struct Texture
 
     void loadTex(unistring fname)
     {
-        data = stbi_load(fname.c_str(), &width, &height, &depth, 0);
+        name = fname;
+        data = stbi_load(name.c_str(), &width, &height, &depth, 0);
         stbi_vertical_flip(data, width, height, depth);
     }
 
@@ -51,7 +54,7 @@ public:
     void setTex(unistring fname);
 
     void update(const vector<GLfloat> &verts={0}, int draw_type=GL_STATIC_DRAW);
-    void update(int draw_type=GL_STATIC_DRAW, unistring targetTex="none.jpg");
+    void update(int draw_type=GL_STATIC_DRAW, unistring targetTex="none");
 
     //
     void move(glm::vec3 mv);

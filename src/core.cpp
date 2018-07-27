@@ -206,14 +206,22 @@ void Core::initGL()
 {
     m_camera = Camera(90.f, (float)m_appconf.app_width/(float)m_appconf.app_height);
 
+    glEnable(GL_NORMALIZE);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS); // Correct render
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); // Which faces are 'BACK'? Counter-ClockWise ( aka CW: 1->3->2, CCW: 1->2->3)
+
+    glShadeModel(GL_SMOOTH);
 
     glEnable(GL_MULTISAMPLE);
 
     initShaders(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/main.frag"); // Vertex & Fragment shaders
 
-    m_loader3d.LoadModel(RES_ROOT "test.obj", test_obj);
+    loadModels();
 }
 
 void Core::initShaders(unistring fvertex, unistring ffragment)
@@ -293,6 +301,12 @@ void Core::initShaders(unistring fvertex, unistring ffragment)
     //
     glDeleteShader(m_vsh);
     glDeleteShader(m_fsh);
+}
+
+void Core::loadModels()
+{
+    m_loader3d.LoadModel(RES_ROOT "christiansborg.obj", test_obj);
+    test_obj.update(GL_STATIC_DRAW);
 }
 
 void Core::processEvents()

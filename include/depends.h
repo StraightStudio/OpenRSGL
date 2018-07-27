@@ -4,6 +4,9 @@
 #define TESTING
 
 
+#define TEX_SIZE 512
+#define RGBC 3
+#define RGBAC 4
 #define VEC3_UP 0,1,0
 
 #include <algorithm>

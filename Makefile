@@ -29,7 +29,7 @@ LD_LIBS=-L/usr/lib64/				\
 
 INCLUDE=-I/usr/include/ -Iinclude/
 
-NOWARNS=-Wno-parentheses -Wno-write-strings
+NOWARNS=-Wno-parentheses -Wno-write-strings -Wno-narrowing
 CXXFLAGS= $(NOWARNS) -O2 $(INCLUDE) $(DEBUG) -std=c++17
 
 SRCFILES=$(wildcard $(SRCDIR)/*)

@@ -22,7 +22,9 @@ public:
 
     void draw_objs3D();
     void initGL();
+
     void initShaders(unistring fvertex="", unistring ffragment="");
+    void loadModels();
 
     void processEvents();
 

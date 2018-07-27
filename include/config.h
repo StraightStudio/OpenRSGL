@@ -3,7 +3,7 @@
 #define CONFIG_H
 
 // -----------=
-#define DEBUG_NO
+#define DEBUG
 // -----------=
 
 #define CONSOLE_KEY SDL_SCANCODE_GRAVE

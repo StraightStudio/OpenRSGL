@@ -47,8 +47,8 @@ void Loader3D::LoadModel(unistring fname, Object3d &target)
             }
 		}
 		else if (ts[0] == 'f')
-		{
-			split(parts, ts, is_any_of(" "));
+        {
+            split(parts, ts, is_any_of(" "));
 			if (parts.size() != 4)
                 break;
 
@@ -56,18 +56,25 @@ void Loader3D::LoadModel(unistring fname, Object3d &target)
 			{
                 trio.clear();
                 split(trio, parts.at(i), is_any_of("/"));
+
                 if(trio.size() < 2)
                     break;
+
                 target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).x );
                 target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).y );
                 target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).z );
 
-                target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).x );
-                target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).y );
+                if(texcoords.size() > 0)
+                {
+                    target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).x );
+                    target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).y );
+                }
             }
 		}
     }
+    fprintf(stdout, "Model read. Filling buffers...\n");
+    fflush(stdout);
     fin.close();
 
-    target.update(GL_STATIC_DRAW);
+    target.update(target.vertices);
 }
