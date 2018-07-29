@@ -1,8 +1,7 @@
 #ifndef DEPENDS_H
 #define DEPENDS_H
 
-#define TESTING
-
+#define VERTEX_DATA 0x766572
 
 #define TEX_SIZE 512
 #define RGBC 3
@@ -29,7 +28,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <stb_image_aug.h>
+#include <png.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -41,6 +40,9 @@
 
 #ifndef uint
 typedef unsigned int uint;
+#endif
+#ifndef uint32
+typedef uint32_t uint32;
 #endif
 #ifndef uchar
 typedef unsigned char uchar;

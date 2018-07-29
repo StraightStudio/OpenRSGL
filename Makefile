@@ -24,6 +24,7 @@ LD_LIBS=-L/usr/lib64/				\
 		-lGL				\
 		-lGLU				\
 		-lGLEW				\
+		-lpng				\
 		-L$(LIB_PATH)/libsteam.a	\
 		-L$(LIB_PATH)/steamclient.a
 

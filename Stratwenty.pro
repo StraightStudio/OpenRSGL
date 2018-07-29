@@ -6,10 +6,12 @@ INCLUDEPATH +=  /usr/include/ \
                 include/
 
 SOURCES += src/* main.cpp \
-    ../src/camera.cpp
-HEADERS += include/* \
-    include/camera.h
+    src/scene3d.cpp
 
-DISTFILES += \
-    data/shaders/main.frag \
-    data/shaders/main.vert
+HEADERS += include/* \
+    include/scene3d.h
+
+
+DISTFILES += data/shaders/* \
+    data/shaders/fbuff.frag \
+    data/shaders/fbuff.vert

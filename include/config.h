@@ -11,6 +11,7 @@
 #define DW_WIDTH 1280
 #define DW_HEIGHT 720
 #define DW_FULL false
+#define DW_NAME "OpenRSGL"
 #define DW_VERSION "072018 prerelease"
 
 #include <depends.h>

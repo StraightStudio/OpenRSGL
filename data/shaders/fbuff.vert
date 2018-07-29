@@ -4,9 +4,8 @@ layout(location = 1) in vec2 texCoord;
 
 out vec2 texCoordOut;
 
-uniform mat4 View, Model; // ModelViewProjection (Total matrix)
-
-void main(){
-    gl_Position = View * Model * vec4(vertCoord, 1);
+void main()
+{
+    gl_Position = vec4(vertCoord, 1.0);
     texCoordOut = texCoord;
 }

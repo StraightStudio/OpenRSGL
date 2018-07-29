@@ -35,3 +35,14 @@ Stratwenty
 *.user
 *.qmake
 *qmake*
+
+
+# Personal files
+*.png
+*.obj
+*.ogg
+*.wav
+*.blend*
+*.svg
+3dmodels/*
+x64/*

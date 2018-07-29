@@ -1,6 +1,12 @@
 #include <object3d.h>
 
-Object3d::Object3d()
+Object3d::Object3d() :
+    m_scale(1.f),
+    pos(glm::vec3(0,0,0)),
+    rot(glm::vec3(0,0,0)),
+    ModelMatrix(glm::mat4(1.f)),
+    m_buffer(0), m_VAO(0),
+    selected(false)
 {
 
 }
@@ -8,41 +14,26 @@ Object3d::Object3d()
 Object3d::~Object3d()
 {
     mainTex.unloadTex();
+    glDeleteVertexArrays(1, &m_VAO);
     glDeleteBuffers(1, &m_buffer);
-    glDeleteBuffers(1, &m_uvbuff);
+    glDeleteTextures(1, &m_texid);
 }
 
-void Object3d::draw(GLuint shader_program, glm::mat4 &cam_matrix)
+void Object3d::draw(Shader &shader)
 {
-    glUseProgram(shader_program);
+    ModelMatrix = glm::mat4(1.f);
+    ModelMatrix = glm::translate(ModelMatrix, pos);
+    ModelMatrix = glm::rotate(ModelMatrix, rot.x, glm::vec3(1,0,0))*glm::rotate(ModelMatrix, rot.y, glm::vec3(0,1,0))*glm::rotate(ModelMatrix, rot.z, glm::vec3(0,0,1));
+    ModelMatrix = glm::scale(ModelMatrix, glm::vec3(m_scale, m_scale, m_scale));
+    shader.setMat4("Model", ModelMatrix);
 
-    MoveMatrix   = glm::translate(glm::mat4(), pos);
-    RotateMatrix = glm::rotate(glm::mat4(), rot.x, glm::vec3(1,0,0))*glm::rotate(glm::mat4(), rot.y, glm::vec3(0,1,0))*glm::rotate(glm::mat4(), rot.z, glm::vec3(0,0,1));
-    ScaleMatrix  = glm::mat4(1);
-
-    m_matrix = cam_matrix * MoveMatrix * RotateMatrix * ScaleMatrix;
-
-    m_matid = glGetUniformLocation(shader_program, "MVP");
-    glUniformMatrix4fv(m_matid, 1, GL_FALSE, &m_matrix[0][0]);
-
-
-    glEnableVertexAttribArray(0); // ID=0
-    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); // ID=0
-
-    glEnableVertexAttribArray(1); // ID=1
-    glBindBuffer(GL_ARRAY_BUFFER, m_uvbuff); // Texture UV coordinates
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0); // ID=1
-
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texid);
-    glUniform1i(glGetUniformLocation(shader_program, "mainTexture"), 0);
-
-    glDrawArrays(GL_TRIANGLES, 0, m_size); // Начиная с вершины 0, всего 3 вершины -> один треугольник
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    glBindVertexArray(m_VAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_texid);
+        shader.setInt("mainTexture", 0);
+        glDrawArrays(GL_TRIANGLES, 0, vertexCount());
+        glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
 }
 
 void Object3d::setTex(unistring fname)
@@ -56,7 +47,7 @@ void Object3d::setTex(unistring fname)
     }
 }
 
-void Object3d::update(const vector<GLfloat> &verts, int draw_type)
+void Object3d::update(uint draw_type)
 {
     if(m_VAO == 0)
         glGenVertexArrays(1, &m_VAO);
@@ -65,26 +56,22 @@ void Object3d::update(const vector<GLfloat> &verts, int draw_type)
     if(m_texid == 0)
         glGenTextures(1, &m_texid);
 
-    vertices = verts;
+    GLfloat data[vertexData.size()];
+    for(int i=0; i < vertexData.size(); i++)
+        data[i] = vertexData.at(i);
 
-    m_size = vertices.size();
-    GLfloat data[m_size];
-    for(int i=0; i < m_size; i++)
-        data[i] = verts.at(i);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, draw_type);
+    glBindVertexArray(m_VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(data), &data, draw_type);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+    glBindVertexArray(0);
 }
 
-void Object3d::update(int draw_type, unistring targetTex)
+void Object3d::update(unistring targetTex)
 {
-    GLfloat uvdata[texCoords.size()];
-    for(int i=0; i < texCoords.size(); i++)
-       uvdata[i] = texCoords.at(i);
-    glBindBuffer(GL_ARRAY_BUFFER, m_uvbuff);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(uvdata), uvdata, draw_type);
-
-    glBindTexture(GL_TEXTURE_2D, m_texid);
     if(targetTex == "none")
     {
         uchar checkImage[TEX_SIZE][TEX_SIZE][RGBAC]; // R,G,B,A = 4
@@ -119,23 +106,148 @@ void Object3d::update(int draw_type, unistring targetTex)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mainTex.width, mainTex.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainTex.data);
         mainTex.unloadTex();
     }
-
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 void Object3d::move(glm::vec3 mv)
 {
     pos += mv;
+    //ModelMatrix = glm::translate(ModelMatrix, pos);
 }
 
 void Object3d::rotate(glm::vec3 axis, float angle)
 {
     rot += glm::normalize(axis) * glm::radians(angle);
+    //ModelMatrix = glm::rotate(ModelMatrix, rot.x, glm::vec3(1,0,0))*glm::rotate(ModelMatrix, rot.y, glm::vec3(0,1,0))*glm::rotate(ModelMatrix, rot.z, glm::vec3(0,0,1));
+}
 
-    RotateMatrix = glm::rotate(glm::mat4(), rot.x, glm::vec3(1,0,0)) * glm::rotate(glm::mat4(), rot.y, glm::vec3(0,1,0)) * glm::rotate(glm::mat4(), rot.z, glm::vec3(0,0,1));
+void Object3d::scale(float factor)
+{
+    m_scale = factor;
+    //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(m_scale, m_scale, m_scale));
+}
+
+bool Object3d::isSelected()
+{
+    return selected;
+}
+
+uint Object3d::vertexCount()
+{
+    return (vertexData.size()/5);
+}
+
+void Texture::loadTex(unistring fname)
+{
+    png_structp png_ptr;
+    png_infop info_ptr;
+    unsigned int sig_read = 0;
+    int color_type, interlace_type;
+    FILE *fp;
+
+    if ((fp = fopen(fname.c_str(), "rb")) == NULL)
+        return;
+
+    /* Create and initialize the png_struct
+     * with the desired error handler
+     * functions.  If you want to use the
+     * default stderr and longjump method,
+     * you can supply NULL for the last
+     * three parameters.  We also supply the
+     * the compiler header file version, so
+     * that we know if the application
+     * was compiled with a compatible version
+     * of the library.  REQUIRED
+     */
+    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+                                     NULL, NULL, NULL);
+
+    if (png_ptr == NULL) {
+        fclose(fp);
+        return;
+    }
+
+    /* Allocate/initialize the memory
+     * for image information.  REQUIRED. */
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL) {
+        fclose(fp);
+        png_destroy_read_struct(&png_ptr, NULL, NULL);
+        return;
+    }
+
+    /* Set error handling if you are
+     * using the setjmp/longjmp method
+     * (this is the normal method of
+     * doing things with libpng).
+     * REQUIRED unless you  set up
+     * your own error handlers in
+     * the png_create_read_struct()
+     * earlier.
+     */
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        /* Free all of the memory associated
+         * with the png_ptr and info_ptr */
+        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+        fclose(fp);
+        /* If we get here, we had a
+         * problem reading the file */
+        return;
+    }
+
+    /* Set up the output control if
+     * you are using standard C streams */
+    png_init_io(png_ptr, fp);
+
+    /* If we have already
+     * read some of the signature */
+    png_set_sig_bytes(png_ptr, sig_read);
+
+    /*
+     * If you have enough memory to read
+     * in the entire image at once, and
+     * you need to specify only
+     * transforms that can be controlled
+     * with one of the PNG_TRANSFORM_*
+     * bits (this presently excludes
+     * dithering, filling, setting
+     * background, and doing gamma
+     * adjustment), then you can read the
+     * entire image (including pixels)
+     * into the info structure with this
+     * call
+     *
+     * PNG_TRANSFORM_STRIP_16 |
+     * PNG_TRANSFORM_PACKING  forces 8 bit
+     * PNG_TRANSFORM_EXPAND forces to
+     *  expand a palette into RGB
+     */
+    png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_EXPAND, NULL);
+
+    int bit_depth;
+    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
+                 &interlace_type, NULL, NULL);
+
+    unsigned int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
+    data = (uchar*) malloc(row_bytes * height);
+
+    png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+
+    for (int i = 0; i < height; i++) {
+        // note that png is ordered top to
+        // bottom, but OpenGL expect it bottom to top
+        // so the order or swapped
+        memcpy(data+(row_bytes * (height-1-i)), row_pointers[i], row_bytes);
+    }
+
+    /* Clean up after the read,
+     * and free any memory allocated */
+    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+
+    /* Close the file */
+    fclose(fp);
 }
