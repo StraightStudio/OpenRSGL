@@ -15,6 +15,10 @@ Renderer::~Renderer()
     if(m_window != nullptr)
         SDL_DestroyWindow(m_window);
     //
+    delete m_main_shader;
+    delete m_outline_shader;
+    delete m_fbuff_shader;
+    //
     glDeleteTextures(1, &FBT);
     glDeleteTextures(1, &FBD);
     glDeleteBuffers(1, &fbVBO);
@@ -31,8 +35,8 @@ void Renderer::render(Camera &m_cam, Scene3d *scene)
         glStencilMask(0x00);
         for(int i=0; i < scene->objs().size(); i++)
         {
-            m_main_shader.use();
-            m_main_shader.setMat4("View", m_cam.matrix());
+            m_main_shader->use();
+            m_main_shader->setMat4("View", m_cam.matrix());
             scene->obj(i)->draw(m_main_shader);
         }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -79,8 +83,8 @@ void Renderer::render(Camera &m_cam, Scene3d *scene)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, FBT);
-        m_fbuff_shader.use();
-        m_fbuff_shader.setInt("renderTexture", 0);
+        m_fbuff_shader->use();
+        m_fbuff_shader->setInt("renderTexture", 0);
         glDrawArrays(GL_TRIANGLES, 0, 6); // 6 vertices
         glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
@@ -127,10 +131,15 @@ void Renderer::initGL()
     SDL_GetWindowSize(m_window, &w, &h);
     glViewport(0, 0, w, h);
 
-    m_main_shader.loadShader(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/main.frag"); // Vertex & Fragment shaders for texture
-    m_outline_shader.loadShader(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/outline.frag"); // Vertex & Fragment shaders for outline
-    m_fbuff_shader.loadShader(RES_ROOT "shaders/fbuff.vert", RES_ROOT "shaders/fbuff.frag");
-    Logger::log("Renderer", "Shader init complete.");
+
+    m_main_shader = new Shader();
+    m_outline_shader = new Shader();
+    m_fbuff_shader = new Shader();
+
+    m_main_shader->loadShader(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/main.frag"); // Vertex & Fragment shaders for texture
+    m_outline_shader->loadShader(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/outline.frag"); // Vertex & Fragment shaders for outline
+    m_fbuff_shader->loadShader(RES_ROOT "shaders/fbuff.vert", RES_ROOT "shaders/fbuff.frag");
+
 
     Logger::log("Renderer", "OpenGL init complete.");
 }

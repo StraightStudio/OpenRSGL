@@ -27,7 +27,9 @@ public:
 
     void genTexture(int w, int h, bool isDepth, GLuint &texture);
 private:
-    Shader m_main_shader, m_outline_shader, m_fbuff_shader;
+    Shader  *m_main_shader,
+            *m_outline_shader,
+            *m_fbuff_shader;
 
     GLuint FBO, FBT, FBD; // FrameBufferObject FrameBufferTexture FrameBufferDepth
     GLuint fbVAO, fbVBO;

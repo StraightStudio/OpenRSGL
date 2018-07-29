@@ -108,8 +108,8 @@ int Core::exec()
 
 void Core::loadModels()
 {
-    //m_gamescene->addObject("cube.obj", "colorgrid.png");
-    m_gamescene->addObject("christiansborg.obj", "BigTextureChristiansborg.png");
+    m_gamescene->addObject("cube.obj", "uv.png");
+    //m_gamescene->addObject("christiansborg.obj", "BigTextureChristiansborg.png");
 }
 
 void Core::processEvents()

@@ -19,18 +19,18 @@ Object3d::~Object3d()
     glDeleteTextures(1, &m_texid);
 }
 
-void Object3d::draw(Shader &shader)
+void Object3d::draw(Shader *shader)
 {
     ModelMatrix = glm::mat4(1.f);
     ModelMatrix = glm::translate(ModelMatrix, pos);
     ModelMatrix = glm::rotate(ModelMatrix, rot.x, glm::vec3(1,0,0))*glm::rotate(ModelMatrix, rot.y, glm::vec3(0,1,0))*glm::rotate(ModelMatrix, rot.z, glm::vec3(0,0,1));
     ModelMatrix = glm::scale(ModelMatrix, glm::vec3(m_scale, m_scale, m_scale));
-    shader.setMat4("Model", ModelMatrix);
+    shader->setMat4("Model", ModelMatrix);
 
     glBindVertexArray(m_VAO);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_texid);
-        shader.setInt("mainTexture", 0);
+        shader->setInt("mainTexture", 0);
         glDrawArrays(GL_TRIANGLES, 0, vertexCount());
         glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
@@ -104,7 +104,6 @@ void Object3d::update(unistring targetTex)
     {
         setTex(unistring(IMG_ROOT) + targetTex);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mainTex.width, mainTex.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainTex.data);
-        mainTex.unloadTex();
     }
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -233,7 +232,7 @@ void Texture::loadTex(unistring fname)
                  &interlace_type, NULL, NULL);
 
     unsigned int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
-    data = (uchar*) malloc(row_bytes * height);
+    data = (GLubyte*) malloc(row_bytes * height);
 
     png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 

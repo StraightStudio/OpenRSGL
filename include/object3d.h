@@ -44,7 +44,7 @@ class Object3d
 public:
     Object3d();
     ~Object3d();
-    void draw(Shader &shader);
+    void draw(Shader *shader);
 
     void setTex(unistring fname);
 
