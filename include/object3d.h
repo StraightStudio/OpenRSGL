@@ -3,15 +3,16 @@
 
 #include <depends.h>
 #include <config.h>
+#include <shader.h>
 
 struct Texture
 {
-    int width, height, depth;
-    uchar* data;
+    uint32 width, height, depth;
+    GLubyte* data;
     unistring name;
 
     Texture(uint w, uint h, uchar* d)
-        :   width(w), height(h), data(d)
+        :   width(w), height(h)
     {
 
     }
@@ -22,19 +23,13 @@ struct Texture
 
     }
 
-    void loadTex(unistring fname)
-    {
-        name = fname;
-        data = stbi_load(name.c_str(), &width, &height, &depth, 0);
-        stbi_vertical_flip(data, width, height, depth);
-    }
+    void loadTex(unistring fname);
 
     void unloadTex()
     {
         width = 0;
         height = 0;
 
-        stbi_image_free(data);
         data = nullptr;
     }
 
@@ -49,32 +44,37 @@ class Object3d
 public:
     Object3d();
     ~Object3d();
-    void draw(GLuint shader_program, glm::mat4 &cam_matrix);
+    void draw(Shader &shader);
 
     void setTex(unistring fname);
 
-    void update(const vector<GLfloat> &verts={0}, int draw_type=GL_STATIC_DRAW);
-    void update(int draw_type=GL_STATIC_DRAW, unistring targetTex="none");
+    void update(uint draw_type=GL_STATIC_DRAW);
+    void update(unistring targetTex="none");
 
     //
     void move(glm::vec3 mv);
     void rotate(glm::vec3 axis, float angle);
+    void scale(float factor);
     //
+    bool isSelected();
+    uint vertexCount();
 
     GLuint m_matid, m_texid; // texid for opengl, texloc for glsl
     GLuint m_texloc, m_vertloc;
-    glm::mat4 m_matrix;
 
     glm::vec3 pos, rot;
+    float m_scale;
 
-    GLuint m_VAO, m_buffer, m_uvbuff; // Vertex Array Object, vertex buffer, texture buffer
-    size_t m_size, m_tsize;
+    GLuint m_VAO, m_buffer; // Vertex Array Object, vertex buffer
+    size_t m_size;
 
-    vector<GLfloat> vertices, texCoords;
+    vector<GLfloat> vertexData;
 
-    glm::mat4 MoveMatrix, RotateMatrix, ScaleMatrix;
+    glm::mat4 ModelMatrix;
 
     Texture mainTex;
+private:
+    bool selected;
 };
 
 #endif // OBJECT3D_H

@@ -8,6 +8,9 @@
 #include <camera.h>
 #include <loader3d.h>
 #include <object3d.h>
+#include <scene3d.h>
+#include <shader.h>
+#include <renderer.h>
 
 class Core
 {
@@ -16,14 +19,10 @@ public:
     ~Core();
     void init();
     void cleanup();
-    void spawn();
     int exec();
-    void loadTextures();
 
     void draw_objs3D();
-    void initGL();
 
-    void initShaders(unistring fvertex="", unistring ffragment="");
     void loadModels();
 
     void processEvents();
@@ -34,8 +33,6 @@ public:
 private:
     unistring current_scene;
 
-    SDL_Window* m_window;
-    SDL_Renderer* m_iout;
     SDL_Event m_event;
     bool m_quit;
 
@@ -44,28 +41,13 @@ private:
 
     AppConfig m_appconf;
 
-    //
-    SDL_Rect selection_rect;
-    SDL_Rect mouse_rect;
-    int spawnid;
-    //
-
-    SDL_Rect menu_rect;
-    SDL_Rect map_rect;
-
     // ================ O P E N  G L   V A R I A B L E S ================
     // etc...
     unistring pname;
-    SDL_Rect m_camrect;
 
-    SDL_GLContext m_glcontext;
-    GLuint m_shadeprog, m_vsh, m_fsh;
-
-
-    Loader3D m_loader3d;
     Camera m_camera;
-
-    Object3d test_obj;
+    Renderer m_renderer;
+    Scene3d *m_gamescene;
 };
 
 #endif // CORE_H

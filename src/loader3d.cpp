@@ -7,9 +7,10 @@ Loader3D::Loader3D()
 
 Loader3D::~Loader3D()
 {
+
 }
 
-void Loader3D::LoadModel(unistring fname, Object3d &target)
+void Loader3D::LoadModel(unistring fname, Object3d *target)
 {
 	ifstream fin(fname);
 
@@ -19,9 +20,7 @@ void Loader3D::LoadModel(unistring fname, Object3d &target)
     vector <glm::vec2> texcoords;
     unistrlist trio;
 
-    target.vertices.clear();
-    target.texCoords.clear();
-
+    target->vertexData.clear();
 	while (getline(fin, ts)) 
 	{
         parts.clear();
@@ -60,21 +59,25 @@ void Loader3D::LoadModel(unistring fname, Object3d &target)
                 if(trio.size() < 2)
                     break;
 
-                target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).x );
-                target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).y );
-                target.vertices.push_back( coords.at( atol(trio.at(0).c_str())-1).z );
+                target->vertexData.push_back( coords.at( atol(trio.at(0).c_str())-1).x );
+                target->vertexData.push_back( coords.at( atol(trio.at(0).c_str())-1).y );
+                target->vertexData.push_back( coords.at( atol(trio.at(0).c_str())-1).z );
 
                 if(texcoords.size() > 0)
                 {
-                    target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).x );
-                    target.texCoords.push_back( texcoords.at( atol(trio.at(1).c_str())-1).y );
+                    target->vertexData.push_back( texcoords.at( atol(trio.at(1).c_str())-1).x );
+                    target->vertexData.push_back( texcoords.at( atol(trio.at(1).c_str())-1).y );
+                }
+                else
+                {
+                    target->vertexData.push_back( 0.f );
+                    target->vertexData.push_back( 0.f );
                 }
             }
 		}
     }
-    fprintf(stdout, "Model read. Filling buffers...\n");
-    fflush(stdout);
     fin.close();
 
-    target.update(target.vertices);
+    target->update(GL_STATIC_DRAW);
+    target->update("none");
 }
