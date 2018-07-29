@@ -13,6 +13,9 @@ public:
     const vector<Object3d *> &objs() const;
     Object3d* obj(int i);
 
+    void select(int i){ m_objects[i]->select(true); }
+    void deselect(int i){ m_objects[i]->select(false); }
+
     void addObject(unistring mdl, unistring texture);
 private:
     vector<Object3d*> m_objects;

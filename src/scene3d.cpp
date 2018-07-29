@@ -27,8 +27,6 @@ void Scene3d::addObject(unistring mdl, unistring texture)
 
     m_loader3d.LoadModel(unistring(RES_ROOT)+mdl, tmp);
     tmp->update(texture);
-    fprintf(stdout, "%p load status: %d size.\n", tmp, (int)tmp->vertexData.size());
-    fflush(stdout);
 
     m_objects.push_back(tmp);
 }

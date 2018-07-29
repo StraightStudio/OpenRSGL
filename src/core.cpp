@@ -108,7 +108,9 @@ int Core::exec()
 
 void Core::loadModels()
 {
-    m_gamescene->addObject("cube.obj", "uv.png");
+    m_gamescene->addObject("christiansborg.obj", IMG_ROOT "BigTextureChristiansborg.png");
+    m_gamescene->addObject("cube.obj", IMG_ROOT "yellow.png");
+    m_gamescene->obj(1)->move(glm::vec3(1.f, 0.f, 0.f));
     //m_gamescene->addObject("christiansborg.obj", "BigTextureChristiansborg.png");
 }
 

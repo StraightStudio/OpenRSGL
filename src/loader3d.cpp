@@ -12,7 +12,18 @@ Loader3D::~Loader3D()
 
 void Loader3D::LoadModel(unistring fname, Object3d *target)
 {
+    if(target == nullptr)
+    {
+        Logger::err("Loader3D", "Error, working with null object!");
+        return;
+    }
+
 	ifstream fin(fname);
+    if(!fin.is_open())
+    {
+        Logger::err("Loader3D", "No such file: "+fname);
+        return;
+    }
 
 	unistring ts;
 	unistrlist parts;

@@ -28,9 +28,9 @@ void Object3d::draw(Shader *shader)
     shader->setMat4("Model", ModelMatrix);
 
     glBindVertexArray(m_VAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_texid);
-        shader->setInt("mainTexture", 0);
+        glActiveTexture(GL_TEXTURE0);           // 0 here  |
+        glBindTexture(GL_TEXTURE_2D, m_texid);  //         | for this
+        shader->setInt("mainTexture", 0);       // 0 there |
         glDrawArrays(GL_TRIANGLES, 0, vertexCount());
         glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
@@ -97,12 +97,14 @@ void Object3d::update(unistring targetTex)
                     c = !c;
             }
         }
-
+        glBindTexture(GL_TEXTURE_2D, m_texid);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TEX_SIZE, TEX_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, &checkImage);
     }
     else
     {
-        setTex(unistring(IMG_ROOT) + targetTex);
+        setTex(targetTex);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_texid);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mainTex.width, mainTex.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainTex.data);
     }
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -128,6 +130,11 @@ void Object3d::scale(float factor)
 {
     m_scale = factor;
     //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(m_scale, m_scale, m_scale));
+}
+
+void Object3d::select(bool yes)
+{
+    selected = yes;
 }
 
 bool Object3d::isSelected()
@@ -166,6 +173,7 @@ void Texture::loadTex(unistring fname)
                                      NULL, NULL, NULL);
 
     if (png_ptr == NULL) {
+        Logger::err("Texture", "Failed to open for reading: "+fname);
         fclose(fp);
         return;
     }
@@ -174,6 +182,7 @@ void Texture::loadTex(unistring fname)
      * for image information.  REQUIRED. */
     info_ptr = png_create_info_struct(png_ptr);
     if (info_ptr == NULL) {
+        Logger::err("Texture", "Failed to initialize memory for fileinfo: "+fname);
         fclose(fp);
         png_destroy_read_struct(&png_ptr, NULL, NULL);
         return;
@@ -249,4 +258,5 @@ void Texture::loadTex(unistring fname)
 
     /* Close the file */
     fclose(fp);
+    Logger::log("Texture", "Successfully loaded "+fname);
 }

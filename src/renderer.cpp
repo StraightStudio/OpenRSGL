@@ -32,12 +32,37 @@ void Renderer::render(Camera &m_cam, Scene3d *scene)
     // Draw all here
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        glStencilMask(0x00);
+
         for(int i=0; i < scene->objs().size(); i++)
         {
-            m_main_shader->use();
-            m_main_shader->setMat4("View", m_cam.matrix());
-            scene->obj(i)->draw(m_main_shader);
+            if(scene->obj(i)->isSelected())
+            {
+                glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+                glStencilFunc(GL_ALWAYS, 1, 0xFF);
+                glStencilMask(0xFF);
+                glEnable(GL_DEPTH_TEST);
+                scene->obj(i)->scale(1.f);
+                m_main_shader->use();
+                m_main_shader->setMat4("View", m_cam.matrix());
+                scene->obj(i)->draw(m_main_shader);
+
+                glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+                glStencilMask(0x00);
+                glDisable(GL_DEPTH_TEST);
+                scene->obj(i)->scale(1.1f);
+                m_outline_shader->use();
+                m_outline_shader->setMat4("View", m_cam.matrix());
+                scene->obj(i)->draw(m_outline_shader);
+                glStencilMask(0xFF);
+                glEnable(GL_DEPTH_TEST);
+            }
+            else
+            {
+                scene->obj(i)->scale(1.f);
+                m_main_shader->use();
+                m_main_shader->setMat4("View", m_cam.matrix());
+                scene->obj(i)->draw(m_main_shader);
+            }
         }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //
@@ -48,39 +73,12 @@ void Renderer::render(Camera &m_cam, Scene3d *scene)
         fprintf(stdout, "Rendering object of size %d...\n", (int)m_rendertargets.at(i).m_size);
         fflush(stdout);
 
-        if(m_rendertargets.at(i).isSelected())
-        {
-            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0xFF);
-            glEnable(GL_DEPTH_TEST);
-            m_rendertargets.at(i).scale(1.f);
-            m_main_shader.use();
-            m_main_shader.setMat4("View", m_cam.matrix());
-            m_rendertargets.at(i).draw(m_main_shader);
 
-            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            glStencilMask(0x00);
-            glDisable(GL_DEPTH_TEST);
-            m_rendertargets.at(i).scale(1.1f);
-            m_outline_shader.use();
-            m_outline_shader.setMat4("View", m_cam.matrix());
-            m_rendertargets.at(i).draw(m_outline_shader);
-            glStencilMask(0xFF);
-            glEnable(GL_DEPTH_TEST);
-        }
-        else
-        {
-            m_rendertargets.at(i).scale(1.f);
-            m_main_shader.use();
-            m_main_shader.setMat4("View", m_cam.matrix());
-            m_rendertargets.at(i).draw(m_main_shader);
-        }
     }
     */
 
     glBindVertexArray(fbVAO);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, FBT);
         m_fbuff_shader->use();

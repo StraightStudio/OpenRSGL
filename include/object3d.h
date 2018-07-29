@@ -30,7 +30,7 @@ struct Texture
         width = 0;
         height = 0;
 
-        data = nullptr;
+        free(data);
     }
 
     ~Texture()
@@ -56,6 +56,7 @@ public:
     void rotate(glm::vec3 axis, float angle);
     void scale(float factor);
     //
+    void select(bool yes);
     bool isSelected();
     uint vertexCount();
 
