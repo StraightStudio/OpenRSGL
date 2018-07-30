@@ -11,6 +11,8 @@
 #include <scene3d.h>
 #include <shader.h>
 #include <renderer.h>
+#include <mdlloader.h>
+#include <texloader.h>
 
 class Core
 {
@@ -48,6 +50,9 @@ private:
     Camera m_camera;
     Renderer m_renderer;
     Scene3d *m_gamescene;
+
+    MdlLoader m_mloader;
+    TexLoader m_tloader;
 };
 
 #endif // CORE_H

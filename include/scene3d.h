@@ -16,7 +16,7 @@ public:
     void select(int i){ m_objects[i]->select(true); }
     void deselect(int i){ m_objects[i]->select(false); }
 
-    void addObject(unistring mdl, unistring texture);
+    void addObject(GLuint addr, uint sz, GLuint tid);
 private:
     vector<Object3d*> m_objects;
     Loader3D m_loader3d;

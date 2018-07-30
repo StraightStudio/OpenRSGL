@@ -21,12 +21,12 @@ Object3d *Scene3d::obj(int i)
     return m_objects[i];
 }
 
-void Scene3d::addObject(unistring mdl, unistring texture)
+void Scene3d::addObject(GLuint addr, uint sz, GLuint tid)
 {
     Object3d* tmp = new Object3d();
 
-    m_loader3d.LoadModel(unistring(RES_ROOT)+mdl, tmp);
-    tmp->update(texture);
+    tmp->setModel(addr, sz);
+    tmp->setTex(tid);
 
     m_objects.push_back(tmp);
 }

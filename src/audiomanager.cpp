@@ -22,13 +22,11 @@ void AudioManager::clear()
     for(auto &ch : a_sounds)
     {
         Mix_FreeChunk(ch.second);
-        ch.second = nullptr;
     }
 
     for(auto &ms : a_music)
     {
         Mix_FreeMusic(ms.second);
-        ms.second = nullptr;
     }
 
     Mix_CloseAudio();

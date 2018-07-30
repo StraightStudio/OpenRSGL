@@ -19,7 +19,6 @@ void Core::cleanup()
         delete m_gamescene;
 
     SteamAPI_Shutdown();
-    IMG_Quit();
     SDL_Quit();
 }
 
@@ -27,7 +26,7 @@ void Core::init()
 {
     //Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
-#ifdef STEAM
+#ifndef STEAM
     if(!SteamAPI_IsSteamRunning())
         Logger::warn("Core", "SteamAPI init error!");
     else
@@ -41,7 +40,7 @@ void Core::init()
     m_appconf.app_height = 720;
 
     m_renderer.init(m_appconf.app_width, m_appconf.app_height);
-    m_camera = Camera(90.f, (float)m_appconf.app_width/(float)m_appconf.app_height);
+    m_camera = Camera(90.f, (float)m_appconf.app_width/(float)m_appconf.app_height); //
 
     m_gamescene = new Scene3d();
     loadModels();
@@ -108,10 +107,14 @@ int Core::exec()
 
 void Core::loadModels()
 {
-    m_gamescene->addObject("christiansborg.obj", IMG_ROOT "BigTextureChristiansborg.png");
-    m_gamescene->addObject("cube.obj", IMG_ROOT "yellow.png");
-    m_gamescene->obj(1)->move(glm::vec3(1.f, 0.f, 0.f));
-    //m_gamescene->addObject("christiansborg.obj", "BigTextureChristiansborg.png");
+    m_mloader.loadModel(RES_ROOT "cube.obj", "cube");
+    m_tloader.loadTexture(IMG_ROOT "uv.png", "uv");
+
+    GLuint maddr, taddr; uint sz;
+    m_mloader.getModelInfo("cube", &maddr, &sz);
+    m_tloader.getTextureInfo("uv", &taddr);
+
+    m_gamescene->addObject(maddr, sz, taddr);
 }
 
 void Core::processEvents()
@@ -132,7 +135,9 @@ void Core::processEvents()
 
 
     if(m_processor.isMouseClicked(SDL_BUTTON_LEFT))
-            m_processor.button_clicked[0] = false;
+        m_processor.button_clicked[0] = false;
+    if(m_processor.isMouseClicked(SDL_BUTTON_MIDDLE))
+        m_processor.button_clicked[1] = false;
     if(m_processor.isMouseClicked(SDL_BUTTON_RIGHT))
         m_processor.button_clicked[2] = false;
 }

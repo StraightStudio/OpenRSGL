@@ -1,13 +1,15 @@
 #include <core.h>
 
-int main()
+int main() // Start here!
 {
+    setlocale(0, ""); // utf-8
 
-	setlocale(0, "");
+    Core* core = new Core();
 
-    Core core;
-    //
-    core.init();
-    //
-    return core.exec();
+    core->init();
+
+    int status = core->exec();
+    delete core;
+
+    return status;
 }

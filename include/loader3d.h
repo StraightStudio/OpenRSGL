@@ -10,7 +10,8 @@ class Loader3D
 public:
     Loader3D();
     ~Loader3D();
-    void LoadModel(unistring fname, Object3d *target);
+    //void LoadModel(unistring fname, Object3d *target);
+    void LoadModel(unistring fname, vector<GLfloat> *vertexData);
 };
 
 #endif

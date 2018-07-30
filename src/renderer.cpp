@@ -1,7 +1,8 @@
 #include <renderer.h>
 
 Renderer::Renderer() :
-    FBO(0), FBT(0)
+    FBO(0), FBT(0),
+    fbVAO(0), fbVBO(0)
 {
 
 }
@@ -64,18 +65,8 @@ void Renderer::render(Camera &m_cam, Scene3d *scene)
                 scene->obj(i)->draw(m_main_shader);
             }
         }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // 0 - screen
 
-    /* ======== DOESN'T WORK
-    for(size_t i=0; i < m_rendertargets.size(); i++)
-    {
-        fprintf(stdout, "Rendering object of size %d...\n", (int)m_rendertargets.at(i).m_size);
-        fflush(stdout);
-
-
-    }
-    */
 
     glBindVertexArray(fbVAO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -89,7 +80,7 @@ void Renderer::render(Camera &m_cam, Scene3d *scene)
 
     // =========== F I N I S H E D  R E N D E R
     SDL_GL_SwapWindow(m_window);
-    SDL_Delay(1000/TARGET_FPS); // 60fps
+    SDL_Delay(1000/TARGET_FPS); // 1000 / 60
 }
 
 void Renderer::initGL()
@@ -112,18 +103,7 @@ void Renderer::initGL()
 
     glShadeModel(GL_SMOOTH);
 
-    glEnable(GL_FOG);
-
     glEnable(GL_MULTISAMPLE);
-
-    //
-    GLfloat fogColor[4] = {.5f, .5f, .5f, 1.f};
-    GLfloat density = 0.3f;
-    glFogi (GL_FOG_MODE, GL_LINEAR);
-    glFogfv (GL_FOG_COLOR, fogColor);
-    glFogf (GL_FOG_DENSITY, density);
-    glHint (GL_FOG_HINT, GL_NICEST);
-    //
 
     int w,h;
     SDL_GetWindowSize(m_window, &w, &h);
@@ -137,7 +117,6 @@ void Renderer::initGL()
     m_main_shader->loadShader(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/main.frag"); // Vertex & Fragment shaders for texture
     m_outline_shader->loadShader(RES_ROOT "shaders/main.vert", RES_ROOT "shaders/outline.frag"); // Vertex & Fragment shaders for outline
     m_fbuff_shader->loadShader(RES_ROOT "shaders/fbuff.vert", RES_ROOT "shaders/fbuff.frag");
-
 
     Logger::log("Renderer", "OpenGL init complete.");
 }
@@ -164,7 +143,7 @@ void Renderer::initSDL()
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // 4.3
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetSwapInterval(1); // VSync
 
@@ -174,7 +153,6 @@ void Renderer::initSDL()
         Logger::err("Core", "Failed to init GLEW!");
 #endif
     m_iout      = SDL_CreateRenderer(m_window, -1, 0);
-
 
     if(m_window == nullptr)
     {
