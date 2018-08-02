@@ -2,7 +2,7 @@
 
 int main() // Start here!
 {
-    setlocale(0, ""); // utf-8
+    setlocale(0, "utf-8"); // utf-8
 
     Core* core = new Core();
 
