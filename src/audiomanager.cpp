@@ -2,78 +2,116 @@
 
 AudioManager::AudioManager()
 {
-
-}
-
-void AudioManager::init()
-{
-    if(Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    a_audiodevice = alcOpenDevice(NULL);
+    if(!a_audiodevice)
     {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                                 "Audio device is not open!",
-                                 "Failed to open audio device!",
-                                 NULL);
+        Logger::err("AudioManager", "Failed to open audiodevice!");
+        exit(-1);
+    }
+    else
+    {
+        Logger::log("AudioManager", "Successfully opened audiodevice.");
+    }
+    a_audiocontext = alcCreateContext(a_audiodevice, NULL);
+    alcMakeContextCurrent(a_audiocontext);
+
+    if(Mix_OpenAudio(48000, AUDIO_S16SYS, 1, 2048) != 0)
+    {
+        Logger::err("AudioManager", "Can't open audiodevice!");
         exit(-1);
     }
 }
 
-void AudioManager::clear()
+AudioManager::~AudioManager()
 {
-    for(auto &ch : a_sounds)
-    {
-        Mix_FreeChunk(ch.second);
-    }
-
-    for(auto &ms : a_music)
-    {
-        Mix_FreeMusic(ms.second);
-    }
+    clear();
 
     Mix_CloseAudio();
-    Mix_Quit();
+
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(a_audiocontext);
+    alcCloseDevice(a_audiodevice);
+}
+
+void AudioManager::clear()
+{
+    for(pair<unistring, SND_File*> sf : a_sounds)
+    {
+        sf.second->unload();
+        delete sf.second;
+    }
+
+    for(pair<unistring, MUS_File*> mf : a_music)
+    {
+        mf.second->unload();
+        delete mf.second;
+    }
 }
 
 void AudioManager::loadSounds(AppConfig &conf)
 {
     for(unistring &s : conf.getSoundAliases())
     {
-        if(!s.empty())
-            a_sounds[s] = Mix_LoadWAV( unistring( AUDIO_ROOT "sounds/"+conf.sound_files[s] ).c_str() );
+        a_sounds[s] = new SND_File;
+        a_sounds[s]->readSound(conf.sound_files.at(s));
     }
 }
 
 void AudioManager::loadMusic(AppConfig &conf)
 {
-    for(unistring &m : conf.getMusicAliases())
+    for(unistring &m : conf.getSoundAliases())
     {
-        if(!m.empty())
-            a_music[m] = Mix_LoadMUS( unistring( AUDIO_ROOT "music/"+conf.music_files[m] ).c_str() );
+        //a_music[m] = new MUS_File;
+        //a_music[m]->readMusic(conf.music_files.at(m));
     }
 }
 
-void AudioManager::playSound(unistring sound)
+void AudioManager::playSound(unistring sound, ALuint src)
 {
-    Mix_PlayChannel(-1, a_sounds[sound.c_str()], 0);
+    //if(a_sounds[sound]->audiochunk != nullptr)
+    //  Mix_PlayChannel(-1, a_sounds[sound]->audiochunk, -1);
+    a_sounds[sound]->bindSnd(src);
+
+    alSourcePlay(src);
 }
 
 void AudioManager::playMusic(unistring track, bool looped)
 {
-    if(Mix_PlayingMusic())
-        stopMusic();
-    if(looped)
-        Mix_PlayMusic(a_music[track], -1);
-    else
-        Mix_PlayMusic(a_music[track], 0);
+
 }
 
 void AudioManager::playMusic(unistring track)
 {
-    if(Mix_PlayingMusic())
-        stopMusic();
-    Mix_PlayMusic(a_music[track], 0);
+
 }
 
 void AudioManager::stopMusic()
 {
-    Mix_HaltMusic();
+}
+
+void SND_File::readSound(unistring file)
+{
+    audiochunk = Mix_LoadWAV(file.c_str());
+    if(audiochunk == nullptr)
+    {
+        Logger::err("SND_File", "I failed to load sound. Shame on me.");
+        return;
+    }
+
+    if(abuffid == 0)
+        alGenBuffers(1, &abuffid);
+    alBufferData(abuffid, AL_FORMAT_MONO16, audiochunk->abuf, audiochunk->alen, 48000);
+}
+
+void SND_File::bindSnd(ALuint src)
+{
+    alSourcei(src, AL_BUFFER, abuffid);
+}
+
+void SND_File::unload()
+{
+    if(abuffid != 0)
+        alDeleteBuffers(1, &abuffid);
+    if(audiochunk != nullptr)
+        Mix_FreeChunk(audiochunk);
 }

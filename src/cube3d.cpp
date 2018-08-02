@@ -5,6 +5,9 @@ Cube3D::Cube3D() :
     size(0,0,0)
 {
 
+
+
+
 }
 
 Cube3D::Cube3D(glm::vec3 p) :

@@ -13,10 +13,11 @@ void Core::cleanup()
 {
     Logger::log("Core", "Started cleanup...");
 
-    m_audiomgr.clear();
-
     if(m_gamescene != nullptr)
         delete m_gamescene;
+
+    if(m_audiomgr != nullptr)
+        delete m_audiomgr;
 
     SteamAPI_Shutdown();
     SDL_Quit();
@@ -26,7 +27,7 @@ void Core::init()
 {
     //Config::loadCfg(m_appconf);
     pname = m_appconf.playername;
-#ifndef STEAM
+#ifdef STEAM
     if(!SteamAPI_IsSteamRunning())
         Logger::warn("Core", "SteamAPI init error!");
     else
@@ -41,6 +42,8 @@ void Core::init()
 
     m_renderer.init(m_appconf.app_width, m_appconf.app_height);
     m_camera = Camera(90.f, (float)m_appconf.app_width/(float)m_appconf.app_height); //
+
+    m_audiomgr = new AudioManager; // INIT BEFORE CREATING OBJECTS!!!
 
     m_gamescene = new Scene3d();
     loadModels();
@@ -99,6 +102,7 @@ int Core::exec()
         }
 
         processEvents();
+        m_camera.audioUpdate();
         m_renderer.render(m_camera, m_gamescene);
     }
     return 0;

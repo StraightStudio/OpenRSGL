@@ -28,13 +28,16 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <png.h>
-
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
-#include <SDL2/SDL_ttf.h>
+
+#include <png.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <vorbis/codec.h>
+#include <vorbis/vorbisfile.h>
+
 
 #undef main // SDL Windows Fix
 

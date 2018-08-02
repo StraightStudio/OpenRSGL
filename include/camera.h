@@ -19,6 +19,9 @@ public:
     void rtsmove(glm::vec3 direction);
 
     void rotate(glm::vec3 axis, float angle);
+
+    void audioUpdate();
+
     glm::mat4 &matrix();
 
 

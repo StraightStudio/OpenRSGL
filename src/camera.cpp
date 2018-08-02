@@ -57,6 +57,14 @@ void Camera::rotate(glm::vec3 axis, float angle)
     RotationMatrix = glm::rotate(glm::mat4(), rot.x, glm::vec3(1,0,0)) * glm::rotate(glm::mat4(), rot.y, glm::vec3(0,1,0)) * glm::rotate(glm::mat4(), rot.z, glm::vec3(0,0,1));
 }
 
+void Camera::audioUpdate()
+{
+    ALfloat a_pos[] = {pos.x, pos.y, pos.z};
+    ALfloat a_dir[] = {0, 0, 0};
+    alListenerfv(AL_POSITION, a_pos);
+    alListenerfv(AL_ORIENTATION, a_dir);
+}
+
 glm::mat4x4 &Camera::matrix()
 {
     ProjectionMatrix = glm::perspective(glm::radians(m_fov), m_aspect, 0.1f, 1000.0f);

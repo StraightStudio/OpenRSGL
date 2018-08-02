@@ -6,9 +6,15 @@ Object3d::Object3d() :
     rot(glm::vec3(0,0,0)),
     ModelMatrix(glm::mat4(1.f)),
     m_vao(0),
-    selected(false)
+    selected(false),
+    apos{0.0, 0.0, 0.0}
 {
-
+    alGenSources(1, &asrc);
+    alSourcef(asrc, AL_PITCH, 1.0f);
+    alSourcef(asrc, AL_GAIN, 1.0f);
+    alSourcefv(asrc, AL_POSITION, apos);
+    alSourcei(asrc, AL_LOOPING, AL_FALSE);
+    alSourcei(asrc, AL_SOURCE_RELATIVE, AL_FALSE);
 }
 
 Object3d::~Object3d()
@@ -41,6 +47,10 @@ void Object3d::setTex(GLuint texid)
 void Object3d::move(glm::vec3 mv)
 {
     pos += mv;
+
+    apos[0] = pos.x;
+    apos[1] = pos.y;
+    apos[2] = pos.z;
     //ModelMatrix = glm::translate(ModelMatrix, pos);
 }
 
@@ -70,4 +80,9 @@ void Object3d::setModel(GLuint addr, uint sz)
 {
     m_vao = addr;
     m_size = sz;
+}
+
+ALuint Object3d::audiosource()
+{
+    return asrc;
 }

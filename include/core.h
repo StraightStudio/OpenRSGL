@@ -38,7 +38,6 @@ private:
     SDL_Event m_event;
     bool m_quit;
 
-    AudioManager m_audiomgr;
     GameEvents m_processor;
 
     AppConfig m_appconf;
@@ -50,6 +49,8 @@ private:
     Camera m_camera;
     Renderer m_renderer;
     Scene3d *m_gamescene;
+
+    AudioManager* m_audiomgr;
 
     MdlLoader m_mloader;
     TexLoader m_tloader;
