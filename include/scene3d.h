@@ -10,15 +10,15 @@ class Scene3d
 public:
     Scene3d();
     ~Scene3d();
-    const vector<Object3d *> &objs() const;
-    Object3d* obj(int i);
+    const map<unistring, Object3d*> &objs() const;
+    Object3d* obj(unistring alias);
 
-    void select(int i){ m_objects[i]->select(true); }
-    void deselect(int i){ m_objects[i]->select(false); }
+    void select(unistring i){ m_objects[i]->select(true); }
+    void deselect(unistring i){ m_objects[i]->select(false); }
 
-    void addObject(GLuint addr, uint sz, GLuint tid);
+    void addObject(GLuint addr, uint sz, GLuint tid, unistring alias);
 private:
-    vector<Object3d*> m_objects;
+    map<unistring, Object3d*> m_objects;
     Loader3D m_loader3d;
 };
 

@@ -26,20 +26,18 @@ void MdlLoader::loadModel(unistring mdl, unistring alias)
     if(m_buffers[alias] == 0)
         glGenBuffers(1, &m_buffers[alias]);
 
-    GLfloat data[vdata.size()];
-    for(int i=0; i < vdata.size(); i++)
-        data[i] = vdata.at(i);
-
     glBindVertexArray(m_VAOs[alias]);
         glBindBuffer(GL_ARRAY_BUFFER, m_buffers[alias]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(data), &data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vdata.size()*sizeof(GLfloat), vdata.data(), GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), (void*)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
     glBindVertexArray(0);
 
-    m_sizes[alias] = vdata.size()/5;
+    m_sizes[alias] = vdata.size()/8; // vx,vy,vz,tx,ty,nx,ny,nz = count(8)
 }
 
 void MdlLoader::getModelInfo(unistring alias, GLuint *addr, uint *size)

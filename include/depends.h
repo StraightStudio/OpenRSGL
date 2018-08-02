@@ -17,6 +17,7 @@
 #include <locale>
 #include <map>
 #include <boost/algorithm/string.hpp>
+#include <boost/assign.hpp>
 #include <random>
 
 

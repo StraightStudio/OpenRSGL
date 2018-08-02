@@ -13,6 +13,7 @@ public:
     void setMat4(unistring id, glm::mat4 &matrix);
     void setInt(unistring id, int value);
     void setFloat(unistring id, float value);
+    void setVec3(unistring id, glm::vec3 &vec);
 
     void loadShader(unistring fvname, unistring ffname);
 };

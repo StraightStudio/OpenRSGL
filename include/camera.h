@@ -3,7 +3,7 @@
 
 #define DEFAULT_CAM_HEIGHT 10.f
 #define DEFAULT_CAM_PITCH 60.f
-#define DEFAULT_SCROLL_SPEED 0.5f
+#define DEFAULT_SCROLL_SPEED 0.1f
 
 #include <depends.h>
 

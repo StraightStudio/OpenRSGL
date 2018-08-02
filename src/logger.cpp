@@ -8,13 +8,13 @@ void Logger::log(unistring module, unistring msg)
 
 void Logger::err(unistring module, unistring msg)
 {
-    fprintf(stdout, "\n[E] < [ %s ] - %s >!!!\n", module.c_str(), msg.c_str());
+    fprintf(stdout, "\n[E] [ %s ] - < %s >!\n", module.c_str(), msg.c_str());
     fflush(stdout);
 }
 
 void Logger::warn(unistring module, unistring msg)
 {
-    fprintf(stdout, "\n[W] { %s } %s\n", module.c_str(), msg.c_str());
+    fprintf(stdout, "\n[W] %s { %s }\n", module.c_str(), msg.c_str());
     fflush(stdout);
 }
 

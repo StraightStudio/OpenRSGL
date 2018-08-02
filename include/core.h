@@ -13,6 +13,7 @@
 #include <renderer.h>
 #include <mdlloader.h>
 #include <texloader.h>
+#include <pawn.h>
 
 class Core
 {

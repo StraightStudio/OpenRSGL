@@ -112,3 +112,8 @@ void Shader::setFloat(unistring id, float value)
 {
     glUniform1f(glGetUniformLocation(ID, id.c_str()), value);
 }
+
+void Shader::setVec3(unistring id, glm::vec3 &vec)
+{
+    glUniform3fv(glGetUniformLocation(ID, id.c_str()), 1, &vec[0]);
+}

@@ -26,6 +26,8 @@ public:
     void releaseMouse();
 
     void genTexture(int w, int h, bool isDepth, GLuint &texture);
+
+    glm::vec3 lpos; // Light position
 private:
     Shader  *m_main_shader,
             *m_outline_shader,
@@ -37,6 +39,8 @@ private:
     SDL_Window* m_window;
     SDL_Renderer* m_iout;
     SDL_GLContext m_glcontext;
+
+    glm::vec3 lcolor; // Light color
 };
 
 #endif

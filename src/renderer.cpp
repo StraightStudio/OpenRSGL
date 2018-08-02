@@ -4,7 +4,8 @@ Renderer::Renderer() :
     FBO(0), FBT(0),
     fbVAO(0), fbVBO(0)
 {
-
+    lpos = glm::vec3(0.f, 1.f, 0.f);
+    lcolor = glm::vec3(1.f, 1.f, 1.f);
 }
 Renderer::~Renderer()
 {
@@ -34,36 +35,15 @@ void Renderer::render(Camera &m_cam, Scene3d *scene)
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        for(int i=0; i < scene->objs().size(); i++)
+        for(auto& obj : scene->objs())
         {
-            if(scene->obj(i)->isSelected())
-            {
-                glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-                glStencilFunc(GL_ALWAYS, 1, 0xFF);
-                glStencilMask(0xFF);
-                glEnable(GL_DEPTH_TEST);
-                scene->obj(i)->scale(1.f);
-                m_main_shader->use();
-                m_main_shader->setMat4("View", m_cam.matrix());
-                scene->obj(i)->draw(m_main_shader);
-
-                glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-                glStencilMask(0x00);
-                glDisable(GL_DEPTH_TEST);
-                scene->obj(i)->scale(1.1f);
-                m_outline_shader->use();
-                m_outline_shader->setMat4("View", m_cam.matrix());
-                scene->obj(i)->draw(m_outline_shader);
-                glStencilMask(0xFF);
-                glEnable(GL_DEPTH_TEST);
-            }
-            else
-            {
-                scene->obj(i)->scale(1.f);
-                m_main_shader->use();
-                m_main_shader->setMat4("View", m_cam.matrix());
-                scene->obj(i)->draw(m_main_shader);
-            }
+            m_main_shader->use();
+            //
+            m_main_shader->setVec3("ligtPos", lpos);
+            m_main_shader->setVec3("lightColor", lcolor);
+            //
+            m_main_shader->setMat4("View", m_cam.matrix());
+            obj.second->draw(m_main_shader);
         }
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // 0 - screen
 

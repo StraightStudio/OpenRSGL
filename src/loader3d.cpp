@@ -106,6 +106,7 @@ void Loader3D::LoadModel(unistring fname, vector<GLfloat> *vertexData)
     unistrlist parts;
     vector <glm::vec3> coords;
     vector <glm::vec2> texcoords;
+    vector <glm::vec3> normals;
     unistrlist trio;
 
     vertexData->clear();
@@ -123,7 +124,10 @@ void Loader3D::LoadModel(unistring fname, vector<GLfloat> *vertexData)
             }
             else if(ts[1] == 'n') // Normal coords
             {
-
+                split(parts, ts, is_any_of(" "));
+                if(parts.size() < 4)
+                    break;
+                normals.push_back( glm::vec3(atof(parts.at(1).c_str()), atof(parts.at(2).c_str()), atof(parts.at(3).c_str()) ) );
             }
             else
             {
@@ -144,7 +148,7 @@ void Loader3D::LoadModel(unistring fname, vector<GLfloat> *vertexData)
                 trio.clear();
                 split(trio, parts.at(i), is_any_of("/"));
 
-                if(trio.size() < 2)
+                if(trio.size() < 3)
                     break;
 
                 vertexData->push_back( coords.at( atol(trio.at(0).c_str())-1).x );
@@ -161,6 +165,10 @@ void Loader3D::LoadModel(unistring fname, vector<GLfloat> *vertexData)
                     vertexData->push_back( 0.f );
                     vertexData->push_back( 0.f );
                 }
+
+                vertexData->push_back( normals.at( atol(trio.at(2).c_str())-1).x );
+                vertexData->push_back( normals.at( atol(trio.at(2).c_str())-1).y );
+                vertexData->push_back( normals.at( atol(trio.at(2).c_str())-1).z );
             }
         }
     }
