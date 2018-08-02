@@ -35,9 +35,6 @@
 #include <png.h>
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <vorbis/codec.h>
-#include <vorbis/vorbisfile.h>
-
 
 #undef main // SDL Windows Fix
 
