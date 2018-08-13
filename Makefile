@@ -13,7 +13,12 @@ LIB_PATH=bin/lib64
 
 LD_LIBS=-L/usr/lib64/				\
 		-L$(LIB_PATH)			\
-		-lm -lpthread			\
+		-lGLEW -lGLU -lm -lGL -lm 	\
+		-lpthread -pthread -ldl -ldrm	\
+		-lXdamage -lXfixes -lX11-xcb 	\
+		-lxcb-glx -lxcb-dri2 -lXxf86vm 	\
+		-lXext -lX11 -lpthread -lxcb	\
+		 -lXau -lXdmcp 			\
 		-lSDL2				\
 		-lSDL2_image			\
 		-lSDL2_mixer			\
@@ -29,7 +34,7 @@ LD_LIBS=-L/usr/lib64/				\
 INCLUDE=-I/usr/include/ -Iinclude/
 
 NOWARNS=-Wno-parentheses -Wno-write-strings -Wno-narrowing
-CXXFLAGS= $(NOWARNS) -O2 $(INCLUDE) $(DEBUG) -std=c++17
+CXXFLAGS= $(NOWARNS) -O2 $(INCLUDE) $(DEBUG) -std=c++11
 
 SRCFILES=$(wildcard $(SRCDIR)/*)
 OBJFILES=$(SRCFILES:$(SRCDIR)/%.cpp=%.o)
@@ -40,7 +45,7 @@ OBJFILES=$(SRCFILES:$(SRCDIR)/%.cpp=%.o)
 all: $(OBJFILES)
 	@echo Building $(VERSION) version
 	@sed -i 's/#define DW_VERSION.*/#define DW_VERSION "$(VERSION)"/g' include/config.h
-	$(CXX) $(CXXFLAGS) $(LD_LIBS) main.cpp -o $(TARGET) $(OBJFILES)
+	$(CXX) $(CXXFLAGS) main.cpp -o $(TARGET) $(OBJFILES) $(LD_LIBS)
 	@echo Compilation complete.
 
 shipment:

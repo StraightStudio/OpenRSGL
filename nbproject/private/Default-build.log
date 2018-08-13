@@ -1,0 +1,21 @@
+g++ -c -Wno-parentheses -Wno-write-strings -Wno-narrowing -O2 -I/usr/include/ -Iinclude/ -g -std=c++17 src/cube3d.cpp -o cube3d.o
+g++ -c -Wno-parentheses -Wno-write-strings -Wno-narrowing -O2 -I/usr/include/ -Iinclude/ -g -std=c++17 src/loader3d.cpp -o loader3d.o
+g++ -c -Wno-parentheses -Wno-write-strings -Wno-narrowing -O2 -I/usr/include/ -Iinclude/ -g -std=c++17 src/object3d.cpp -o object3d.o
+g++ -c -Wno-parentheses -Wno-write-strings -Wno-narrowing -O2 -I/usr/include/ -Iinclude/ -g -std=c++17 src/logger.cpp -o logger.o
+make: g++: Command not found
+g++ -c -Wno-parentheses -Wno-write-strings -Wno-narrowing -O2 -I/usr/include/ -Iinclude/ -g -std=c++17 src/audiomanager.cpp -o audiomanager.o
+make: g++: Command not found
+Makefile:38: recipe for target 'cube3d.o' failed
+make: *** [cube3d.o] Error 127
+make: *** Ожидание завершения заданий…
+Makefile:38: recipe for target 'loader3d.o' failed
+make: *** [loader3d.o] Error 127
+make: g++: Command not found
+Makefile:38: recipe for target 'audiomanager.o' failed
+make: *** [audiomanager.o] Error 127
+make: g++: Command not found
+make: g++: Command not found
+Makefile:38: recipe for target 'object3d.o' failed
+make: *** [object3d.o] Error 127
+Makefile:38: recipe for target 'logger.o' failed
+make: *** [logger.o] Error 127
