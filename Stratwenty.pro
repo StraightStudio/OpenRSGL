@@ -1,6 +1,7 @@
 TARGET = Stratwenty
 
-CONFIG = c++17
+CONFIG += c++17 console
+CONFIG -= qt
 
 INCLUDEPATH +=  /usr/include/ \
                 include/

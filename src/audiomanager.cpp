@@ -1,5 +1,7 @@
 #include <audiomanager.h>
 
+ALuint AudioManager::zeroSrc = (ALuint)NULL;
+
 AudioManager::AudioManager()
 {
     a_audiodevice = alcOpenDevice(NULL);
@@ -20,6 +22,11 @@ AudioManager::AudioManager()
         Logger::err("AudioManager", "Can't open audiodevice!");
         exit(-1);
     }
+    alGenSources(1, &zeroSrc);
+    alSourcef(zeroSrc, AL_PITCH, 1.0f);
+    alSourcef(zeroSrc, AL_GAIN, 1.0f);
+    alSourcei(zeroSrc, AL_LOOPING, false);
+    alSourcei(zeroSrc, AL_SOURCE_RELATIVE, true);
 }
 
 AudioManager::~AudioManager()
@@ -46,24 +53,27 @@ void AudioManager::clear()
         mf.second->unload();
         delete mf.second;
     }
+    alDeleteSources(1, &zeroSrc);
 }
 
-void AudioManager::loadSounds(AppConfig &conf)
+void AudioManager::loadSounds(AppConfig *conf)
 {
-    for(unistring &s : conf.getSoundAliases())
+    for(auto& si : conf->sound_files)
     {
-        a_sounds[s] = new SND_File;
-        a_sounds[s]->readSound(conf.sound_files.at(s));
+        a_sounds[si.first] = new SND_File;
+        a_sounds[si.first]->readSound(si.second);
     }
 }
 
-void AudioManager::loadMusic(AppConfig &conf)
+void AudioManager::loadMusic(AppConfig *conf)
 {
-    for(unistring &m : conf.getSoundAliases())
-    {
-        //a_music[m] = new MUS_File;
-        //a_music[m]->readMusic(conf.music_files.at(m));
-    }
+
+}
+
+void AudioManager::loadSound(unistring sndfile, unistring alias)
+{
+    a_sounds[alias] = new SND_File;
+    a_sounds[alias]->readSound(sndfile);
 }
 
 void AudioManager::playSound(unistring sound, ALuint src)
@@ -71,7 +81,6 @@ void AudioManager::playSound(unistring sound, ALuint src)
     //if(a_sounds[sound]->audiochunk != nullptr)
     //  Mix_PlayChannel(-1, a_sounds[sound]->audiochunk, -1);
     a_sounds[sound]->bindSnd(src);
-
     alSourcePlay(src);
 }
 
@@ -87,6 +96,11 @@ void AudioManager::playMusic(unistring track)
 
 void AudioManager::stopMusic()
 {
+}
+
+ALuint AudioManager::zero()
+{
+    return zeroSrc;
 }
 
 void SND_File::readSound(unistring file)
@@ -114,4 +128,19 @@ void SND_File::unload()
         alDeleteBuffers(1, &abuffid);
     if(audiochunk != nullptr)
         Mix_FreeChunk(audiochunk);
+}
+
+void MUS_File::readMusic()
+{
+
+}
+
+void MUS_File::bindMusic()
+{
+
+}
+
+void MUS_File::unload()
+{
+
 }

@@ -21,7 +21,7 @@ struct Texture
 
     }
 
-    void loadTex(unistring fname);
+    void loadTex(unistring fname, bool cubemap=false);
     void unloadTex()
     {
         width,height = 0;
@@ -37,9 +37,13 @@ public:
     ~TexLoader();
 
     void loadTexture(unistring tf, unistring alias);
+    GLuint loadTexture(unistring tf);
+    void loadCubemap(vector<unistring> cbf, int id);
     void getTextureInfo(unistring alias, GLuint *texid);
+    GLuint cubemap(int id);
 private:
     map<unistring, GLuint> m_texids;
+    vector<GLuint> m_cubemaps;
     Texture tmptex;
 };
 

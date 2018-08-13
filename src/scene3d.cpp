@@ -21,16 +21,6 @@ Object3d *Scene3d::obj(unistring alias)
     return m_objects[alias];
 }
 
-//void Scene3d::addObject(GLuint addr, uint sz, GLuint tid)
-//{
-//    Object3d* tmp = new Object3d();
-
-//    tmp->setModel(addr, sz);
-//    tmp->setTex(tid);
-
-//    m_objects.push_back(tmp);
-//}
-
 void Scene3d::addObject(GLuint addr, uint sz, GLuint tid, unistring alias)
 {
     Object3d* tmp = new Object3d();

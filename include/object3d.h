@@ -19,6 +19,8 @@ public:
     void rotate(glm::vec3 axis, float angle);
     void scale(float factor);
 
+    void setPos(glm::vec3 newpos);
+
     void select(bool yes);
     bool isSelected();
     uint vertexCount();

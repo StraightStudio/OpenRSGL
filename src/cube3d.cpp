@@ -28,3 +28,12 @@ bool Cube3D::collides(Cube3D other)
 {
     return false;
 }
+
+bool Cube3D::consist(glm::vec2 point)
+{
+    if(point.x >= pos.x-size.x/2 && point.x <= pos.x+size.x/2)
+    {
+        return true;
+    }
+    return false;
+}

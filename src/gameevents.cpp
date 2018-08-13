@@ -25,19 +25,14 @@ bool GameEvents::rectOverlap(Cube3D &first, Cube3D &last)
 {
     if(first.empty() || last.empty())
         return false;
-
     if(first.collides(last))
         return true;
-    else
-        return false;
+    return false;
 }
 
-bool GameEvents::isMouseOver(Cube3D &other)
+bool GameEvents::isMouseOver(Camera *m_cam, Cube3D *other)
 {
-    if(other.collides( Cube3D(mousePos()) ))
-        return true;
-    else
-        return false;
+    return false;
 }
 
 bool GameEvents::isMouseDown(int mbtn)

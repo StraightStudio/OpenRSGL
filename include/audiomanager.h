@@ -25,8 +25,11 @@ struct SND_File
 
 struct MUS_File
 {
-    void unload()
-    {}
+    void readMusic();
+
+    void bindMusic();
+
+    void unload();
 };
 
 class AudioManager
@@ -37,14 +40,16 @@ public:
 
     void clear();
 
-    void loadSounds(AppConfig &conf);
-    void loadMusic(AppConfig &conf);
+    void loadSounds(AppConfig *conf);
+    void loadMusic(AppConfig *conf);
+    void loadSound(unistring sndfile, unistring alias);
 
     void playSound(unistring sound, ALuint src);
-
     void playMusic(unistring track);
     void playMusic(unistring track, bool looped);
     void stopMusic();
+
+    static ALuint zero();
 private:
     map<unistring, SND_File*> a_sounds;
     map<unistring, MUS_File*> a_music;
@@ -52,7 +57,7 @@ private:
     ALCdevice* a_audiodevice;
     ALCcontext* a_audiocontext;
 
-    ALuint test_src;
+    static ALuint zeroSrc;
 };
 
 #endif // AUDIOMANAGER_H

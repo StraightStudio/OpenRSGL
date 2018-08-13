@@ -42,23 +42,51 @@ void TexLoader::loadTexture(unistring tf, unistring alias)
             }
         }
         glBindTexture(GL_TEXTURE_2D, m_texids[alias]);
+        glActiveTexture(GL_TEXTURE0);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TEX_SIZE, TEX_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, &checkImage);
     }
     else
     {
         tmptex.loadTex(tf);
-
-        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_texids[alias]);
+		glActiveTexture(GL_TEXTURE0);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tmptex.width, tmptex.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmptex.data);
-
         tmptex.unloadTex();
     }
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
+
+    float *maxA = (float*)calloc(1, sizeof(float));
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, maxA);
+    float a_amount = min(4.f, *maxA);
+    if(maxA != NULL)
+    	free(maxA);
+    glTextureParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, a_amount);
     glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture
+}
+
+void TexLoader::loadCubemap(vector<unistring> cbf, int id)
+{
+    m_cubemaps.resize(id+1, 0);
+    if(m_cubemaps[id] == 0)
+        glGenTextures(1, &m_cubemaps[id]);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemaps[id]);
+    for(int i=0; i < 6; i++)
+    {
+        tmptex.loadTex(cbf[i], true);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_RGB, tmptex.width, tmptex.height,
+                     0, GL_RGB, GL_UNSIGNED_BYTE, tmptex.data);
+        tmptex.unloadTex();
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
 void TexLoader::getTextureInfo(unistring alias, GLuint *texid)
@@ -72,9 +100,17 @@ void TexLoader::getTextureInfo(unistring alias, GLuint *texid)
     *texid = m_texids.at(alias);
 }
 
+GLuint TexLoader::cubemap(int id)
+{
+    if(id < m_cubemaps.size())
+        return m_cubemaps[id];
+    else
+        return 0;
+}
 
 
-void Texture::loadTex(unistring fname)
+
+void Texture::loadTex(unistring fname, bool cubemap)
 {
     png_structp png_ptr;
     png_infop info_ptr;
@@ -172,11 +208,20 @@ void Texture::loadTex(unistring fname)
 
     png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 
-    for (int i = 0; i < height; i++) {
-        // note that png is ordered top to
-        // bottom, but OpenGL expect it bottom to top
-        // so the order or swapped
-        memcpy(data+(row_bytes * (height-1-i)), row_pointers[i], row_bytes);
+    if(cubemap)
+    {
+        for(int i=0; i < height; i++)
+            memcpy(data+(row_bytes*i), row_pointers[i], row_bytes);
+    }
+    else
+    {
+        for (int i = 0; i < height; i++)
+        {
+            // note that png is ordered top to
+            // bottom, but OpenGL expect it bottom to top
+            // so the order or swapped
+            memcpy(data+(row_bytes * (height-1-i)), row_pointers[i], row_bytes);
+        }
     }
 
     /* Clean up after the read,
@@ -186,4 +231,59 @@ void Texture::loadTex(unistring fname)
     /* Close the file */
     fclose(fp);
     Logger::log("Texture", "Successfully loaded "+fname);
+}
+
+GLuint TexLoader::loadTexture(unistring tf)
+{
+	GLuint texid;
+	glGenTextures(1, &texid);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texid); // Bind texture
+	if(tf == "none")
+	{
+		uchar checkImage[TEX_SIZE][TEX_SIZE][RGBAC]; // R,G,B,A = 4
+		// Create purple-black checker
+		int i, j;
+		bool c=true;
+
+		for (i = 0; i < TEX_SIZE; i++) {
+			for (j = 0; j < TEX_SIZE; j++) {
+				checkImage[i][j][0] = (uchar) c == true ? 255: 0;
+				checkImage[i][j][1] = (uchar)0;
+				checkImage[i][j][2] = (uchar) c == true ? 255: 0;
+				checkImage[i][j][3] = (uchar) 255;
+
+				if(j == TEX_SIZE-1)
+				{
+					if(c) // if purple
+						c = true;
+					else // if black
+						c = false;
+				}
+				else
+					c = !c;
+			}
+		}
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TEX_SIZE, TEX_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, &checkImage);
+	}
+	else
+	{
+		tmptex.loadTex(tf);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tmptex.width, tmptex.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmptex.data);
+		tmptex.unloadTex();
+	}
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTextureParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
+	float *maxA = (float*)calloc(1, sizeof(float));
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, maxA);
+	float a_amount = min(4.f, *maxA);
+	if(maxA != NULL)
+		free(maxA);
+	glTextureParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, a_amount);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture
+	return texid;
 }

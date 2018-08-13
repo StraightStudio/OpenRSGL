@@ -66,6 +66,11 @@ void Object3d::scale(float factor)
     //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(m_scale, m_scale, m_scale));
 }
 
+void Object3d::setPos(glm::vec3 newpos)
+{
+    pos = newpos;
+}
+
 void Object3d::select(bool yes)
 {
     selected = yes;

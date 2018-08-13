@@ -3,11 +3,14 @@
 
 #define VERTEX_DATA 0x766572
 
+#define GAME_PORT 48684
+
 #define TEX_SIZE 512
 #define RGBC 3
 #define RGBAC 4
 #define VEC3_UP 0,1,0
 
+#include <array>
 #include <algorithm>
 #include <fstream>
 #include <cstdio>
@@ -39,6 +42,9 @@
 
 #undef main // SDL Windows Fix
 
+using namespace std;
+using namespace boost;
+
 #ifndef uint
 typedef unsigned int uint;
 #endif
@@ -50,8 +56,8 @@ typedef unsigned char uchar;
 #endif
 
 typedef std::string unistring;
-
 typedef std::vector<unistring> unistrlist;
+typedef char32_t u8char;
 // ---------------------------------------------------------------------------------
 
 #define TARGET_FPS 60
@@ -102,8 +108,5 @@ typedef std::vector<unistring> unistrlist;
 #define DESELECTED_BUILDING_ACTION 0xfbd72d // FuckingBuildingDese7ec2eD
 
 #define QUIT_ACTION         0x2a        // Just for fun
-
-using namespace std;
-using namespace boost;
 
 #endif

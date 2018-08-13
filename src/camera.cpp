@@ -1,21 +1,13 @@
 #include <camera.h>
 
-Camera::Camera() :
-    pos(glm::vec3(0,DEFAULT_CAM_HEIGHT,0)),
-    rot(glm::vec3(-DEFAULT_CAM_PITCH,0,0)),
-    m_fov(90.f),
-    m_aspect(1.6),
-    m_speed(DEFAULT_SCROLL_SPEED),
-
-    cam_front(glm::vec3(0,0,-1)),
-    cam_up(glm::vec3(0,1,0))
+Camera::Camera()
 {
-
+    Camera(90.f, 1.6f);
 }
 
 
 Camera::Camera(float fov, float aspect) :
-    pos(glm::vec3(0,DEFAULT_CAM_HEIGHT,0)),
+    pos(glm::vec3(-.5f,DEFAULT_CAM_HEIGHT,0)),
     rot(glm::vec3(-DEFAULT_CAM_PITCH,0,0)),
     m_fov(fov),
     m_aspect(aspect),
@@ -24,7 +16,16 @@ Camera::Camera(float fov, float aspect) :
     cam_front(glm::vec3(0,0,-1)),
     cam_up(glm::vec3(0,1,0))
 {
+    audio_position = (ALfloat*)calloc(3, sizeof(ALfloat)); // Memory for position (x,y,z)
+    audio_direction = (ALfloat*)calloc(3, sizeof(ALfloat)); // Memory for direction (x,y,z)
+}
 
+Camera::~Camera()
+{
+    if(audio_position != nullptr)
+        free(audio_position);
+    if(audio_direction != nullptr)
+        free(audio_direction);
 }
 
 void Camera::move(float mx, float my, float mz)
@@ -35,6 +36,11 @@ void Camera::move(float mx, float my, float mz)
 void Camera::move(glm::vec3 mv)
 {
     pos += mv*m_speed;
+}
+
+void Camera::setPos(glm::vec3 newpos)
+{
+    pos = newpos;
 }
 
 void Camera::rtsmove(glm::vec3 direction)
@@ -52,17 +58,28 @@ void Camera::rtsmove(glm::vec3 direction)
 
 void Camera::rotate(glm::vec3 axis, float angle)
 {
-    rot += glm::normalize(axis) * glm::radians(angle);
+    rot += glm::normalize(axis) * angle;
 
     RotationMatrix = glm::rotate(glm::mat4(), rot.x, glm::vec3(1,0,0)) * glm::rotate(glm::mat4(), rot.y, glm::vec3(0,1,0)) * glm::rotate(glm::mat4(), rot.z, glm::vec3(0,0,1));
 }
 
 void Camera::audioUpdate()
 {
-    ALfloat a_pos[] = {pos.x, pos.y, pos.z};
-    ALfloat a_dir[] = {0, 0, 0};
-    alListenerfv(AL_POSITION, a_pos);
-    alListenerfv(AL_ORIENTATION, a_dir);
+    audio_position[0] = pos.x; audio_position[1] = pos.y; audio_position[2] = pos.z;
+    audio_direction[0] = 0; audio_direction[1] = 0; audio_direction[2] = 0;
+
+    alListenerfv(AL_POSITION, audio_position);
+    alListenerfv(AL_ORIENTATION, audio_direction);
+}
+
+glm::vec3 &Camera::fwdVector()
+{
+    return cam_front;
+}
+
+glm::vec3 &Camera::getPos()
+{
+    return pos;
 }
 
 glm::mat4x4 &Camera::matrix()

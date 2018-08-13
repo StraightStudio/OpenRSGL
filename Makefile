@@ -1,6 +1,6 @@
 VERSION=$(shell date +%m%Y) prerelease
 
-TARGET=Stratwenty
+TARGET=OpenRSGL
 ARCH=elf_x86_64
 
 DEBUG=-g
@@ -11,13 +11,12 @@ SRCDIR=src
 
 LIB_PATH=bin/lib64
 
-LD_LIBS=-L/usr/lib64/		\
-		-L$(LIB_PATH)		\
-		-lm -lpthread		\
+LD_LIBS=-L/usr/lib64/				\
+		-L$(LIB_PATH)			\
+		-lm -lpthread			\
 		-lSDL2				\
-		-lSDL2_image		\
-		-lSDL2_mixer		\
-		-lSDL2_ttf			\
+		-lSDL2_image			\
+		-lSDL2_mixer			\
 		-lSDL2_net			\
 		-lsteam_api			\
 		-ldl				\
@@ -45,7 +44,7 @@ all: $(OBJFILES)
 	@echo Compilation complete.
 
 shipment:
-	@tar -cvpf Stratwenty_release.tar.gz ../$(TARGET)/$(TARGET) ../$(TARGET)/$(TARGET).exe ../$(TARGET)/start.sh ../$(TARGET)/bin/ ../$(TARGET)/data/datapkg ../$(TARGET)/data/config.json ../$(TARGET)/steam_appid.txt ../$(TARGET)/start.bat
+	@tar -cvpf $(TARGET)_release.tar.gz ../$(TARGET)/$(TARGET) ../$(TARGET)/$(TARGET).exe ../$(TARGET)/start.sh ../$(TARGET)/bin/ ../$(TARGET)/data/datapkg ../$(TARGET)/data/config.json ../$(TARGET)/steam_appid.txt ../$(TARGET)/start.bat
 
 clean:
 	@rm -f *.o

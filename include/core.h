@@ -1,60 +1,74 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include <logger.h>
 #include <depends.h>
-#include <gameevents.h>
+#include <logger.h>
 #include <audiomanager.h>
 #include <camera.h>
 #include <loader3d.h>
 #include <object3d.h>
 #include <scene3d.h>
 #include <shader.h>
-#include <renderer.h>
 #include <mdlloader.h>
 #include <texloader.h>
-#include <pawn.h>
+
+class GameEvents;
+#include <gameevents.h>
+
+class NetworkManager;
+#include <networkmanager.h>
+
+class Renderer;
+#include <renderer.h>
 
 class Core
 {
 public:
     Core();
     ~Core();
-    void init();
+    void init(bool server);
     void cleanup();
     int exec();
 
     void draw_objs3D();
 
+    void loadTextures();
     void loadModels();
+    void loadAudio();
 
     void processEvents();
 
+    void initChess();
+
+    void connect(unistring ip, uint16_t port);
     //
-    void updateConsole();
+    void onClientJoin(unistring addr);
+    void onServerJoin(unistring addr);
+    void onDisconnect(unistring addr);
 
+    void netUpdate();
+    //
+    GLuint getCubemap(int id);
+
+    static Core *sharedPtr();
 private:
-    unistring current_scene;
-
-    SDL_Event m_event;
+    SDL_Event* m_event;
     bool m_quit;
 
-    GameEvents m_processor;
+    GameEvents* m_processor;
+    AppConfig* m_appconf;
 
-    AppConfig m_appconf;
-
-    // ================ O P E N  G L   V A R I A B L E S ================
-    // etc...
-    unistring pname;
-
-    Camera m_camera;
-    Renderer m_renderer;
-    Scene3d *m_gamescene;
+    Camera* m_camera;
+    Renderer* m_renderer;
+    Scene3d* m_gamescene;
 
     AudioManager* m_audiomgr;
+    NetworkManager* m_netmgr;
 
-    MdlLoader m_mloader;
-    TexLoader m_tloader;
+    MdlLoader* m_mloader;
+    TexLoader* m_tloader;
+
+    static Core* shared_instance; // Engine-only var
 };
 
 #endif // CORE_H

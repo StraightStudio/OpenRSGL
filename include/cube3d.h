@@ -12,8 +12,10 @@ public:
 
     glm::vec3 pos;
     glm::vec3 size;
+    int_fast16_t id;
 
     bool collides(Cube3D other);
+    bool consist(glm::vec2 point);
 
     bool empty()
     {
